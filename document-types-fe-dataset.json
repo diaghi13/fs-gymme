@@ -1,0 +1,200 @@
+[
+    {
+        "RelazioneTipoDocumentoFeId": 1,
+        "TipoDocumentoFeId": 1,
+        "Codice": "TD01",
+        "Descrizione": "Fattura",
+        "DescrizioneCompleta": "TD01 - Fattura",
+        "TipoDocumentoId": 1,
+        "TipoDocumento": "Fattura",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": false
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 2,
+        "TipoDocumentoFeId": 6,
+        "Codice": "TD06",
+        "Descrizione": "Parcella",
+        "DescrizioneCompleta": "TD06 - Parcella",
+        "TipoDocumentoId": 1,
+        "TipoDocumento": "Fattura",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": false
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 3,
+        "TipoDocumentoFeId": 26,
+        "Codice": "TD26",
+        "Descrizione": "Cessione di beni ammortizzabili (ex art.36 DPR 633/72)",
+        "DescrizioneCompleta": "TD26 - Cessione di beni ammortizzabili (ex art.36 DPR 633/72)",
+        "TipoDocumentoId": 1,
+        "TipoDocumento": "Fattura",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": true
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 4,
+        "TipoDocumentoFeId": 27,
+        "Codice": "TD26",
+        "Descrizione": "Passaggi interni (ex art.36 DPR 633/72)",
+        "DescrizioneCompleta": "TD26 - Passaggi interni (ex art.36 DPR 633/72)",
+        "TipoDocumentoId": 1,
+        "TipoDocumento": "Fattura",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": true
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 5,
+        "TipoDocumentoFeId": 28,
+        "Codice": "TD27",
+        "Descrizione": "Fattura per autoconsumo",
+        "DescrizioneCompleta": "TD27 - Fattura per autoconsumo",
+        "TipoDocumentoId": 1,
+        "TipoDocumento": "Fattura",
+        "GestibileDaMobile": false,
+        "PuoFatturareASeStesso": true
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 6,
+        "TipoDocumentoFeId": 29,
+        "Codice": "TD27",
+        "Descrizione": "Per cessioni gratuite senza rivalsa",
+        "DescrizioneCompleta": "TD27 - Per cessioni gratuite senza rivalsa",
+        "TipoDocumentoId": 1,
+        "TipoDocumento": "Fattura",
+        "GestibileDaMobile": false,
+        "PuoFatturareASeStesso": true
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 7,
+        "TipoDocumentoFeId": 24,
+        "Codice": "TD24",
+        "Descrizione": "Fattura differita di cui all'art. 21 comma 4, terzo periodo lett. a) DPR 633/72",
+        "DescrizioneCompleta": "TD24 - Fattura differita di cui all'art. 21 comma 4, terzo periodo lett. a) DPR 633/72",
+        "TipoDocumentoId": 8,
+        "TipoDocumento": "Fattura differita",
+        "GestibileDaMobile": false,
+        "PuoFatturareASeStesso": false
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 8,
+        "TipoDocumentoFeId": 25,
+        "Codice": "TD25",
+        "Descrizione": "Fattura differita di cui all'art. 21 comma 4, terzo periodo lett. b) DPR 633/72",
+        "DescrizioneCompleta": "TD25 - Fattura differita di cui all'art. 21 comma 4, terzo periodo lett. b) DPR 633/72",
+        "TipoDocumentoId": 8,
+        "TipoDocumento": "Fattura differita",
+        "GestibileDaMobile": false,
+        "PuoFatturareASeStesso": false
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 9,
+        "TipoDocumentoFeId": 1,
+        "Codice": "TD01",
+        "Descrizione": "Fattura",
+        "DescrizioneCompleta": "TD01 - Fattura",
+        "TipoDocumentoId": 2,
+        "TipoDocumento": "Fattura accompagnatoria",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": false
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 10,
+        "TipoDocumentoFeId": 26,
+        "Codice": "TD26",
+        "Descrizione": "Cessione di beni ammortizzabili (ex art.36 DPR 633/72)",
+        "DescrizioneCompleta": "TD26 - Cessione di beni ammortizzabili (ex art.36 DPR 633/72)",
+        "TipoDocumentoId": 2,
+        "TipoDocumento": "Fattura accompagnatoria",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": true
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 11,
+        "TipoDocumentoFeId": 27,
+        "Codice": "TD26",
+        "Descrizione": "Passaggi interni (ex art.36 DPR 633/72)",
+        "DescrizioneCompleta": "TD26 - Passaggi interni (ex art.36 DPR 633/72)",
+        "TipoDocumentoId": 2,
+        "TipoDocumento": "Fattura accompagnatoria",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": true
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 12,
+        "TipoDocumentoFeId": 28,
+        "Codice": "TD27",
+        "Descrizione": "Fattura per autoconsumo",
+        "DescrizioneCompleta": "TD27 - Fattura per autoconsumo",
+        "TipoDocumentoId": 2,
+        "TipoDocumento": "Fattura accompagnatoria",
+        "GestibileDaMobile": false,
+        "PuoFatturareASeStesso": true
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 13,
+        "TipoDocumentoFeId": 29,
+        "Codice": "TD27",
+        "Descrizione": "Per cessioni gratuite senza rivalsa",
+        "DescrizioneCompleta": "TD27 - Per cessioni gratuite senza rivalsa",
+        "TipoDocumentoId": 2,
+        "TipoDocumento": "Fattura accompagnatoria",
+        "GestibileDaMobile": false,
+        "PuoFatturareASeStesso": true
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 14,
+        "TipoDocumentoFeId": 4,
+        "Codice": "TD04",
+        "Descrizione": "Nota di credito",
+        "DescrizioneCompleta": "TD04 - Nota di credito",
+        "TipoDocumentoId": 3,
+        "TipoDocumento": "Nota di credito",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": true
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 15,
+        "TipoDocumentoFeId": 5,
+        "Codice": "TD05",
+        "Descrizione": "Nota di debito",
+        "DescrizioneCompleta": "TD05 - Nota di debito",
+        "TipoDocumentoId": 4,
+        "TipoDocumento": "Nota di debito",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": true
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 16,
+        "TipoDocumentoFeId": 2,
+        "Codice": "TD02",
+        "Descrizione": "Acconto/anticipo su fattura",
+        "DescrizioneCompleta": "TD02 - Acconto/anticipo su fattura",
+        "TipoDocumentoId": 5,
+        "TipoDocumento": "Fattura d'acconto",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": false
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 17,
+        "TipoDocumentoFeId": 3,
+        "Codice": "TD03",
+        "Descrizione": "Acconto/anticipo su parcella",
+        "DescrizioneCompleta": "TD03 - Acconto/anticipo su parcella",
+        "TipoDocumentoId": 5,
+        "TipoDocumento": "Fattura d'acconto",
+        "GestibileDaMobile": true,
+        "PuoFatturareASeStesso": false
+    },
+    {
+        "RelazioneTipoDocumentoFeId": 18,
+        "TipoDocumentoFeId": 21,
+        "Codice": "TD21",
+        "Descrizione": "Autofattura per splafonamento",
+        "DescrizioneCompleta": "TD21 - Autofattura per splafonamento",
+        "TipoDocumentoId": 9,
+        "TipoDocumento": "Autofattura per splafonamento",
+        "GestibileDaMobile": false,
+        "PuoFatturareASeStesso": true
+    }
+]

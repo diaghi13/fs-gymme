@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<b:FatturaElettronica xmlns:b="http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2" versione="FPR12">
+  <FatturaElettronicaHeader>
+    <DatiTrasmissione>
+      <IdTrasmittente>
+        <IdPaese>IT</IdPaese>
+        <IdCodice>12281740154</IdCodice>
+      </IdTrasmittente>
+      <ProgressivoInvio>26R9G1</ProgressivoInvio>
+      <FormatoTrasmissione>FPR12</FormatoTrasmissione>
+      <CodiceDestinatario>M5UXCR1</CodiceDestinatario>
+      <ContattiTrasmittente>
+        <Email>fatturapa@documi.it</Email>
+      </ContattiTrasmittente>
+    </DatiTrasmissione>
+    <CedentePrestatore>
+      <DatiAnagrafici>
+        <IdFiscaleIVA>
+          <IdPaese>IT</IdPaese>
+          <IdCodice>08731760966</IdCodice>
+        </IdFiscaleIVA>
+        <CodiceFiscale>08731760966</CodiceFiscale>
+        <Anagrafica>
+          <Denominazione>DGGM SRL</Denominazione>
+        </Anagrafica>
+        <RegimeFiscale>RF01</RegimeFiscale>
+      </DatiAnagrafici>
+      <Sede>
+        <Indirizzo>VIA ALCIDE DE GASPERI 27</Indirizzo>
+        <CAP>20020</CAP>
+        <Comune>Cesate</Comune>
+        <Provincia>MI</Provincia>
+        <Nazione>IT</Nazione>
+      </Sede>
+      <IscrizioneREA>
+        <Ufficio>MI</Ufficio>
+        <NumeroREA>2045681</NumeroREA>
+        <CapitaleSociale>10000.00</CapitaleSociale>
+        <SocioUnico>SM</SocioUnico>
+        <StatoLiquidazione>LN</StatoLiquidazione>
+      </IscrizioneREA>
+      <Contatti>
+        <Email>vincenzodonghi@gmail.com</Email>
+      </Contatti>
+    </CedentePrestatore>
+    <CessionarioCommittente>
+      <DatiAnagrafici>
+        <IdFiscaleIVA>
+          <IdPaese>IT</IdPaese>
+          <IdCodice>12810960968</IdCodice>
+        </IdFiscaleIVA>
+        <CodiceFiscale>12810960968</CodiceFiscale>
+        <Anagrafica>
+          <Denominazione>MANTA s.r.l.</Denominazione>
+        </Anagrafica>
+      </DatiAnagrafici>
+      <Sede>
+        <Indirizzo>Via Mario Idiomi, 10/N</Indirizzo>
+        <CAP>20057</CAP>
+        <Comune>Assago</Comune>
+        <Provincia>MI</Provincia>
+        <Nazione>IT</Nazione>
+      </Sede>
+    </CessionarioCommittente>
+    <TerzoIntermediarioOSoggettoEmittente>
+      <DatiAnagrafici>
+        <IdFiscaleIVA>
+          <IdPaese>IT</IdPaese>
+          <IdCodice>01713750931</IdCodice>
+        </IdFiscaleIVA>
+        <Anagrafica>
+          <Denominazione>RDV Network s.r.l.</Denominazione>
+        </Anagrafica>
+      </DatiAnagrafici>
+    </TerzoIntermediarioOSoggettoEmittente>
+    <SoggettoEmittente>TZ</SoggettoEmittente>
+  </FatturaElettronicaHeader>
+  <FatturaElettronicaBody>
+    <DatiGenerali>
+      <DatiGeneraliDocumento>
+        <TipoDocumento>TD01</TipoDocumento>
+        <Divisa>EUR</Divisa>
+        <Data>2025-04-18</Data>
+        <Numero>60/A</Numero>
+        <ImportoTotaleDocumento>2318.00</ImportoTotaleDocumento>
+      </DatiGeneraliDocumento>
+    </DatiGenerali>
+    <DatiBeniServizi>
+      <DettaglioLinee>
+        <NumeroLinea>1</NumeroLinea>
+        <CodiceArticolo>
+          <CodiceTipo>Codice articolo</CodiceTipo>
+          <CodiceValore>LAVORI</CodiceValore>
+        </CodiceArticolo>
+        <Descrizione>Consulenza tecnica per Vostro evento dal 19/01/2025 al 22/01/2025 presso Palazzo di Varignana</Descrizione>
+        <Quantita>1.00</Quantita>
+        <UnitaMisura>NR</UnitaMisura>
+        <PrezzoUnitario>900.00</PrezzoUnitario>
+        <PrezzoTotale>900.00</PrezzoTotale>
+        <AliquotaIVA>22.00</AliquotaIVA>
+      </DettaglioLinee>
+      <DettaglioLinee>
+        <NumeroLinea>2</NumeroLinea>
+        <CodiceArticolo>
+          <CodiceTipo>Codice articolo</CodiceTipo>
+          <CodiceValore>LAVORI</CodiceValore>
+        </CodiceArticolo>
+        <Descrizione>Consulenza tecnica per Vostro evento dal 17/02/2025 al 19/02/2025 presso Stadio Olimpico</Descrizione>
+        <Quantita>1.00</Quantita>
+        <UnitaMisura>H</UnitaMisura>
+        <PrezzoUnitario>600.00</PrezzoUnitario>
+        <PrezzoTotale>600.00</PrezzoTotale>
+        <AliquotaIVA>22.00</AliquotaIVA>
+      </DettaglioLinee>
+      <DettaglioLinee>
+        <NumeroLinea>3</NumeroLinea>
+        <CodiceArticolo>
+          <CodiceTipo>Codice articolo</CodiceTipo>
+          <CodiceValore>LAVORI</CodiceValore>
+        </CodiceArticolo>
+        <Descrizione>Consulenza tecnica per Vostro evento dal 29/03/2025 al 30/03/2025 presso Teatro Piazza Faruffini sesto san Giovanni</Descrizione>
+        <Quantita>1.00</Quantita>
+        <UnitaMisura>H</UnitaMisura>
+        <PrezzoUnitario>400.00</PrezzoUnitario>
+        <PrezzoTotale>400.00</PrezzoTotale>
+        <AliquotaIVA>22.00</AliquotaIVA>
+      </DettaglioLinee>
+      <DatiRiepilogo>
+        <AliquotaIVA>22.00</AliquotaIVA>
+        <ImponibileImporto>1900.00</ImponibileImporto>
+        <Imposta>418.00</Imposta>
+        <EsigibilitaIVA>I</EsigibilitaIVA>
+      </DatiRiepilogo>
+    </DatiBeniServizi>
+    <DatiPagamento>
+      <CondizioniPagamento>TP02</CondizioniPagamento>
+      <DettaglioPagamento>
+        <ModalitaPagamento>MP05</ModalitaPagamento>
+        <DataScadenzaPagamento>2025-06-17</DataScadenzaPagamento>
+        <ImportoPagamento>2318.00</ImportoPagamento>
+        <IstitutoFinanziario>Service</IstitutoFinanziario>
+        <IBAN>IT79M0306901603100000107478</IBAN>
+      </DettaglioPagamento>
+    </DatiPagamento>
+  </FatturaElettronicaBody>
+</b:FatturaElettronica>

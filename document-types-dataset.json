@@ -1,0 +1,146 @@
+[
+    {
+        "TipoDocumentoId": 1,
+        "TipoDocumento": "Fattura",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 1,
+        "GruppoTipoDocumento": "Fatture attive",
+        "Contabilizzabile": true,
+        "Ordinamento": 1
+    },
+    {
+        "TipoDocumentoId": 8,
+        "TipoDocumento": "Fattura differita",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 1,
+        "GruppoTipoDocumento": "Fatture attive",
+        "Contabilizzabile": true,
+        "Ordinamento": 2
+    },
+    {
+        "TipoDocumentoId": 2,
+        "TipoDocumento": "Fattura accompagnatoria",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 1,
+        "GruppoTipoDocumento": "Fatture attive",
+        "Contabilizzabile": true,
+        "Ordinamento": 3
+    },
+    {
+        "TipoDocumentoId": 3,
+        "TipoDocumento": "Nota di credito",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 1,
+        "GruppoTipoDocumento": "Fatture attive",
+        "Contabilizzabile": true,
+        "Ordinamento": 4
+    },
+    {
+        "TipoDocumentoId": 4,
+        "TipoDocumento": "Nota di debito",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 1,
+        "GruppoTipoDocumento": "Fatture attive",
+        "Contabilizzabile": true,
+        "Ordinamento": 5
+    },
+    {
+        "TipoDocumentoId": 5,
+        "TipoDocumento": "Fattura d'acconto",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 1,
+        "GruppoTipoDocumento": "Fatture attive",
+        "Contabilizzabile": true,
+        "Ordinamento": 6
+    },
+    {
+        "TipoDocumentoId": 6,
+        "TipoDocumento": "Ricevuta fiscale",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 1,
+        "GruppoTipoDocumento": "Fatture attive",
+        "Contabilizzabile": false,
+        "Ordinamento": 7
+    },
+    {
+        "TipoDocumentoId": 7,
+        "TipoDocumento": "Autofattura",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 1,
+        "GruppoTipoDocumento": "Fatture attive",
+        "Contabilizzabile": true,
+        "Ordinamento": 8
+    },
+    {
+        "TipoDocumentoId": 9,
+        "TipoDocumento": "Autofattura per splafonamento",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 1,
+        "GruppoTipoDocumento": "Fatture attive",
+        "Contabilizzabile": true,
+        "Ordinamento": 9
+    },
+    {
+        "TipoDocumentoId": 24,
+        "TipoDocumento": "DDT a cui segue fattura",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 2,
+        "GruppoTipoDocumento": "Documenti di trasporto",
+        "Contabilizzabile": false,
+        "Ordinamento": 10
+    },
+    {
+        "TipoDocumentoId": 25,
+        "TipoDocumento": "DDT a cui non segue fattura",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 2,
+        "GruppoTipoDocumento": "Documenti di trasporto",
+        "Contabilizzabile": false,
+        "Ordinamento": 11
+    },
+    {
+        "TipoDocumentoId": 19,
+        "TipoDocumento": "Rapporto d'intervento",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 3,
+        "GruppoTipoDocumento": "Rapportini",
+        "Contabilizzabile": false,
+        "Ordinamento": 12
+    },
+    {
+        "TipoDocumentoId": 20,
+        "TipoDocumento": "Avviso parcella",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 4,
+        "GruppoTipoDocumento": "Avvisi",
+        "Contabilizzabile": false,
+        "Ordinamento": 13
+    },
+    {
+        "TipoDocumentoId": 21,
+        "TipoDocumento": "Fattura pro-forma",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 4,
+        "GruppoTipoDocumento": "Avvisi",
+        "Contabilizzabile": false,
+        "Ordinamento": 14
+    },
+    {
+        "TipoDocumentoId": 22,
+        "TipoDocumento": "Preventivo",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 5,
+        "GruppoTipoDocumento": "Offerte",
+        "Contabilizzabile": false,
+        "Ordinamento": 15
+    },
+    {
+        "TipoDocumentoId": 23,
+        "TipoDocumento": "Ordine cliente",
+        "Descrizione": null,
+        "GruppoTipoDocumentoId": 5,
+        "GruppoTipoDocumento": "Offerte",
+        "Contabilizzabile": false,
+        "Ordinamento": 16
+    }
+]
