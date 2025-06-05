@@ -12,13 +12,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::get('sales/{customer?}', [\App\Http\Controllers\Sales\SaleController::class, 'create'])
-        ->name('sales.create');
+//    Route::get('sales/{customer?}', [\App\Http\Controllers\Sales\SaleController::class, 'create'])
+//        ->name('sales.create');
     Route::resource('sales', \App\Http\Controllers\Sales\SaleController::class)
         ->except(['edit', 'create'])
         ->names([
             'index' => 'sales.index',
-            //'create' => 'sales.create',
+            'create' => 'sales.create',
             'store' => 'sales.store',
             'show' => 'sales.show',
             'update' => 'sales.update',
