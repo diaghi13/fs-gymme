@@ -15,7 +15,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 //    Route::get('sales/{customer?}', [\App\Http\Controllers\Sales\SaleController::class, 'create'])
 //        ->name('sales.create');
     Route::resource('sales', \App\Http\Controllers\Sales\SaleController::class)
-        ->except(['edit', 'create'])
+        ->except(['edit'])
         ->names([
             'index' => 'sales.index',
             'create' => 'sales.create',

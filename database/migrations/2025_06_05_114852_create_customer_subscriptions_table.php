@@ -26,8 +26,8 @@ return new class extends Migration
             // $table->string('entity_type'); // e.g., 'App\Models\PriceList\Membership'
             // $table->unsignedBigInteger('entity_id'); // e.g., the ID of the membership or subscription content
             $table->morphs('entitable');
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->text('notes')->nullable(); // Additional notes about the subscription
             $table->timestamps();
         });
