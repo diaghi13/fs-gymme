@@ -38,6 +38,13 @@ class SaleRow extends Model
         'end_date' => 'date',
     ];
 
+    public static function boot()
+    {
+        parent::boot();
+
+        parent::observe(\App\Observers\SaleRowObserver::class);
+    }
+
     public function sale()
     {
         return $this->belongsTo(Sale::class);
@@ -56,5 +63,10 @@ class SaleRow extends Model
     public function entity()
     {
         return $this->morphTo('entitable', 'entitable_type', 'entitable_id');
+    }
+
+    public function customer_subscription()
+    {
+        return $this->hasOne(\App\Models\Customer\CustomerSubscription::class, 'sale_row_id');
     }
 }
