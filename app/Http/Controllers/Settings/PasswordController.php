@@ -13,7 +13,7 @@ use Inertia\Response;
 class PasswordController extends Controller
 {
     /**
-     * Show the user's password settings page.
+     * CustomerShow the user's password settings page.
      */
     public function edit(): Response
     {

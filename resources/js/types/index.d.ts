@@ -242,6 +242,7 @@ export interface SaleRow {
   'absolute_discount': number;
   'total': number;
   'price_list': PriceListArticle | PriceListMembershipFee | PriceListSubscription;
+  sale?: Sale;
 }
 
 export interface FinancialResource {
@@ -320,4 +321,58 @@ export interface Customer {
   province: string | null;
   country: string | null;
   option_label: string;
+  active_subscriptions?: Subscription[];
+  membership?: Membership | null;
+  last_membership?: Membership | null;
+  sales_summary?: {
+    sale_count: number;
+    total_amount: number;
+    payed: number;
+    not_payed: number;
+    expired: number;
+    total_sale_products: number;
+  }
+  last_medical_certification?: MedicalCertification;
+
+  gdpr_consent: boolean | null;
+  gdpr_consent_at: Date | null;
+  marketing_consent: boolean | null;
+  marketing_consent_at: Date | null;
+  photo_consent: boolean | null;
+  medical_data_consent: boolean | null;
+  data_retention_until: Date | null;
+}
+
+export interface Subscription {
+  id?: number | undefined;
+  customer_id: number;
+  sale_row_id: number;
+  type: string;
+  price_list_id: number;
+  entitable_type: string;
+  entitable_id: number;
+  start_date: Date | null;
+  end_date: Date | null;
+  notes: string | null;
+  entity?: BaseProduct | CourseProduct | PriceListMembershipFee;
+  price_list?: PriceListMembershipFee | PriceListSubscription;
+  sale_row?: SaleRow;
+}
+
+export interface Membership extends Subscription{
+  card_number: string | null;
+}
+
+export interface MedicalCertification {
+  id?: number | undefined;
+  certification_date: Date | null;
+  valid_until: Date | null;
+  notes: string | null;
+}
+
+export interface PrivacyConsent {
+  id?: number | undefined;
+  blur_registry: boolean;
+  data_processing_expiry_date: Date | null;
+  marketing_data_usage_expiry_date: Date | null;
 }

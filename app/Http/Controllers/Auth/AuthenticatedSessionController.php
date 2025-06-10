@@ -14,7 +14,7 @@ use Inertia\Response;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Show the login page.
+     * CustomerShow the login page.
      */
     public function create(Request $request): Response
     {

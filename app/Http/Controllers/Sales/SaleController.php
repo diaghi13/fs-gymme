@@ -29,7 +29,7 @@ class SaleController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * CustomerShow the form for creating a new resource.
      */
     public function create(Request $request, SaleService $saleService)
     {
@@ -279,7 +279,7 @@ class SaleController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * CustomerShow the form for editing the specified resource.
      */
     public function edit(string $id)
     {

@@ -26,11 +26,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ]);
 
     Route::get('sales/{sale}/export-xml', \App\Http\Controllers\Sales\ExportXml::class)
-    ->name('sales.export-xml');
+        ->name('sales.export-xml');
 });
 
 require __DIR__ . '/products.php';
 require __DIR__ . '/price-lists.php';
 require __DIR__ . '/configurations.php';
 require __DIR__ . '/settings.php';
+require __DIR__ . '/customers.php';
 require __DIR__ . '/auth.php';

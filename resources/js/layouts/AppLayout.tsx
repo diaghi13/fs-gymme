@@ -42,6 +42,7 @@ export default function AppLayout({ title, children }: PropsWithChildren<{ user:
   const page = usePage<PageProps>();
   const theme = useTheme();
   const status = page.props.flash.status;
+  const message = page.props.flash.message;
   const [openAlert, setOpenAlert] = useState<boolean>(!!(status as string));
 
   const pathnames = location.pathname.split('/').filter((x) => x);
@@ -145,14 +146,14 @@ export default function AppLayout({ title, children }: PropsWithChildren<{ user:
         {status === 'success' && (
           <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleAlertClose}>
             <Alert onClose={handleAlertClose} severity="success" sx={{ width: '100%' }}>
-              Inserimento avvenuto con successo!
+              {message || 'Inserimento avvenuto con successo'}
             </Alert>
           </Snackbar>
         )}
         {status === 'error' && (
           <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleAlertClose}>
             <Alert onClose={handleAlertClose} severity="error" sx={{ width: '100%' }}>
-              Si è verificato un problema nell'inserimento
+              {message || 'Si è verificato un errore durante l\'inserimento'}
             </Alert>
           </Snackbar>
         )}

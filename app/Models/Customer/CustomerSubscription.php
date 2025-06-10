@@ -19,6 +19,7 @@ class CustomerSubscription extends Model
         'entitable_id',
         'start_date',
         'end_date',
+        'card_number',
         'notes',
     ];
 
@@ -44,6 +45,6 @@ class CustomerSubscription extends Model
 
     public function entity()
     {
-        return $this->morphTo('entitable', 'entitable_type', 'entitable_id');
+        return $this->morphTo('entity', 'entitable_type', 'entitable_id');
     }
 }

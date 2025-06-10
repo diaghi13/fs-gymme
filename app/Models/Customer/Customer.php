@@ -3,6 +3,7 @@
 namespace App\Models\Customer;
 
 use App\Enums\GenderEnum;
+use App\Models\Sale\SaleRow;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -27,6 +28,14 @@ class Customer extends Model
         'zip',
         'province',
         'country',
+        // Additional fields for GDPR and marketing consents
+        'gdpr_consent',
+        'gdpr_consent_at',
+        'marketing_consent',
+        'marketing_consent_at',
+        'photo_consent',
+        'medical_data_consent',
+        'data_retention_until',
     ];
 
     protected $casts = [
@@ -51,5 +60,114 @@ class Customer extends Model
     public function getFullNameAttribute()
     {
         return $this->first_name . ' ' . $this->last_name;
+    }
+
+    public function subscriptions()
+    {
+        // Get the subscriptions for the customer where the type is 'subscription'
+        return $this->hasMany(CustomerSubscription::class)
+            ->where('type', 'subscription');
+    }
+
+    public function active_subscriptions()
+    {
+        return $this->subscriptions()
+            ->where('start_date', '<=', now())
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now());
+            });
+    }
+
+    public function past_subscriptions()
+    {
+        return $this->subscriptions()
+            ->where('end_date', '<', now());
+    }
+
+    public function memberships()
+    {
+        return $this->hasMany(CustomerSubscription::class)
+            ->where('type', 'membership');
+    }
+
+    public function active_membership()
+    {
+        return $this->hasOne(CustomerSubscription::class)
+            ->where('start_date', '<=', now())
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now());
+            });
+    }
+
+    public function last_membership()
+    {
+        return $this->hasOne(CustomerSubscription::class)
+            ->where('type', 'membership')
+            ->orderBy('end_date', 'desc');
+    }
+
+    public function sales()
+    {
+        return $this->hasMany(\App\Models\Sale\Sale::class)
+            ->orderBy('date', 'desc')
+            ->orderBy('progressive_number', 'desc');
+    }
+
+    public function getSalesSummaryAttribute()
+    {
+        $sales = $this->sales()->with(['rows', 'payments'])->get();
+
+        $sale_count = $sales->count();
+        $total_amount = 0;
+        $payed = 0;
+        $not_payed = 0;
+        $expired = 0;
+        $total_sale_products = 0;
+
+        foreach ($sales as $sale) {
+            $sale_total = $sale->rows->sum('total');
+            $paidAmount = $sale->payments->sum('amount');
+            $notPaidAmount = $sale_total - $paidAmount;
+
+            $total_amount += $sale_total;
+            $payed += $paidAmount;
+            $not_payed += max(0, $notPaidAmount);
+            $total_sale_products += $sale->rows->sum('quantity');
+
+            if (isset($sale->due_date) && $sale->due_date && $sale->due_date->isPast() && $notPaidAmount > 0) {
+                $expired += $notPaidAmount;
+            }
+        }
+
+        return [
+            'sale_count'           => $sale_count,
+            'total_amount'         => $total_amount,
+            'payed'                => $payed,
+            'not_payed'            => $not_payed,
+            'expired'              => $expired,
+            'total_sale_products'  => $total_sale_products,
+        ];
+    }
+
+    public function medical_certifications()
+    {
+        return $this->morphMany(
+            \App\Models\Support\MedicalCertification::class,
+            'medical_certifiable',
+            'medical_certifiable_type',
+            'medical_certifiable_id'
+        );
+    }
+
+    public function last_medical_certification()
+    {
+        return $this->morphOne(
+            \App\Models\Support\MedicalCertification::class,
+            'medical_certifiable',
+            'medical_certifiable_type',
+            'medical_certifiable_id'
+        )->latest();
     }
 }
