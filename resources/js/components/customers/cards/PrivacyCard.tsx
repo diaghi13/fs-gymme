@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Card,
   CardContent,
@@ -11,18 +11,26 @@ import {
 } from '@mui/material';
 import { useFormik } from 'formik';
 import { router, usePage } from '@inertiajs/react';
-import { DatePicker, DesktopDatePicker } from '@mui/x-date-pickers';
-import { isAfter } from 'date-fns';
+import { DatePicker } from '@mui/x-date-pickers';
 import { CustomerShowProps } from '@/pages/customers/customer-show';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import format from '@/support/format';
 
 const PrivacyCard = () => {
   const { customer } = usePage<CustomerShowProps>().props;
-  const [blurRegistry, setBlurRegistry] = useLocalStorage('blur_customer', false);
+  const [blurRegistry] = useLocalStorage('blur_customer', false);
   const theme = useTheme();
   const background = 'rgba(28,43,91)';
   const color = theme.palette.getContrastText(background);
+  const datePickerSx = {
+    svg: { color },
+    input: { color },
+    label: { color },
+    '& .MuiPickersInputBase-root': { color },
+    '& .MuiPickersInputBase-root:before': { borderBottomColor: 'white' },
+    '& .MuiPickersInputBase-root:after': { borderBottomColor: 'white' },
+    '& .MuiFormLabel-root.MuiInputLabel-root.Mui-disabled': { color }
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -323,8 +331,12 @@ const PrivacyCard = () => {
       <CardContent>
         <FormGroup>
           <FormControlLabel
-            control={<Switch checked={blurRegistry} onChange={() => {
-            }} />}
+            control={(
+              <Switch
+                checked={blurRegistry}
+                onChange={() => {
+                }}
+              />)}
             label="Oscura anagrafica"
             sx={{ color }}
           />
@@ -350,14 +362,7 @@ const PrivacyCard = () => {
           slotProps={{
             textField: {
               variant: 'standard',
-              sx: {
-                svg: { color },
-                input: { color },
-                label: { color },
-                "& .MuiPickersInputBase-root": {color: "white"},
-                "& .MuiPickersInputBase-root:before": {borderBottomColor: "white"},
-                "& .MuiPickersInputBase-root:after": {borderBottomColor: "white"},
-              }
+              sx: datePickerSx
             }
           }}
         />
@@ -382,14 +387,7 @@ const PrivacyCard = () => {
           slotProps={{
             textField: {
               variant: 'standard',
-              sx: {
-                svg: { color },
-                input: { color },
-                label: { color },
-                "& .MuiPickersInputBase-root": {color: "white"},
-                "& .MuiPickersInputBase-root:before": {borderBottomColor: "white"},
-                "& .MuiPickersInputBase-root:after": {borderBottomColor: "white"},
-              }
+              sx: datePickerSx
             }
           }}
         />
@@ -426,14 +424,7 @@ const PrivacyCard = () => {
           slotProps={{
             textField: {
               variant: 'standard',
-              sx: {
-                svg: { color },
-                input: { color },
-                label: { color },
-                "& .MuiPickersInputBase-root": {color: "white"},
-                "& .MuiPickersInputBase-root:before": {borderBottomColor: "white"},
-                "& .MuiPickersInputBase-root:after": {borderBottomColor: "white"},
-              }
+              sx: datePickerSx
             }
           }}
         />

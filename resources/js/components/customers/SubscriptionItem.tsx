@@ -22,11 +22,11 @@ const SubscriptionItem: React.FC<SubscriptionItemProps> = ({ subscription, index
   const [openDialog, setOpenDialog] = useState(false);
 
   const start: Date = new Date(subscription.start_date);
-  const end: Date = new Date(subscription.end_date);
+  const end: Date | "" = subscription.end_date ? new Date(subscription.end_date) : "";
   const today: Date = new Date();
-  const percentage = Math.round(
+  const percentage = end ? Math.round(
     ((today.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100
-  );
+  ) : 0;
 
   const barColor: LinearProgressProps['color'] =
     percentage > 90
@@ -83,7 +83,7 @@ const SubscriptionItem: React.FC<SubscriptionItemProps> = ({ subscription, index
           {`Inizio: ${format(new Date(subscription.start_date), 'dd/MM/yyyy')}`}
         </Typography>
         <Typography variant="body2">
-          {`Fine: ${format(new Date(subscription.end_date), 'dd/MM/yyyy')}`}
+          {`Fine: ${subscription.end_date ? format(new Date(subscription.end_date), 'dd/MM/yyyy') : 'Nessuna scadenza'}`}
         </Typography>
         {subscription.sale_row && (
           <Typography>{`Promozione: ${subscription.sale_row.sale?.promotion.description}`}</Typography>

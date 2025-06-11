@@ -18,7 +18,7 @@ export default function MembershipDialog({ membership, open, onClose }: Membersh
 
   const formik: FormikConfig<Partial<Membership>> = {
     initialValues: {
-      start_date: membership?.start_date ? new Date(membership.start_date) : null,
+      start_date: new Date(membership.start_date),
       end_date: membership?.end_date ? new Date(membership.end_date) : null,
       card_number: membership?.card_number ?? '',
       notes: membership?.notes ?? ''

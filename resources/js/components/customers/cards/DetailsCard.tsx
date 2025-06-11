@@ -16,11 +16,17 @@ import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import PlaceIcon from '@mui/icons-material/Place';
 import format from '@/support/format';
 import { Str } from '@/support/Str';
+import EditCustomerDialog from '@/components/customers/dialogs/EditCustomerDialog';
 
 const DetailsCard = () => {
+  const [openEditDialog, setOpenEditDialog] = React.useState(false);
   const { customer } = usePage<CustomerShowProps>().props;
   const theme = useTheme();
   const [blurRegistry] = useLocalStorage('blur_customer', false);
+
+  const toggleEditCustomerDialog = () => {
+    setOpenEditDialog(!openEditDialog);
+  }
 
   return (
     <Card
@@ -43,9 +49,10 @@ const DetailsCard = () => {
               }}>
                 <AddAPhotoIcon />
               </IconButton>
-              <IconButton onClick={() => {}}>
+              <IconButton onClick={toggleEditCustomerDialog}>
                 <FilterNoneIcon />
               </IconButton>
+              <EditCustomerDialog open={openEditDialog} onClose={toggleEditCustomerDialog} customer={customer} />
             </Box>
             <Box sx={{ paddingLeft: 10, paddingRight: 10 }}>
               <img

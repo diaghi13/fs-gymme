@@ -26,8 +26,29 @@ class Payment extends Model
         'amount' => MoneyCast::class,
     ];
 
+    protected $appends = [
+        'status',
+        'is_payed',
+    ];
+
     public function payment_method()
     {
         return $this->belongsTo(\App\Models\Support\PaymentMethod::class);
+    }
+
+    public function getStatusAttribute()
+    {
+        if ($this->payed_at) {
+            return 'payed';
+        }
+        if ($this->due_date && $this->due_date->isPast()) {
+            return 'expired';
+        }
+        return 'pending';
+    }
+
+    public function getIsPayedAttribute()
+    {
+        return $this->payed_at !== null;
     }
 }

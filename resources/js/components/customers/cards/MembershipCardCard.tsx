@@ -8,11 +8,7 @@ import MembershipDialog from '@/components/customers/dialogs/MembershipDialog';
 import EditIcon from '@mui/icons-material/Edit';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 
-interface MembershipCardCardProps {
-
-}
-
-const MembershipCardCard: React.FC<MembershipCardCardProps> = () => {
+const MembershipCardCard = () => {
   const { customer } = usePage<CustomerShowProps>().props;
   const [open, setOpen] = React.useState(false);
 

@@ -230,19 +230,42 @@ export interface Sale {
   currency: string;
   notes: string;
   rows: SaleRow[];
+  payments: Payment[];
+  summary: {
+    total: number;
+    total_gross: number;
+    payed: number;
+    due: number;
+  }
 }
 
 export interface SaleRow {
-  'id'?: number;
-  'sale_id': number;
-  'price_list_id': number;
-  'quantity': number;
-  'unit_price': number;
-  'percentage_discount': number;
-  'absolute_discount': number;
-  'total': number;
-  'price_list': PriceListArticle | PriceListMembershipFee | PriceListSubscription;
+  id?: number;
+  sale_id: number;
+  price_list_id: number;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  percentage_discount: number;
+  absolute_discount: number;
+  total: number;
+  price_list: PriceListArticle | PriceListMembershipFee | PriceListSubscription;
   sale?: Sale;
+  entitable_type?: string;
+  entitable_id?: number;
+  entitable?: PriceListSubscriptionContent;
+}
+
+export interface Payment {
+  id: number;
+  sale_id: number;
+  due_date: Date | string;
+  amount: number;
+  payment_method_id: number;
+  payed_at: Date | string | null;
+  status: "payed" | "pending" | "expired";
+  is_payed: boolean;
+  payment_method: PaymentMethod | null;
 }
 
 export interface FinancialResource {
@@ -341,6 +364,8 @@ export interface Customer {
   photo_consent: boolean | null;
   medical_data_consent: boolean | null;
   data_retention_until: Date | null;
+
+  sales?: Sale[];
 }
 
 export interface Subscription {
@@ -351,7 +376,7 @@ export interface Subscription {
   price_list_id: number;
   entitable_type: string;
   entitable_id: number;
-  start_date: Date | null;
+  start_date: Date;
   end_date: Date | null;
   notes: string | null;
   entity?: BaseProduct | CourseProduct | PriceListMembershipFee;
@@ -375,4 +400,19 @@ export interface PrivacyConsent {
   blur_registry: boolean;
   data_processing_expiry_date: Date | null;
   marketing_data_usage_expiry_date: Date | null;
+}
+
+export interface City {
+  denominazione: string;
+  sigla: string;
+}
+
+export interface CityFull extends City{
+  capoluogo: boolean;
+  codice: string;
+  codice_ISTAT: string;
+  codice_comune: string;
+  lat: string;
+  lon: string;
+  superficie_kmq: string;
 }

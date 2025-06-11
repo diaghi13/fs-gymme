@@ -1,13 +1,15 @@
 import * as React from 'react';
-import { Customer, PageProps } from '@/types';
+import { Customer, PageProps, PaymentMethod } from '@/types';
 import AppLayout from '@/layouts/AppLayout';
 import useTabLocation from '@/hooks/useTabLocation';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { AppBar, Box, Button, Stack, Tab, Typography } from '@mui/material';
 import GeneralTab from '@/components/customers/tabs/GeneralTab';
+import SalesTab from '@/components/customers/tabs/SalesTab';
 
 export interface CustomerShowProps extends PageProps {
   customer: Customer;
+  payment_methods: PaymentMethod[];
 }
 
 const CustomerShow: React.FC<CustomerShowProps> = ({ auth, customer }) => {
@@ -62,7 +64,7 @@ const CustomerShow: React.FC<CustomerShowProps> = ({ auth, customer }) => {
           <GeneralTab />
         </TabPanel>
         <TabPanel value="sales" sx={{ p: 0 }}>
-          Sales and Payments
+          <SalesTab />
         </TabPanel>
         <TabPanel value="extensions" sx={{ p: 0 }}>
           Extensions and Suspensions

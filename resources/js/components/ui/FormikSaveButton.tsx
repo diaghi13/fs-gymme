@@ -6,6 +6,6 @@ export default function FormikSaveButton(){
     const formik = useFormikContext();
 
     return (
-        <Button size="small" variant={"contained"} type={"submit"} disabled={!formik.dirty}>Salva</Button>
+        <Button size="small" variant="contained" type="submit" disabled={!formik.dirty}>Salva</Button>
     )
 };

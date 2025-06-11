@@ -42,11 +42,18 @@ class CustomerController extends Controller
     {
         $customer->load([
             'active_subscriptions' => function (HasMany $query) {
-                $query->with(['entity', 'price_list']);
+                $query->with(['entity', 'price_list', 'sale_row' => ['entity']]);
             },
             'active_membership',
             'last_membership',
             'last_medical_certification',
+            'sales' => function (HasMany $query) {
+                $query->with(['payment_condition', 'financial_resource', 'promotion', 'rows' => function (HasMany $query) {
+                    $query->with(['entity', 'price_list']);
+                }])->orderBy('date', 'desc')
+                    ->limit(5);
+            },
+            'sales.payments' => ['payment_method'],
         ]);
 
         $customer->append([
@@ -55,6 +62,7 @@ class CustomerController extends Controller
 
         return Inertia::render('customers/customer-show', [
             'customer' => $customer,
+            'payment_methods' => \App\Models\Support\PaymentMethod::all(),
         ]);
     }
 

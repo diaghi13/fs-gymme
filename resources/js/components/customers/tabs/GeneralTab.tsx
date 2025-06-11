@@ -13,11 +13,7 @@ import PrivacyCard from '@/components/customers/cards/PrivacyCard';
 import MedicalCertificationCard from '@/components/customers/cards/MedicalCertificationCard';
 import MembershipCardCard from '@/components/customers/cards/MembershipCardCard';
 
-interface GeneralTabProps {
-
-}
-
-const GeneralTab : React.FC<GeneralTabProps> = () => {
+const GeneralTab = () => {
   const { customer } = usePage<CustomerShowProps>().props;
 
   return (

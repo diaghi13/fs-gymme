@@ -1,19 +1,33 @@
 import * as React from 'react';
 import Button from '@mui/material/Button';
-import MuiDialog, {DialogProps as MuiDialogProps} from '@mui/material/Dialog';
+import MuiDialog, { DialogProps as MuiDialogProps } from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import FormikSaveButton from '@/components/ui/FormikSaveButton';
+import { useFormikContext } from 'formik';
 
 interface DialogPros extends MuiDialogProps {
   open: boolean;
   onClose: () => void;
   onAgree?: () => void;
   title?: string;
-  hasActions?: boolean
+  hasActions?: boolean;
+  isForm?: boolean;
 }
 
-export default function Dialog({open, onClose, onAgree, title = "", hasActions = true , children, ...props}: DialogPros) {
+export default function Dialog(
+  {
+    open,
+    onClose,
+    onAgree,
+    title = '',
+    hasActions = true,
+    children,
+    isForm = false,
+    ...props
+  }: DialogPros) {
+  const formik = useFormikContext();
 
   const handleClose = () => {
     onClose();
@@ -33,7 +47,13 @@ export default function Dialog({open, onClose, onAgree, title = "", hasActions =
       <DialogContent>
         {children}
       </DialogContent>
-      {hasActions && (
+      {hasActions && isForm && (
+        <DialogActions sx={{ p: 2 }}>
+          <Button size="small" sx={{ marginRight: 2 }} onClick={onClose}>Annulla</Button>
+          <Button size="small" variant="contained" type="submit" disabled={!formik.dirty} onClick={formik.submitForm}>Salva</Button>
+        </DialogActions>
+      )}
+      {hasActions && !isForm && (
         <DialogActions>
           <Button onClick={handleClose}>Annulla</Button>
           <Button onClick={onAgree} autoFocus>
