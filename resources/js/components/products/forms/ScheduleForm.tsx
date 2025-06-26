@@ -63,7 +63,7 @@ export default function ScheduleForm({ onDismiss }: ScheduleFormProps) {
     };
 
     router.patch(
-      route('base-products.schedules.update', values.product_schedules[index].id),
+      route('app.base-products.schedules.update', values.product_schedules[index].id),
       normalizeScheduleToSave(data),
       {
         preserveState: true
@@ -73,7 +73,7 @@ export default function ScheduleForm({ onDismiss }: ScheduleFormProps) {
 
   const handleDelete = (index: number) => {
     router.delete(
-      route('base-products.schedules.destroy', values.product_schedules[index].id),
+      route('app.base-products.schedules.destroy', values.product_schedules[index].id),
       {
         preserveState: true
       });

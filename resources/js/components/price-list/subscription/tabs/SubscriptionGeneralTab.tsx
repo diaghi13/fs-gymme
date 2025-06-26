@@ -73,13 +73,13 @@ export default function SubscriptionGeneralTab({ priceList }: SubscriptionGenera
 
       if (!priceList.id) {
         router.post(
-          route('price-lists.subscriptions.store'),
+          route('app.price-lists.subscriptions.store'),
           data as any,
           { preserveState: false }
         );
       } else {
         router.patch(
-          route('price-lists.subscriptions.update', { subscription: priceList.id }),
+          route('app.price-lists.subscriptions.update', { subscription: priceList.id }),
           data as any,
           { preserveState: false }
         );
@@ -90,7 +90,7 @@ export default function SubscriptionGeneralTab({ priceList }: SubscriptionGenera
 
   const handleDismiss = () => {
     router.get(
-      route('price-lists.index', ),
+      route('app.price-lists.index', ),
       undefined,
       { preserveState: true }
     );

@@ -23,7 +23,7 @@ const RegisterPaymentDialog = ({sale, payment, open, onClose}: RegisterPaymentDi
       initialValues={{payed_at: new Date()}}
       onSubmit={(values) => {
         router.put(
-          route('customer-sale-payments.update', {customer: customer.id, sale: sale.id, payment: payment.id}),
+          route('app.customer-sale-payments.update', {customer: customer.id, sale: sale.id, payment: payment.id}),
           values,
           {preserveScroll: true}
         )

@@ -113,9 +113,9 @@ const FinancialResourcesCard: React.FC<FinancialResourcesCardProps> = ({ financi
     validationSchema: schema,
     onSubmit: (values) => {
       if (current) {
-        router.put(route('configurations.financial-resources.update', { financial_resource: current.id }), values as unknown as RequestPayload);
+        router.put(route('app.configurations.financial-resources.update', { financial_resource: current.id }), values as unknown as RequestPayload);
       } else {
-        router.post(route('configurations.financial-resources.store'), values as unknown as RequestPayload);
+        router.post(route('app.configurations.financial-resources.store'), values as unknown as RequestPayload);
       }
     }
   };
@@ -144,12 +144,12 @@ const FinancialResourcesCard: React.FC<FinancialResourcesCardProps> = ({ financi
 
   const handleSetDefault = (financialResource: FinancialResource) => {
     handleCloseMenu();
-    router.put(route('configurations.financial-resources.set-default', { financial_resource: financialResource.id }));
+    router.put(route('app.configurations.financial-resources.set-default', { financial_resource: financialResource.id }));
   };
 
   const handleToggleActive = (financialResource: FinancialResource) => {
     handleCloseMenu();
-    router.put(route('configurations.financial-resources.toggle-active', { financial_resource: financialResource.id }));
+    router.put(route('app.configurations.financial-resources.toggle-active', { financial_resource: financialResource.id }));
   };
 
   return (

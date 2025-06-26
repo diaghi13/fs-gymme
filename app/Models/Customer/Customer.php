@@ -28,6 +28,7 @@ class Customer extends Model
         'zip',
         'province',
         'country',
+
         // Additional fields for GDPR and marketing consents
         'gdpr_consent',
         'gdpr_consent_at',

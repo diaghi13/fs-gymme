@@ -25,14 +25,14 @@ import axios from 'axios';
 interface CustomerFormProps {
   formTitle?: string;
   onDismiss?: () => void;
-  customer: Customer;
+  customer?: Customer;
 }
 
 const CustomerForm: React.FC<CustomerFormProps> = ({ formTitle, onDismiss, customer }) => {
   const { values, setFieldValue } = useFormikContext<Customer>();
   const [province, setProvince] = useState("");
   const [zipCodeOptions, setZipCodeOptions] = useState<AutocompleteOptions>([]);
-  const [zipCodeValue, setZipCodeValue] = useState<{value: string, label: string}[]>(customer.zip ? {label: customer.zip, value: customer.zip.toString()} : []);
+  const [zipCodeValue, setZipCodeValue] = useState<{value: string, label: string}[]>(customer?.zip ? {label: customer.zip, value: customer.zip.toString()} : []);
 
   const fetchZipCodes = useCallback(async (code: string) => {
     const response = await axios.get(`${COMUNI_API}/cap?code=${code}`);
@@ -57,22 +57,22 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ formTitle, onDismiss, custo
     setFieldValue("personal_id", cf.code);
   }
 
-  const handleCityAutocomplete = async (city: CityFull | null) => {
-    if (city) {
-      setFieldValue('city', city?.denominazione ?? "");
-      setFieldValue('province', city?.sigla ?? "");
-      setFieldValue('country', city ? "Italia" : "");
-
-      const zipCodes = await fetchZipCodes(city.codice_ISTAT);
-
-      setZipCodeOptions(zipCodes.map(zipCode => ({label: zipCode.cap, value: zipCode.cap})));
-
-      if (!values.zip) {
-        setZipCodeValue({label: zipCodes[0].cap, value: zipCodes[0].cap});
-        setFieldValue('zip_code', zipCodes[0].cap);
-      }
-    }
-  }
+  // const handleCityAutocomplete = async (city: CityFull | null) => {
+  //   if (city) {
+  //     setFieldValue('city', city?.denominazione ?? "");
+  //     setFieldValue('province', city?.sigla ?? "");
+  //     setFieldValue('country', city ? "Italia" : "");
+  //
+  //     const zipCodes = await fetchZipCodes(city.codice_ISTAT);
+  //
+  //     setZipCodeOptions(zipCodes.map(zipCode => ({label: zipCode.cap, value: zipCode.cap})));
+  //
+  //     if (!values.zip) {
+  //       setZipCodeValue({label: zipCodes[0].cap, value: zipCodes[0].cap});
+  //       setFieldValue('zip_code', zipCodes[0].cap);
+  //     }
+  //   }
+  // }
 
   return (
     <Form>
@@ -104,10 +104,11 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ formTitle, onDismiss, custo
         <Grid size={6}>
           <CityAutocompleteAsync
             label="Luogo di nascita"
-            initialValue={values.birthplace ?? ''}
+            //initialValue={values.birthplace ?? ''}
             onSelect={(city) => {
-              setFieldValue('birthplace', city?.denominazione ?? '');
-              setProvince(city?.sigla ?? '');
+              //setFieldValue('birthplace', city?.denominazione ?? '');
+              //setProvince(city?.sigla ?? '');
+              console.log('City selected:', city);
             }}
           />
         </Grid>
@@ -187,33 +188,33 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ formTitle, onDismiss, custo
           />
         </Grid>
         <Grid size={{ sm: 6, md: 6 }}>
-          <CityAutocompleteAsync
-            label="Città"
-            //onSelect={handleCityAutocomplete}
-            onSelect={() => {}}
-            initialValue={values.city ? values.city : ''}
-          />
+          {/*<CityAutocompleteAsync*/}
+          {/*  label="Città"*/}
+          {/*  //onSelect={handleCityAutocomplete}*/}
+          {/*  onSelect={() => {}}*/}
+          {/*  initialValue={values.city ? values.city : ''}*/}
+          {/*/>*/}
         </Grid>
         <Grid size={{ sm: 3, md: 3 }}>
-          <Autocomplete
-            freeSolo
-            autoSelect
-            options={zipCodeOptions}
-            value={zipCodeValue ? zipCodeValue : null}
-            onChange={(event, value) => {
-              if (typeof value === 'string') {
-                setFieldValue('zip', value ? value : '');
-              }
-            }}
-            renderInput={params => (
-              <TextField
-                {...params}
-                label="Cap"
-                variant="standard"
-                name='zip'
-              />
-            )}
-          />
+          {/*<Autocomplete*/}
+          {/*  freeSolo*/}
+          {/*  autoSelect*/}
+          {/*  options={zipCodeOptions}*/}
+          {/*  value={zipCodeValue ? zipCodeValue : null}*/}
+          {/*  onChange={(event, value) => {*/}
+          {/*    if (typeof value === 'string') {*/}
+          {/*      setFieldValue('zip', value ? value : '');*/}
+          {/*    }*/}
+          {/*  }}*/}
+          {/*  renderInput={params => (*/}
+          {/*    <TextField*/}
+          {/*      {...params}*/}
+          {/*      label="Cap"*/}
+          {/*      variant="standard"*/}
+          {/*      name='zip'*/}
+          {/*    />*/}
+          {/*  )}*/}
+          {/*/>*/}
         </Grid>
         <Grid size={{ sm: 3, md: 3 }}>
           <TextField
@@ -226,6 +227,10 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ formTitle, onDismiss, custo
             label="Nazione"
             name="country"
           />
+        </Grid>
+        <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
+          <Button variant="text" onClick={onDismiss}>Annulla</Button>
+          <FormikSaveButton />
         </Grid>
       </Grid>
     </Form>

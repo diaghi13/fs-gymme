@@ -37,13 +37,13 @@ const PaymentDialog = ({sale, open, onClose, payment}: PaymentDialogProps) => {
         //console.log(values);
         if (payment) {
           router.put(
-            route('customer-sale-payments.update', {customer: customer.id, sale: sale.id,  payment: payment.id}),
+            route('app.customer-sale-payments.update', {customer: customer.id, sale: sale.id,  payment: payment.id}),
             values,
             {preserveScroll: true}
           )
         } else {
           router.post(
-            route('customer-sale-payments.store', {customer: customer.id, sale: sale.id}),
+            route('app.customer-sale-payments.store', {customer: customer.id, sale: sale.id}),
             values,
             {preserveScroll: true}
           )

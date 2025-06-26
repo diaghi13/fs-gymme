@@ -79,7 +79,7 @@ export default function ScheduleTab({ product, onDismiss }: ScheduleFormProps) {
         },
         onSubmit: (values) => {
             router.post(
-                route('base-products.schedules.store', { product: product.id }),
+                route('app.base-products.schedules.store', { product: product.id }),
                 { schedules: values.product_schedules.map(normalizeScheduleToSave) },
                 {
                     preserveState: true,

@@ -27,7 +27,7 @@ export default function SaleForm({priceList}: SaleFormProps) {
       }
 
       router.patch(
-        route("price-lists.sales.update", {priceList: priceList.id!}),
+        route("app.price-lists.sales.update", {priceList: priceList.id!}),
         data,
         {preserveState: false}
       );

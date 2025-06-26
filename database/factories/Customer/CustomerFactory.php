@@ -2,6 +2,7 @@
 
 namespace Database\Factories\Customer;
 
+use App\Enums\GenderEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,20 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'first_name' => fake()->firstName(),
+            'last_name' => fake()->lastName(),
+            'birth_date' => fake()->dateTimeBetween('-50 years', '-18 years'),
+            'gender' => fake()->randomElement(GenderEnum::class),
+            'birthplace' => fake()->city(),
+            'tax_id_code' => fake()->unique()->regexify('[A-Z]{6}[0-9]{2}[A-Z][0-9]{3}'),
+            'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->phoneNumber(),
+            'street' => fake()->streetName(),
+            'number' => fake()->buildingNumber(),
+            'city' => fake()->city(),
+            'zip' => fake()->postcode(),
+            'province' => 'MI',
+            'country' => 'IT',
         ];
     }
 }

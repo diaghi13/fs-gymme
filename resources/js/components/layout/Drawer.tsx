@@ -63,9 +63,10 @@ const StyledDrawer = styled(MuiDrawer, {
 interface DrawerProps {
     open: boolean;
     setOpen: (open: boolean) => void;
+    menuList: typeof menuList;
 }
 
-export default function Drawer({open, setOpen}: DrawerProps){
+export default function Drawer({open, setOpen, menuList}: DrawerProps){
     const [subMenu, setSubMenu] = useState(false);
     const containerRef = useRef(null);
 

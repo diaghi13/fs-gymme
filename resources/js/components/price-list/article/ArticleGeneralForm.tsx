@@ -74,13 +74,13 @@ export default function ArticleGeneralForm(
 
       if (!priceList.id) {
         router.post(
-          route(priceList.type === ARTICLE ? 'price-lists.articles.store' : 'price-lists.memberships.store'),
+          route(priceList.type === ARTICLE ? 'app.price-lists.articles.store' : 'app.price-lists.memberships.store'),
           { ...values, vat_rate_id },
           { preserveState: false }
         );
       } else {
         router.patch(
-          route(priceList.type === ARTICLE ? 'price-lists.articles.update' : 'price-lists.memberships.update',
+          route(priceList.type === ARTICLE ? 'app.price-lists.articles.update' : 'app.price-lists.memberships.update',
             priceList.type === ARTICLE ? { article: priceList.id } : { membership: priceList.id }
           ),
           { ...values, vat_rate_id },

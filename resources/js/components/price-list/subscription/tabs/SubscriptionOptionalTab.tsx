@@ -62,13 +62,13 @@ export default function SubscriptionOptionalTab({ priceList }: SubscriptionGener
 
       if (!priceList.id) {
         router.post(
-          route('price-lists.subscriptions.optional-content.store'),
+          route('app.price-lists.subscriptions.optional-content.store'),
           data as any,
           { preserveState: false }
         );
       } else {
         router.patch(
-          route('price-lists.subscriptions.optional-content.update', { subscription: priceList.id }),
+          route('app.price-lists.subscriptions.optional-content.update', { subscription: priceList.id }),
           data as any,
           { preserveState: false }
         );
@@ -79,7 +79,7 @@ export default function SubscriptionOptionalTab({ priceList }: SubscriptionGener
 
   const handleDismiss = () => {
     router.get(
-      route('price-lists.index', ),
+      route('app.price-lists.index', ),
       undefined,
       { preserveState: true }
     );

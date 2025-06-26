@@ -46,7 +46,7 @@ const SaleRow : React.FC<SaleRowProps> = ({sale}) => {
   }
 
   const handleDelete = () => {
-    router.delete(route('sales.destroy', {sale: sale.id}));
+    router.delete(route('app.sales.destroy', {sale: sale.id}));
   }
 
   return (

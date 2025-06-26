@@ -3,91 +3,114 @@ import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import CircularProgress from '@mui/material/CircularProgress';
 import axios from "axios";
-import {COMUNI_API} from "@/support/CONSTS";
-import {debounce} from "@mui/material/utils";
-import {City, CityFull} from "@/types";
+import { COMUNI_API } from "@/support/CONSTS";
+import { debounce } from "@mui/material/utils";
+import { City, CityFull } from "@/types";
 
 interface CityAutocompleteAsyncProps {
   label: string;
   onSelect: (value: CityFull | null) => void;
-  initialValue?: string;
+  initialValue?: CityFull | null;
 }
 
-export default function CityAutocompleteAsync({onSelect, label, initialValue}: CityAutocompleteAsyncProps) {
-  const [options, setOptions] = React.useState<City[]>([]);
-  const [value, setValue] = React.useState<City | null>(null);
-  const [inputValue, setInputValue] = React.useState<string>(initialValue || "");
-  const [loading, setLoading] = React.useState(false);
+export default function CityAutocompleteAsync({ onSelect, label, initialValue }: CityAutocompleteAsyncProps) {
+  const [value, setValue] = React.useState<CityFull | null>(initialValue ?? null);
+  const [inputValue, setInputValue] = React.useState(initialValue?.denominazione ?? '');
+  const [options, setOptions] = React.useState<readonly City[]>(initialValue ? [initialValue] : []);
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [touched, setTouched] = React.useState<boolean>(false);
 
-  const fetchCities = React.useCallback(
-    debounce(async (input: string) => {
-      if (input.length < 3) {
-        setOptions([]);
-        return;
-      }
-      setLoading(true);
-      try {
-        const response = await axios.get(`${COMUNI_API}/lista-comuni?term=${input}`);
-        const data = response.data as City[];
-        setOptions(data);
-      } catch (error) {
-        console.error("Error fetching cities:", error);
-      } finally {
-        setLoading(false);
-      }
-    }, 500),
+  const fetch = React.useMemo(
+    () =>
+      debounce(async (input: string, callback: (results?: readonly City[]) => void) => {
+        try {
+          const response = await axios.get(`${COMUNI_API}/lista-comuni?term=${input}`);
+          callback(response.data as City[]);
+        } catch {
+          callback([]);
+        }
+      }, 400),
     []
   );
 
   React.useEffect(() => {
-    if (inputValue) {
-      fetchCities(inputValue);
-    } else {
-      setOptions([]);
+    let active = true;
+
+    if (!touched) {
+      setOptions(value ? [value] : []);
+      setLoading(false);
+      return;
     }
-  }, [inputValue, fetchCities]);
+
+    if (inputValue === '') {
+      setOptions(value ? [value] : []);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    fetch(inputValue, (results?: readonly City[]) => {
+      if (active) {
+        let newOptions: readonly City[] = value ? [value] : [];
+        if (results) newOptions = [...newOptions, ...results];
+        setOptions(newOptions);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [value, inputValue, fetch, touched]);
 
   React.useEffect(() => {
-    if (initialValue) {
-      const initialCity = options.find(city => city.denominazione === initialValue);
-      setValue(initialCity || null);
-      onSelect(initialCity as CityFull);
-    }
-  }, [initialValue, options, onSelect]);
+    onSelect(value);
+  }, [value, onSelect]);
 
   return (
     <Autocomplete
       fullWidth
-      isOptionEqualToValue={(option) => `${option.denominazione} (${option.sigla})` === `${option.denominazione} (${option.sigla})`}
-      getOptionLabel={(option) => `${option.denominazione} (${option.sigla})`}
-      filterOptions={x => x}
       options={options}
       loading={loading}
-      includeInputInList
-      filterSelectedOptions
       value={value}
-      onChange={(_, newValue: City | null) => {
-        setOptions(newValue ? [newValue, ...options] : options);
-        setValue(newValue ? {denominazione: newValue.denominazione, sigla: newValue.sigla} : null);
-        onSelect(newValue as CityFull);
+      getOptionLabel={(option) => `${option.denominazione} (${option.sigla})`}
+      isOptionEqualToValue={(option, val) =>
+        option.denominazione === val.denominazione && option.sigla === val.sigla
+      }
+      filterOptions={x => x}
+      onChange={(_, newValue) => {
+        setValue(newValue as CityFull);
       }}
-      onInputChange={(event, newInputValue) => {
+      inputValue={inputValue}
+      onInputChange={(_, newInputValue, reason) => {
         setInputValue(newInputValue);
+        if (!touched && reason === 'input') setTouched(true);
       }}
       renderInput={(params) => (
         <TextField
           {...params}
           label={label}
-          variant={"standard"}
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <React.Fragment>
-                {loading ? <CircularProgress color="inherit" size={20}/> : null}
-                {params.InputProps.endAdornment}
-              </React.Fragment>
-            ),
+          variant="standard"
+          slotProps={{
+            input: {
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
+            }
           }}
+          // InputProps={{
+          //   ...params.InputProps,
+          //   endAdornment: (
+          //     <>
+          //       {loading ? <CircularProgress color="inherit" size={20} /> : null}
+          //       {params.InputProps.endAdornment}
+          //     </>
+          //   ),
+          // }}
         />
       )}
     />

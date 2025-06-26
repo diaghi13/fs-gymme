@@ -161,7 +161,7 @@ const SearchDialog = ({ open, setOpen }: SearchDialogProps) => {
   const [isLoading, setIsLoading] = React.useState(false);
 
   const getData = React.useCallback(async () => {
-    const response = await axios.get(route('customers.search', { q: state.query }));
+    const response = await axios.get(route('app.customers.search', { q: state.query }));
     const resData = response.data;
 
     dispatch({ type: SET_CUSTOMERS, payload: resData });
@@ -209,7 +209,7 @@ const SearchDialog = ({ open, setOpen }: SearchDialogProps) => {
     (customer: any) => () => {
       handleLocalStorageUpdate(customer);
       //handleToggle();
-      router.get(route('customers.show', { customer: customer.id }));
+      router.get(route('app.customers.show', { customer: customer.id }));
     },
     []
   );

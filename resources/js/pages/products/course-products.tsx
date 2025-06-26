@@ -45,7 +45,7 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
 
   function handleSelect(selectedProduct: ProductListItem) {
     router.get(
-      route('course-products.show', selectedProduct.id),
+      route('app.course-products.show', selectedProduct.id),
       undefined,
       { preserveState: true }
     );
@@ -54,7 +54,7 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
 
   function handleCreate() {
     router.get(
-      route('course-products.create'),
+      route('app.course-products.create'),
       undefined,
       { preserveState: true }
     );
@@ -62,7 +62,7 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
 
   function handleDismiss() {
     router.get(
-      route('course-products.index'),
+      route('app.course-products.index'),
       undefined,
       { preserveState: true }
     );

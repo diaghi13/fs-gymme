@@ -31,12 +31,12 @@ export default function FolderGeneralForm() {
     onSubmit: (values) => {
       if (!priceList.id) {
         router.post(
-          route('price-lists.folders.store'),
+          route('app.price-lists.folders.store'),
           values,
           { preserveState: false });
       } else {
         router.put(
-          route('price-lists.folders.update', { folder: priceList.id }),
+          route('app.price-lists.folders.update', { folder: priceList.id }),
           values,
           { preserveState: false }
         );

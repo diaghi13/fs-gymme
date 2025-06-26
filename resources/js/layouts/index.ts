@@ -7,6 +7,9 @@ import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import StoreIcon from '@mui/icons-material/Store';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import StorageIcon from '@mui/icons-material/Storage';
+import NewReleasesIcon from '@mui/icons-material/NewReleases';
+import WorkIcon from '@mui/icons-material/Work';
 
 export const productType = {
   baseProduct: 'BASE_PRODUCT',
@@ -16,25 +19,26 @@ export const productType = {
 export const menuList = [
   {
     name: 'Dashboard',
-    href: '/dashboard',
+    href: route('app.dashboard'),
     Icon: DashboardIcon
   },
   {
     name: 'Clienti',
-    href: '/customer',
+    //href: '/customer',
     Icon: PeopleIcon,
     items: [
       {
         name: 'Aggiungi',
-        href: '/customers/create'
+        //href: '/customers/create'
+        href: route('app.customers.create')
       },
       {
         name: 'Attivi',
-        href: '/customers?active=true'
+        href: route('app.customers.create', {active: 'true'})
       },
       {
         name: 'Tutti',
-        href: '/customers'
+        href: route('app.customers.index')
       }
     ]
   },
@@ -45,11 +49,11 @@ export const menuList = [
       {
         name: 'Prodotti Base',
         //href: "/products?type=" + productType.baseProduct,
-        href: route('base-products.index')
+        href: route('app.base-products.index')
       },
       {
         name: 'Corsi',
-        href: route('course-products.index')
+        href: route('app.course-products.index')
       },
       /*{
         name: "Multi Attività",
@@ -57,7 +61,7 @@ export const menuList = [
       },*/
       {
         name: 'Listini',
-        href: route('price-lists.index')
+        href: route('app.price-lists.index')
       }
       /*{
         name: "Corsi",
@@ -75,7 +79,7 @@ export const menuList = [
     items: [
       {
         name: 'Nuova Vendita',
-        href: '/sales/create'
+        href: route('app.sales.create'),
       },
       {
         name: 'Effettuate',
@@ -200,18 +204,55 @@ export const subMenuList = [
 export const configurationMenuList = [
   {
     name: 'Azienda',
-    href: route('configurations.company'),
+    href: route('app.configurations.company'),
     Icon: ApartmentIcon
   },
   {
     name: 'Struttura',
-    href: route('configurations.structure'),
+    href: route('app.configurations.structure'),
     Icon: StoreIcon
   },
   {
     name: 'Risorse finanziarie',
-    href: route('configurations.financial-resources'),
+    href: route('app.configurations.financial-resources'),
     Icon: AccountBalanceIcon
   }
 
+];
+
+export const centralMenuList = [
+  {
+    name: 'Dashboard',
+    href: route('central.dashboard'),
+    Icon: DashboardIcon
+  },
+  {
+    name: 'Users',
+    href: route('central.users.index'),
+    Icon: PeopleIcon,
+  },
+  {
+    name: 'Tenants',
+    href: route('central.tenants.index'),
+    Icon: StorageIcon,
+  },
+  {
+    name: 'Abbonamenti',
+    href: '#',
+    Icon: WorkIcon,
+  },
+  {
+    name: 'Ruoli e Permessi',
+    Icon: NewReleasesIcon,
+    items: [
+      {
+        name: 'Ruoli',
+        href: '#'
+      },
+      {
+        name: 'Permessi',
+        href: '#'
+      }
+    ]
+  },
 ];

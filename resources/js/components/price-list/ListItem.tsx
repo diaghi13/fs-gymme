@@ -59,7 +59,7 @@ export default function ListItem({ priceList, nested = 0, onClick, canCreate }: 
           <ListItemText primary={priceList.name} />
           {canCreate && priceList.type === FOLDER && (
             <IconButton
-              onClick={() => router.get(route('price-lists.folders.show', { 'folder': priceList.id }))}
+              onClick={() => router.get(route('app.price-lists.folders.show', { 'folder': priceList.id }))}
             >
               <MoreVertIcon />
             </IconButton>

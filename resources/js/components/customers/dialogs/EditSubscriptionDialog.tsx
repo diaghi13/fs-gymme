@@ -25,7 +25,7 @@ const EditSubscriptionDialog : React.FC<EditSubscriptionDialogProps> = ({subscri
     },
     onSubmit: (values) => {
       router.patch(
-        route('customer-subscriptions.update', {customer: customer.id, subscription: subscription.id!}),
+        route('app.customer-subscriptions.update', {customer: customer.id, subscription: subscription.id!}),
         values as unknown as RequestPayload,
         {
           preserveState: false,

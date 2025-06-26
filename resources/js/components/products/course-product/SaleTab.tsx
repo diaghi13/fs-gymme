@@ -31,7 +31,7 @@ export default function SaleTab({product, onDismiss}: SellingFormProps) {
     }),
     onSubmit: (values) => {
       router.patch(
-        route('course-products.sales.update', {product: product.id!}),
+        route('app.course-products.sales.update', {product: product.id!}),
         values,
         {
           preserveScroll: true,

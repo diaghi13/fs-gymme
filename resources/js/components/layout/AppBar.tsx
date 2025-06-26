@@ -146,7 +146,7 @@ export default function AppBar({ open, setOpen }: AppBarProps) {
           </IconButton>
           <Tooltip title="Configurazioni">
             <IconButton
-              onClick={() => router.get(route('configurations.index'))}
+              onClick={() => router.get(route('app.configurations.index'))}
               size="small"
               color="inherit"
               aria-controls={open ? 'settings-menu' : undefined}

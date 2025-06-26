@@ -53,28 +53,28 @@ export default function PriceListPage(
     switch (priceList.type) {
       case FOLDER:
         router.get(
-          route('folder-price-lists.show', { folder_price_list: priceList.id! }),
+          route('app.folder-price-lists.show', { folder_price_list: priceList.id! }),
           undefined,
           { preserveState: true }
         );
         break;
       case MEMBERSHIP:
         router.get(
-          route('price-lists.memberships.show', { membership: priceList.id! }),
+          route('app.price-lists.memberships.show', { membership: priceList.id! }),
           undefined,
           { preserveState: true }
         );
         break;
       case ARTICLE:
         router.get(
-          route('price-lists.articles.show', { article: priceList.id! }),
+          route('app.price-lists.articles.show', { article: priceList.id! }),
           undefined,
           { preserveState: true }
         );
         break;
       case SUBSCRIPTION:
         router.get(
-          route('price-lists.subscriptions.show', { subscription: priceList.id! }),
+          route('app.price-lists.subscriptions.show', { subscription: priceList.id! }),
           undefined,
           { preserveState: true }
         );

@@ -54,7 +54,7 @@ const PrivacyCard = () => {
       };
 
       router.patch(
-        route('customers.update', { customer: customer.id }),
+        route('app.customers.update', { customer: customer.id }),
         payload,
         {
           preserveState: false,

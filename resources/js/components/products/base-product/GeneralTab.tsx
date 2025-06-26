@@ -24,13 +24,13 @@ export default function GeneralTab({ product, onDismiss }: GeneralFormProps) {
         onSubmit: (values) => {
             if (!product.id) {
                 router.post(
-                    route('base-products.store'),
+                    route('app.base-products.store'),
                     values,
                     { preserveState: false }
                 );
             } else {
                 router.patch(
-                    route('base-products.update', { ['base_product']: product.id }),
+                    route('app.base-products.update', { ['base_product']: product.id }),
                     values,
                     { preserveState: false }
                 );

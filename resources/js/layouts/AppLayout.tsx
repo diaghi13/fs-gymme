@@ -14,6 +14,10 @@ import Drawer from '@/components/layout/Drawer';
 import { useTheme } from '@mui/material/styles';
 import DrawerHeader from '@/components/layout/DrawerHeader';
 import useLocalStorage from '@/hooks/useLocalStorage';
+import axios from 'axios';
+import { menuList } from '@/layouts/index';
+import { echo } from '@laravel/echo-react';
+import { OnlineUsersProvider } from '@/Contexts/OnlineUserContext';
 
 export const drawerWidth = 240;
 
@@ -36,7 +40,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function AppLayout({ title, children }: PropsWithChildren<{ user: User, title?: string, }>) {
+export default function AppLayout({ title, children, user }: PropsWithChildren<{ user: User, title?: string, }>) {
 
   const [open, setOpen] = useLocalStorage('ui.drawerOpen', true);
   const page = usePage<PageProps>();
@@ -46,6 +50,9 @@ export default function AppLayout({ title, children }: PropsWithChildren<{ user:
   const [openAlert, setOpenAlert] = useState<boolean>(!!(status as string));
 
   const pathnames = location.pathname.split('/').filter((x) => x);
+
+  axios.defaults.params = { 'tenant': user.tenants![0].id };
+  axios.defaults.headers.common['X-Tenant'] = user.tenants![0].id;
 
   useEffect(() => {
     //const variant = page.props.flash.status;
@@ -70,95 +77,98 @@ export default function AppLayout({ title, children }: PropsWithChildren<{ user:
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <title>{title || 'Gymme'}</title>
-      <CssBaseline />
-      <AppBar open={open} setOpen={handleDrawerToggle} toggleSettingDrawerOpen={() => {
-      }} />
-      <Drawer open={open} setOpen={setOpen} />
-      <Box
-        component="main"
-        sx={{
-          //flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100vh',
-          width: '100%',
-          overflow: 'auto',
-          background: theme.palette.mode === 'dark' ? '#121212' : '#f5f5f5'
-        }}
-      >
-        <DrawerHeader dark />
+    <OnlineUsersProvider>
+      <Box sx={{ display: 'flex' }}>
+        <title>{title || 'Gymme'}</title>
+        <CssBaseline />
+        <AppBar open={open} setOpen={handleDrawerToggle} toggleSettingDrawerOpen={() => {
+        }} />
+        <Drawer open={open} setOpen={setOpen} menuList={menuList} />
         <Box
-          role="presentation"
-          id="my-breadcrumb"
+          component="main"
           sx={{
-            //position: "fixed",
-            zIndex: theme.zIndex.appBar,
-            padding: 1.5,
-            background:
-              theme.palette.mode === 'dark'
-                ? theme.palette.grey[900]
-                : theme.palette.primary.dark,
+            //flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100vh',
             width: '100%',
-            boxShadow: theme.shadows[1]
+            overflow: 'auto',
+            background: theme.palette.mode === 'dark' ? '#121212' : '#f5f5f5'
           }}
         >
-          <Breadcrumbs
-            separator="›"
-            aria-label="breadcrumb"
-            sx={{ color: 'white' }}
+          <DrawerHeader dark />
+          <Box
+            role="presentation"
+            id="my-breadcrumb"
+            sx={{
+              //position: "fixed",
+              zIndex: theme.zIndex.appBar,
+              padding: 1.5,
+              background:
+                theme.palette.mode === 'dark'
+                  ? theme.palette.grey[900]
+                  : theme.palette.primary.dark,
+              width: '100%',
+              boxShadow: theme.shadows[1]
+            }}
           >
-            <Typography color="inherit">Gymme</Typography>
-            {pathnames.map((_, index) => {
-              const last = index === pathnames.length - 1;
-              const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+            <Breadcrumbs
+              separator="›"
+              aria-label="breadcrumb"
+              sx={{ color: 'white' }}
+            >
+              <Typography color="inherit">Gymme</Typography>
+              {pathnames.map((_, index) => {
+                const last = index === pathnames.length - 1;
+                const to = `/${pathnames.slice(0, index + 1).join('/')}`;
 
-              //console.log(to);
+                //console.log(to);
 
-              return last ? (
-                <Typography color="inherit" key={to}>
-                  {breadcrumbNameMap[to]}
-                </Typography>
-              ) : (
-                <Typography color="inherit" key={to}>
-                  {breadcrumbNameMap[to]}
-                </Typography>
-              );
-            })}
-          </Breadcrumbs>
-        </Box>
-        <Box sx={{ p: 0, flexGrow: 1 }}>
-          {page.props.errors && Object.keys(page.props.errors).map((error: string, index: number) => (
-            <Alert key={index} severity="error" sx={{ ml: 2, mt: 2, mr: 2 }}>{`${error}: ${page.props.errors[error]}`}</Alert>
-          ))}
-          {children}
-        </Box>
+                return last ? (
+                  <Typography color="inherit" key={to}>
+                    {breadcrumbNameMap[to]}
+                  </Typography>
+                ) : (
+                  <Typography color="inherit" key={to}>
+                    {breadcrumbNameMap[to]}
+                  </Typography>
+                );
+              })}
+            </Breadcrumbs>
+          </Box>
+          <Box sx={{ p: 0, flexGrow: 1 }}>
+            {page.props.errors && Object.keys(page.props.errors).map((error: string, index: number) => (
+              <Alert key={index} severity="error"
+                     sx={{ ml: 2, mt: 2, mr: 2 }}>{`${error}: ${page.props.errors[error]}`}</Alert>
+            ))}
+            {children}
+          </Box>
 
-        <Box sx={styles.footerContainer}>
-          <Typography variant="body2" color="GrayText">
-            Copyright © 2022. Energym Club. All Rights Reserved.
-          </Typography>
-          <Typography variant="body2" color="GrayText">
-            Made by Davide Donghi.
-          </Typography>
+          <Box sx={styles.footerContainer}>
+            <Typography variant="body2" color="GrayText">
+              Copyright © {new Date().getFullYear()}. Gymme. All Rights Reserved.
+            </Typography>
+            <Typography variant="body2" color="GrayText">
+              Made by Davide Donghi.
+            </Typography>
+          </Box>
+          {status === 'success' && (
+            <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleAlertClose}>
+              <Alert onClose={handleAlertClose} severity="success" sx={{ width: '100%' }}>
+                {message || 'Inserimento avvenuto con successo'}
+              </Alert>
+            </Snackbar>
+          )}
+          {status === 'error' && (
+            <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleAlertClose}>
+              <Alert onClose={handleAlertClose} severity="error" sx={{ width: '100%' }}>
+                {message || 'Si è verificato un errore durante l\'inserimento'}
+              </Alert>
+            </Snackbar>
+          )}
         </Box>
-        {status === 'success' && (
-          <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleAlertClose}>
-            <Alert onClose={handleAlertClose} severity="success" sx={{ width: '100%' }}>
-              {message || 'Inserimento avvenuto con successo'}
-            </Alert>
-          </Snackbar>
-        )}
-        {status === 'error' && (
-          <Snackbar open={openAlert} autoHideDuration={6000} onClose={handleAlertClose}>
-            <Alert onClose={handleAlertClose} severity="error" sx={{ width: '100%' }}>
-              {message || 'Si è verificato un errore durante l\'inserimento'}
-            </Alert>
-          </Snackbar>
-        )}
       </Box>
-    </Box>
+    </OnlineUsersProvider>
   );
 }
 

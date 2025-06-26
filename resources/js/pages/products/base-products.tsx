@@ -39,7 +39,7 @@ export default function BaseProductPage({ auth, products, product }: BaseProduct
 
   function handleSelect(selectedProduct: ProductListItem) {
     router.get(
-      route('base-products.show', selectedProduct.id),
+      route('app.base-products.show', selectedProduct.id),
       undefined,
       { preserveState: true }
     );
@@ -48,7 +48,7 @@ export default function BaseProductPage({ auth, products, product }: BaseProduct
 
   function handleCreate() {
     router.get(
-      route('base-products.create'),
+      route('app.base-products.create'),
       undefined,
       { preserveState: true }
     );
@@ -56,7 +56,7 @@ export default function BaseProductPage({ auth, products, product }: BaseProduct
 
   function handleDismiss() {
     router.get(
-      route('base-products.index'),
+      route('app.base-products.index'),
       undefined,
       { preserveState: true }
     );

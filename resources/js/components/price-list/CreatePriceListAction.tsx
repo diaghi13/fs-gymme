@@ -24,16 +24,16 @@ const CreatePriceListAction = () => {
   const handleCreate = (type: string) => {
     switch (type) {
       case FOLDER:
-        router.get(route('price-lists.folders.create'));
+        router.get(route('app.price-lists.folders.create'));
         break;
       case MEMBERSHIP:
-        router.get(route('price-lists.memberships.create'));
+        router.get(route('app.price-lists.memberships.create'));
         break;
       case ARTICLE:
-        router.get(route('price-lists.articles.create'));
+        router.get(route('app.price-lists.articles.create'));
         break;
       case SUBSCRIPTION:
-        router.get(route('price-lists.subscriptions.create'));
+        router.get(route('app.price-lists.subscriptions.create'));
         break;
     }
     handleMenuClose();

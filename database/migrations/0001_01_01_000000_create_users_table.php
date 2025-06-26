@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,13 +12,33 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('global_id')->unique();
             $table->string('first_name');
             $table->string('last_name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+
+            $table->string('phone')->nullable();
+            $table->date('birth_date')->nullable();
+            $table->string('tax_code')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('last_login_at')->nullable();
+
+            // GDPR Compliance
+            $table->boolean('gdpr_consent')->default(false);
+            $table->timestamp('gdpr_consent_at')->nullable();
+            $table->boolean('marketing_consent')->default(false);
+            $table->timestamp('marketing_consent_at')->nullable();
+            $table->date('data_retention_until')->nullable();
+
+            // App Access
+            $table->string('fcm_token', 500)->nullable(); // Firebase token per notifiche push
+            $table->string('app_version')->nullable();
+
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

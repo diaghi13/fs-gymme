@@ -56,11 +56,88 @@ export interface SharedData {
 export interface User {
   id: number;
   name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   avatar?: string;
   email_verified_at: string | null;
   created_at: string;
   updated_at: string;
+  roles: {
+    id: number;
+    name: string;
+    guard_name: string;
+  }[];
+  permissions: {
+    id: number;
+    name: string;
+    guard_name: string;
+  }[];
+  tenants?: {
+    id: string;
+  }[]
+
+  [key: string]: unknown; // This allows for additional properties...
+}
+
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  vat_number: string;
+  tax_code: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  country: string;
+  phone: string;
+  email: string;
+  pec_email: string;
+  sdi_code: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  users_count?: number;
+  users?: User[];
+
+  subscription_plans?: {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    price: number;
+    currency: string;
+    interval: string; // e.g., 'month', 'year'
+    trial_days: number;
+    is_active: boolean;
+    pivot: {
+      starts_at: string;
+      ends_at: string | null;
+      is_active: boolean;
+      is_trial: boolean;
+      trial_ends_at: string | null;
+      status: 'active' | 'expired' | 'cancelled';
+    }
+  }
+  active_subscription_plan?: {
+    id: number;
+    name: string;
+    slug: string;
+    description: string;
+    price: number;
+    currency: string;
+    interval: string; // e.g., 'month', 'year'
+    trial_days: number;
+    is_active: boolean;
+    pivot: {
+      starts_at: string;
+      ends_at: string | null;
+      is_active: boolean;
+      is_trial: boolean;
+      trial_ends_at: string | null;
+      status: 'active' | 'expired' | 'cancelled';
+    }
+  }
 
   [key: string]: unknown; // This allows for additional properties...
 }

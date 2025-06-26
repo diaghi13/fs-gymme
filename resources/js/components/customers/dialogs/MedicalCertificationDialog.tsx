@@ -28,7 +28,7 @@ export default function MedicalCertificationDialog(
     onSubmit: (values) => {
       if (!medicalCertification?.id) {
         router.post(
-          route('customers.medical-certifications.store', { customer: customer.id }),
+          route('app.customers.medical-certifications.store', { customer: customer.id }),
           values as unknown as RequestPayload,
           {
             preserveState: false,

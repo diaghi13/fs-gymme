@@ -26,7 +26,7 @@ export default function MembershipDialog({ membership, open, onClose }: Membersh
     onSubmit: (values) => {
       if (!membership?.id) {
         router.post(
-          route('customers.memberships.store', { customer: customer.id }),
+          route('app.customers.memberships.store', { customer: customer.id }),
           values as unknown as RequestPayload,
           {
             preserveState: false,
