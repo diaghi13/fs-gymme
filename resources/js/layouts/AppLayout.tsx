@@ -1,12 +1,13 @@
 import React, { PropsWithChildren, useEffect, useState } from 'react';
-import { usePage } from '@inertiajs/react';
+import { usePage, Link as RouterLink } from '@inertiajs/react';
 import {
   Alert as MuiAlert,
   AlertProps,
   Box,
   Breadcrumbs,
   CssBaseline, Snackbar,
-  Typography
+  Typography,
+  Link
 } from '@mui/material';
 import AppBar from '@/components/layout/AppBar';
 import { PageProps, User } from '@/types';
@@ -26,7 +27,8 @@ const breadcrumbNameMap: { [key: string]: string } = {
   '/customers': 'Clienti',
   '/customers/create': 'Nuovo cliente',
   '/products': 'Prodotti',
-  '/products/product': 'Gestione prodotti',
+  '/base-products': 'Prodotti base',
+  '/course-products': 'Corsi',
   '/price-lists': 'Listini',
   '/sales': 'Vendite',
   '/sales/create': 'Nuova vendita',
@@ -40,7 +42,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function AppLayout({ title, children, user }: PropsWithChildren<{ user: User, title?: string, }>) {
+export default function AppLayout({ title, children }: PropsWithChildren<{ user: User, title?: string, }>) {
 
   const [open, setOpen] = useLocalStorage('ui.drawerOpen', true);
   const page = usePage<PageProps>();
@@ -49,10 +51,24 @@ export default function AppLayout({ title, children, user }: PropsWithChildren<{
   const message = page.props.flash.message;
   const [openAlert, setOpenAlert] = useState<boolean>(!!(status as string));
 
-  const pathnames = location.pathname.split('/').filter((x) => x);
+  const cleanPathname = location.pathname.split('?')[0];
+  const pathnames = cleanPathname.split('/').filter((x) => x);
 
-  axios.defaults.params = { 'tenant': user.tenants![0].id };
-  axios.defaults.headers.common['X-Tenant'] = user.tenants![0].id;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  let filteredPathnames = [...pathnames];
+
+  if (
+    filteredPathnames[0] === 'app' &&
+    (uuidRegex.test(filteredPathnames[1]) || filteredPathnames[1] === 'test')
+  ) {
+    filteredPathnames = filteredPathnames.slice(2);
+  }
+
+  // axios.defaults.headers.common['X-Tenant'] = user.tenants![0].id;
+  // const urlParams = new URLSearchParams(window.location.search);
+  // const tenant = urlParams.get('tenant') || user.tenants?.[0]?.id;
+  // axios.defaults.params = { 'tenant': tenant };
+  axios.defaults.headers.common['X-Tenant'] = page.props.currentTenantId;
 
   useEffect(() => {
     //const variant = page.props.flash.status;
@@ -118,20 +134,25 @@ export default function AppLayout({ title, children, user }: PropsWithChildren<{
               sx={{ color: 'white' }}
             >
               <Typography color="inherit">Gymme</Typography>
-              {pathnames.map((_, index) => {
-                const last = index === pathnames.length - 1;
-                const to = `/${pathnames.slice(0, index + 1).join('/')}`;
-
-                //console.log(to);
+              {filteredPathnames.map((_, index) => {
+                const to = `/${filteredPathnames.slice(0, index + 1).join('/')}`;
+                const label = breadcrumbNameMap[to] || filteredPathnames[index];
+                const last = index === filteredPathnames.length - 1;
 
                 return last ? (
                   <Typography color="inherit" key={to}>
-                    {breadcrumbNameMap[to]}
+                    {label}
                   </Typography>
                 ) : (
-                  <Typography color="inherit" key={to}>
-                    {breadcrumbNameMap[to]}
-                  </Typography>
+                  <Link
+                    color="inherit"
+                    component={RouterLink}
+                    href={to}
+                    key={to}
+                    underline="hover"
+                  >
+                    {label}
+                  </Link>
                 );
               })}
             </Breadcrumbs>

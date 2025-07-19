@@ -20,6 +20,10 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
+            $table->integer('number_of_installments')
+                ->nullable();
+            $table->boolean('end_of_month')
+                ->default(false);
 
             $table->timestamps();
         });

@@ -14,6 +14,11 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
 
+            $table->foreignId('structure_id')
+                ->nullable()
+                ->constrained('structures')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
             $table->string("name");
             $table->string("color");
             $table->string("type")->nullable();

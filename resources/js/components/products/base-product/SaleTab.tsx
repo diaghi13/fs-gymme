@@ -13,7 +13,7 @@ interface SellingFormProps {
 }
 
 export default function SaleTab({product, onDismiss}: SellingFormProps) {
-  const { props } = usePage<BaseProductPageProps | CourseProductPageProps>();
+  const { vatRateOptions, currentTenantId } = usePage<BaseProductPageProps | CourseProductPageProps>().props;
 
   const formik: FormikConfig<{
     sale_in_subscription: boolean;
@@ -22,7 +22,7 @@ export default function SaleTab({product, onDismiss}: SellingFormProps) {
   }> = {
     initialValues: {
       sale_in_subscription: product.sale_in_subscription!,
-      vat_rate: product.vat_rate ? props.vatRateOptions!.find(option => option.value === product.vat_rate?.id) ?? null : null,
+      vat_rate: product.vat_rate ? vatRateOptions!.find(option => option.value === product.vat_rate?.id) ?? null : null,
       selling_description: product.selling_description!,
     },
     validationSchema: Yup.object({
@@ -31,7 +31,7 @@ export default function SaleTab({product, onDismiss}: SellingFormProps) {
     }),
     onSubmit: (values) => {
       router.patch(
-        route('app.base-products.sales.update', {product: product.id!}),
+        route('app.base-products.sales.update', {product: product.id!, tenant: currentTenantId}),
         values,
         {
           preserveScroll: true,

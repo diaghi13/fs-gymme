@@ -11,7 +11,7 @@ import FolderPriceListDialog from '@/components/price-list/FolderPriceListDialog
 import { PriceListPageProps } from '@/pages/price-lists/price-lists';
 
 export default function FolderGeneralForm() {
-  const {props: {priceList, priceListOptions, priceListOptionsTree}} = usePage<PriceListPageProps>()
+  const {props: {priceList, priceListOptions, priceListOptionsTree, currentTenantId}} = usePage<PriceListPageProps>()
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
 
   if (!priceList || !priceListOptionsTree) {
@@ -31,12 +31,12 @@ export default function FolderGeneralForm() {
     onSubmit: (values) => {
       if (!priceList.id) {
         router.post(
-          route('app.price-lists.folders.store'),
+          route('app.price-lists.folders.store', { tenant: currentTenantId }),
           values,
           { preserveState: false });
       } else {
         router.put(
-          route('app.price-lists.folders.update', { folder: priceList.id }),
+          route('app.price-lists.folders.update', { folder: priceList.id, tenant: currentTenantId }),
           values,
           { preserveState: false }
         );

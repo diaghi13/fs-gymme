@@ -12,15 +12,20 @@ class SubscriptionPlanTenant extends Pivot
     protected $fillable = [
         'tenant_id',
         'subscription_plan_id',
-        'is_active',
-        'trial_ends_at',
+        'starts_at',
         'ends_at',
+        'is_active',
+        'is_trial',
+        'status',
+        'trial_ends_at',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'trial_ends_at' => 'datetime',
+        'starts_at' => 'datetime',
         'ends_at' => 'datetime',
+        'trial_ends_at' => 'datetime',
+        'is_active' => 'boolean',
+        'is_trial' => 'boolean',
     ];
 
     public function tenant()

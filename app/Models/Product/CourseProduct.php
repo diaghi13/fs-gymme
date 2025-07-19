@@ -2,6 +2,8 @@
 
 namespace App\Models\Product;
 
+use App\Models\Scopes\StructureScope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Parental\HasParent;

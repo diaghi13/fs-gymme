@@ -4,8 +4,8 @@ import DatePicker from "@/components/ui/DatePicker";
 import FormikSaveButton from "@/components/ui/FormikSaveButton";
 import React from "react";
 import {useTheme} from "@mui/material/styles";
-import { PriceList, PriceListSubscription } from '@/types';
-import {router} from "@inertiajs/react";
+import { PageProps, PriceList, PriceListSubscription } from '@/types';
+import { router, usePage } from '@inertiajs/react';
 import { format } from "date-fns/format";
 
 interface SaleFormProps {
@@ -14,6 +14,7 @@ interface SaleFormProps {
 
 export default function SaleForm({priceList}: SaleFormProps) {
   const theme = useTheme();
+  const { currentTenantId } = usePage<PageProps>().props;
 
   const formik: FormikConfig<Partial<PriceListSubscription>> = {
     initialValues: {
@@ -27,7 +28,7 @@ export default function SaleForm({priceList}: SaleFormProps) {
       }
 
       router.patch(
-        route("app.price-lists.sales.update", {priceList: priceList.id!}),
+        route("app.price-lists.sales.update", {priceList: priceList.id!, tenant: currentTenantId}),
         data,
         {preserveState: false}
       );

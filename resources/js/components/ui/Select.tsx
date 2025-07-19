@@ -7,7 +7,6 @@ import {
 } from "@mui/material";
 import {FieldHookConfig, useField} from "formik";
 import {TextFieldProps as MuiTextFieldProps} from "@mui/material/TextField";
-import { AutocompleteOption, AutocompleteOptions } from '@/types';
 
 /*interface TextFieldProps extends MuiTextField<MuiTextFieldProps>{
   label: string;
@@ -18,7 +17,7 @@ import { AutocompleteOption, AutocompleteOptions } from '@/types';
 export type TextFieldProps = {
   label?: string;
   name: string;
-  options: AutocompleteOptions<string | number>;
+  options: {label: string, value: string | number};
 } & MuiTextFieldProps & SelectProps;
 
 export default function Select(props: TextFieldProps & FieldHookConfig<string>){
@@ -31,6 +30,7 @@ export default function Select(props: TextFieldProps & FieldHookConfig<string>){
     <FormControl
       fullWidth
       error={meta.touched && !!meta.error}
+      variant="standard"
       //helperText={meta.touched && meta.error}
     >
       {props.label && <InputLabel id={labelId}>{props.label}</InputLabel>}
@@ -39,12 +39,11 @@ export default function Select(props: TextFieldProps & FieldHookConfig<string>){
         id={id}
         {...field}
         {...props}
-        //label={props.label}
-        variant={"standard"}
+        //label={props.label
         value={field.value ?? ""}
       >
         <MenuItem value={""}>Scegli...</MenuItem>
-        {props.options.map((option: AutocompleteOption<string | number>, index: number) => (
+        {props.options.map((option: {label: string, value: string | number}, index: number) => (
           <MenuItem key={index} value={option.value}>{option.label}</MenuItem>
         ))}
       </MuiSelect>

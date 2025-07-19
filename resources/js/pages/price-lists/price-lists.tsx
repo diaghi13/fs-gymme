@@ -1,17 +1,16 @@
 import React from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 
 // import {PRICE_LIST_ARTICLE, PRICE_LIST_FOLDER, PRICE_LIST_MEMBERSHIP_FEE, PRICE_LIST_SUBSCRIPTION} from "./index";
 import {
   PageProps,
-  AutocompleteOptions,
   BaseProduct,
   CourseProduct,
   PriceList,
   AllPriceLists,
   PriceListFolder,
   PriceListArticle,
-  PriceListMembershipFee, PriceListSubscription, PriceListFolderTree
+  PriceListMembershipFee, PriceListSubscription, PriceListFolderTree, VatRate
 } from '@/types';
 import AppLayout from '@/layouts/AppLayout';
 import { Box, Grid, Typography } from '@mui/material';
@@ -22,6 +21,7 @@ import MembershipFeePriceListCard from '@/components/price-list/membership/Membe
 import SubscriptionPriceListCard from '@/components/price-list/subscription/SubscriptionPriceListCard';
 
 import LoyaltyOutlinedIcon from '@mui/icons-material/LoyaltyOutlined';
+import { useQueryParam } from '@/hooks/useQueryParam';
 
 export const FOLDER = 'folder';
 export const SUBSCRIPTION = 'subscription';
@@ -30,10 +30,10 @@ export const MEMBERSHIP = 'membership';
 
 export interface PriceListPageProps extends PageProps {
   priceLists: Array<AllPriceLists>;
-  priceListOptions?: AutocompleteOptions<number>;
+  priceListOptions?: PriceList[];
   priceListOptionsTree?: Array<PriceListFolderTree>;
   priceList?: PriceListFolder | PriceListArticle | PriceListMembershipFee | PriceListSubscription;
-  vatRateOptions?: AutocompleteOptions<number>;
+  vatRateOptions?: VatRate[];
   articles?: Array<PriceListArticle>;
   baseProducts?: Array<BaseProduct>;
   courseProducts?: Array<CourseProduct>;
@@ -48,33 +48,34 @@ export default function PriceListPage(
     priceListOptionsTree,
     vatRateOptions,
   }: PriceListPageProps) {
+  const props = usePage<PageProps>().props;
 
   const handleSelect = (priceList: PriceList) => {
     switch (priceList.type) {
       case FOLDER:
         router.get(
-          route('app.folder-price-lists.show', { folder_price_list: priceList.id! }),
+          route('app.folder-price-lists.show', { folder_price_list: priceList.id!, tenant: props.currentTenantId }),
           undefined,
           { preserveState: true }
         );
         break;
       case MEMBERSHIP:
         router.get(
-          route('app.price-lists.memberships.show', { membership: priceList.id! }),
+          route('app.price-lists.memberships.show', { membership: priceList.id!, tenant: props.currentTenantId }),
           undefined,
           { preserveState: true }
         );
         break;
       case ARTICLE:
         router.get(
-          route('app.price-lists.articles.show', { article: priceList.id! }),
+          route('app.price-lists.articles.show', { article: priceList.id!, tenant: props.currentTenantId }),
           undefined,
           { preserveState: true }
         );
         break;
       case SUBSCRIPTION:
         router.get(
-          route('app.price-lists.subscriptions.show', { subscription: priceList.id! }),
+          route('app.price-lists.subscriptions.show', { subscription: priceList.id!, tenant: props.currentTenantId }),
           undefined,
           { preserveState: true }
         );

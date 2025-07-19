@@ -50,8 +50,13 @@ export default function CentralLayout({ title, children, user }: PropsWithChildr
 
   const pathnames = location.pathname.split('/').filter((x) => x);
 
-  axios.defaults.params = { 'tenant': user.tenants![0].id };
-  axios.defaults.headers.common['X-Tenant'] = user.tenants![0].id;
+  //axios.defaults.params = { 'tenant': user.tenants![0].id };
+  //axios.defaults.headers.common['X-Tenant'] = user.tenants![0].id;
+
+  // const urlParams = new URLSearchParams(window.location.search);
+  // const tenant = urlParams.get('tenant') || user.tenants?.[0]?.id;
+  // axios.defaults.params = { 'tenant': tenant };
+  // axios.defaults.headers.common['X-Tenant'] = tenant;
 
   useEffect(() => {
     // Clona i dati flash per sicurezza

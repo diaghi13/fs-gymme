@@ -1,6 +1,6 @@
-import React from "react";
-import {Formik, FormikConfig} from "formik";
-import * as Yup from "yup";
+import React from 'react';
+import { Formik, FormikConfig } from 'formik';
+import * as Yup from 'yup';
 import { AutocompleteOption, BaseProduct, CourseProduct } from '@/types';
 import SaleForm from '@/components/products/forms/SaleForm';
 import { router, usePage } from '@inertiajs/react';
@@ -9,11 +9,11 @@ import { CourseProductPageProps } from '@/pages/products/course-products';
 
 interface SellingFormProps {
   product: BaseProduct | CourseProduct;
-  onDismiss: () => void
+  onDismiss: () => void;
 }
 
-export default function SaleTab({product, onDismiss}: SellingFormProps) {
-  const { props } = usePage<BaseProductPageProps | CourseProductPageProps>();
+export default function SaleTab({ product, onDismiss }: SellingFormProps) {
+  const { vatRateOptions, currentTenantId } = usePage<BaseProductPageProps | CourseProductPageProps>().props;
 
   const formik: FormikConfig<{
     sale_in_subscription: boolean;
@@ -22,29 +22,29 @@ export default function SaleTab({product, onDismiss}: SellingFormProps) {
   }> = {
     initialValues: {
       sale_in_subscription: product.sale_in_subscription!,
-      vat_rate: product.vat_rate ? props.vatRateOptions!.find(option => option.value === product.vat_rate?.id) ?? null : null,
-      selling_description: product.selling_description!,
+      vat_rate: product.vat_rate ? vatRateOptions!.find(option => option.value === product.vat_rate?.id) ?? null : null,
+      selling_description: product.selling_description!
     },
     validationSchema: Yup.object({
       //"vat": Yup.object().required("Il campo è richiesto"),
-      "selling_description": Yup.string().required("Il campo è richiesto"),
+      'selling_description': Yup.string().required('Il campo è richiesto')
     }),
     onSubmit: (values) => {
       router.patch(
-        route('app.course-products.sales.update', {product: product.id!}),
+        route('app.course-products.sales.update', { product: product.id!, tenant: currentTenantId }),
         values,
         {
           preserveScroll: true,
-          preserveState: false,
+          preserveState: false
         }
-      )
+      );
     },
-    enableReinitialize: true,
-  }
+    enableReinitialize: true
+  };
 
   return (
     <Formik {...formik}>
       <SaleForm onDismiss={onDismiss} />
     </Formik>
-  )
+  );
 };

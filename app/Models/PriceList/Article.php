@@ -9,12 +9,14 @@ use App\Enums\PriceListItemTypeEnum;
 use App\Models\VatRate;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Parental\HasParent;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Article extends PriceList implements VatRateable
 {
     use HasParent;
 
     protected $fillable = [
+        "structure_id",
         "name",
         "color",
         "saleable",

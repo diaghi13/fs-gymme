@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FinancialResource } from '@/types';
+import { FinancialResource, PageProps } from '@/types';
 import MyCard from '@/components/ui/MyCard';
 import {
   Button,
@@ -19,7 +19,7 @@ import Dialog from '@/components/ui/Dialog';
 import TextField from '@/components/ui/TextField';
 import { Form, Formik, FormikConfig, FormikProps } from 'formik';
 import RadioButtonsGroup from '@/components/ui/RadioButtonsGroup';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import * as Yup from 'yup';
 import { useRef } from 'react';
 import { RequestPayload } from '@inertiajs/core';
@@ -82,6 +82,7 @@ const FinancialResourcesCard: React.FC<FinancialResourcesCardProps> = ({ financi
   }>({ anchorEl: null, id: null });
   const formikRef = useRef<FormikProps<FinancialResourceFormProps>>(null);
   const [current, setCurrent] = React.useState<FinancialResource | null>(null);
+  const page = usePage<PageProps>().props;
 
   const handleOpen = () => {
     setOpen(true);
@@ -113,9 +114,9 @@ const FinancialResourcesCard: React.FC<FinancialResourcesCardProps> = ({ financi
     validationSchema: schema,
     onSubmit: (values) => {
       if (current) {
-        router.put(route('app.configurations.financial-resources.update', { financial_resource: current.id }), values as unknown as RequestPayload);
+        router.put(route('app.configurations.financial-resources.update', { financial_resource: current.id, tenant: page.currentTenantId }), values as unknown as RequestPayload);
       } else {
-        router.post(route('app.configurations.financial-resources.store'), values as unknown as RequestPayload);
+        router.post(route('app.configurations.financial-resources.store', { tenant: page.currentTenantId }), values as unknown as RequestPayload);
       }
     }
   };

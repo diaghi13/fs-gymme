@@ -1,7 +1,7 @@
 import React from 'react';
 import { Formik, FormikConfig } from 'formik';
-import { router } from '@inertiajs/react';
-import { BaseProduct, CourseProduct } from '@/types';
+import { router, usePage } from '@inertiajs/react';
+import { BaseProduct, CourseProduct, PageProps } from '@/types';
 import GeneralForm from '@/components/products/forms/GeneralForm';
 
 interface GeneralFormProps {
@@ -10,6 +10,7 @@ interface GeneralFormProps {
 }
 
 export default function GeneralTab({ product, onDismiss }: GeneralFormProps) {
+  const { currentTenantId } = usePage<PageProps>().props;
 
     const formik: FormikConfig<{
         name: string;
@@ -24,13 +25,13 @@ export default function GeneralTab({ product, onDismiss }: GeneralFormProps) {
         onSubmit: (values) => {
             if (!product.id) {
                 router.post(
-                    route('app.base-products.store'),
+                    route('app.base-products.store', { tenant: currentTenantId }),
                     values,
                     { preserveState: false }
                 );
             } else {
                 router.patch(
-                    route('app.base-products.update', { ['base_product']: product.id }),
+                    route('app.base-products.update', { base_product: product.id, tenant: currentTenantId }),
                     values,
                     { preserveState: false }
                 );

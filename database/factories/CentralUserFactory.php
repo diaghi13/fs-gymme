@@ -29,7 +29,7 @@ class CentralUserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            //'remember_token' => Str::random(10),
+            'remember_token' => Str::random(10),
             'phone' => fake()->phoneNumber(),
             'birth_date' => fake()->date(),
             'tax_code' => fake()->regexify('[A-Z]{6}[0-9]{2}[A-Z]{1}[0-9]{2}[A-Z]{1}[0-9]{3}[A-Z]{1}'),

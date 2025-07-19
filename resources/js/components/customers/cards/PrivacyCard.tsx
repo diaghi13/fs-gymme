@@ -15,6 +15,7 @@ import { DatePicker } from '@mui/x-date-pickers';
 import { CustomerShowProps } from '@/pages/customers/customer-show';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import format from '@/support/format';
+import { PageProps } from '@/types';
 
 const PrivacyCard = () => {
   const { customer } = usePage<CustomerShowProps>().props;
@@ -31,6 +32,7 @@ const PrivacyCard = () => {
     '& .MuiPickersInputBase-root:after': { borderBottomColor: 'white' },
     '& .MuiFormLabel-root.MuiInputLabel-root.Mui-disabled': { color }
   };
+  const page = usePage<PageProps>().props;
 
   const formik = useFormik({
     initialValues: {
@@ -54,7 +56,7 @@ const PrivacyCard = () => {
       };
 
       router.patch(
-        route('app.customers.update', { customer: customer.id }),
+        route('app.customers.update', { customer: customer.id, tenant: page.currentTenantId }),
         payload,
         {
           preserveState: false,

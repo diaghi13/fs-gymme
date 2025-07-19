@@ -13,6 +13,8 @@ class TenantSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            UserSeeder::class,
+            StructureSeeder::class,
             BaseProductSeeder::class,
             VatRateSeeder::class,
             CourseProductSeeder::class,
@@ -22,6 +24,7 @@ class TenantSeeder extends Seeder
             PaymentConditionSeeder::class,
             FinancialResourceTypeSeeder::class,
             CustomerSeeder::class,
+            FinancialResourceSeeder::class,
         ]);
     }
 }

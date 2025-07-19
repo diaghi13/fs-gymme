@@ -14,6 +14,7 @@ class Membership extends PriceList implements VatRateable
     use HasParent;
 
     protected $fillable = [
+        "structure_id",
         "name",
         "color",
         "saleable",

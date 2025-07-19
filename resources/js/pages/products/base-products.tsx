@@ -1,8 +1,8 @@
 import React from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Alert, Box, Grid, Tab } from '@mui/material';
 import AppLayout from '@/layouts/AppLayout';
-import { AutocompleteOptions, BaseProduct, PageProps, ProductListItem } from '@/types';
+import { BaseProduct, PageProps, ProductListItem, VatRate } from '@/types';
 import ProductListCard from '@/components/products/ProductListCard';
 import MyCard from '@/components/ui/MyCard';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
@@ -10,6 +10,7 @@ import GeneralTab from '@/components/products/base-product/GeneralTab';
 import ScheduleTab from '@/components/products/base-product/ScheduleTab';
 import SaleTab from '@/components/products/base-product/SaleTab';
 import { useSearchParams } from '@/hooks/useSearchParams';
+import { useQueryParam } from '@/hooks/useQueryParam';
 
 const tabs = {
   baseProductTabs: [
@@ -22,24 +23,27 @@ const tabs = {
 export interface BaseProductPageProps extends PageProps {
   products: Array<ProductListItem>;
   product?: BaseProduct;
-  vatRateOptions?: AutocompleteOptions<number>;
+  vatRateOptions?: VatRate[];
 }
 
 export default function BaseProductPage({ auth, products, product }: BaseProductPageProps) {
-  const tab = useSearchParams('tab')?.toString();
+  //const tab = useSearchParams('tab')?.toString();
+  const [tab, setTab] = useQueryParam('tab');
   const title = 'Prodotti base';
   const [tabValue, setTabValue] = React.useState(tab || '1');
   const isNew = !product?.id;
+  const props = usePage<PageProps>().props;
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
-    history.pushState({}, '', `${location.pathname}?tab=${newValue}`);
+    //history.pushState({}, '', `${location.pathname}?tab=${newValue}`);
+    setTab(newValue);
 
     setTabValue(newValue);
   };
 
   function handleSelect(selectedProduct: ProductListItem) {
     router.get(
-      route('app.base-products.show', selectedProduct.id),
+      route('app.base-products.show', { base_product: selectedProduct.id, tenant: props.currentTenantId }),
       undefined,
       { preserveState: true }
     );
@@ -48,7 +52,7 @@ export default function BaseProductPage({ auth, products, product }: BaseProduct
 
   function handleCreate() {
     router.get(
-      route('app.base-products.create'),
+      route('app.base-products.create', { tenant: props.currentTenantId }),
       undefined,
       { preserveState: true }
     );
@@ -56,7 +60,7 @@ export default function BaseProductPage({ auth, products, product }: BaseProduct
 
   function handleDismiss() {
     router.get(
-      route('app.base-products.index'),
+      route('app.base-products.index', { tenant: props.currentTenantId }),
       undefined,
       { preserveState: true }
     );

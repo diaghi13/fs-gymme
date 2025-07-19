@@ -16,10 +16,10 @@ export const productType = {
   courseProduct: 'COURSE_PRODUCT'
 };
 
-export const menuList = [
+export const menuList = (tenant: string) => ([
   {
     name: 'Dashboard',
-    href: route('app.dashboard'),
+    href: route('app.dashboard', { tenant }),
     Icon: DashboardIcon
   },
   {
@@ -30,15 +30,15 @@ export const menuList = [
       {
         name: 'Aggiungi',
         //href: '/customers/create'
-        href: route('app.customers.create')
+        href: route('app.customers.create', { tenant })
       },
       {
         name: 'Attivi',
-        href: route('app.customers.create', {active: 'true'})
+        href: route('app.customers.index', { tenant, active: 'true' })
       },
       {
         name: 'Tutti',
-        href: route('app.customers.index')
+        href: route('app.customers.index', { tenant })
       }
     ]
   },
@@ -49,11 +49,11 @@ export const menuList = [
       {
         name: 'Prodotti Base',
         //href: "/products?type=" + productType.baseProduct,
-        href: route('app.base-products.index')
+        href: route('app.base-products.index', { tenant })
       },
       {
         name: 'Corsi',
-        href: route('app.course-products.index')
+        href: route('app.course-products.index', { tenant })
       },
       /*{
         name: "Multi Attività",
@@ -61,7 +61,7 @@ export const menuList = [
       },*/
       {
         name: 'Listini',
-        href: route('app.price-lists.index')
+        href: route('app.price-lists.index', { tenant })
       }
       /*{
         name: "Corsi",
@@ -79,7 +79,7 @@ export const menuList = [
     items: [
       {
         name: 'Nuova Vendita',
-        href: route('app.sales.create'),
+        href: route('app.sales.create', { tenant })
       },
       {
         name: 'Effettuate',
@@ -171,7 +171,7 @@ export const menuList = [
   //     },
   //   ],
   // },
-];
+]);
 
 export const subMenuList = [
   {
@@ -201,26 +201,26 @@ export const subMenuList = [
   }
 ];
 
-export const configurationMenuList = [
+export const configurationMenuList = (tenant: string) => ([
   {
     name: 'Azienda',
-    href: route('app.configurations.company'),
+    href: route('app.configurations.company', { tenant }),
     Icon: ApartmentIcon
   },
   {
     name: 'Struttura',
-    href: route('app.configurations.structure'),
+    href: route('app.configurations.structure', { tenant }),
     Icon: StoreIcon
   },
   {
     name: 'Risorse finanziarie',
-    href: route('app.configurations.financial-resources'),
+    href: route('app.configurations.financial-resources', { tenant }),
     Icon: AccountBalanceIcon
   }
 
-];
+]);
 
-export const centralMenuList = [
+export const centralMenuList = () => ([
   {
     name: 'Dashboard',
     href: route('central.dashboard'),
@@ -229,17 +229,17 @@ export const centralMenuList = [
   {
     name: 'Users',
     href: route('central.users.index'),
-    Icon: PeopleIcon,
+    Icon: PeopleIcon
   },
   {
     name: 'Tenants',
     href: route('central.tenants.index'),
-    Icon: StorageIcon,
+    Icon: StorageIcon
   },
   {
     name: 'Abbonamenti',
-    href: '#',
-    Icon: WorkIcon,
+    href: route('central.subscription-plans.index'),
+    Icon: WorkIcon
   },
   {
     name: 'Ruoli e Permessi',
@@ -254,5 +254,5 @@ export const centralMenuList = [
         href: '#'
       }
     ]
-  },
-];
+  }
+]);

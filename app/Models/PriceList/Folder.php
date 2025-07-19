@@ -11,6 +11,7 @@ class Folder extends PriceList
     use HasParent;
 
     protected $fillable = [
+        "structure_id",
         "name",
         "saleable",
         "parent_id",

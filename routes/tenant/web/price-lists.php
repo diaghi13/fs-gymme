@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth'])->group(function () {
 
-    Route::resource('/price-lists', \App\Http\Controllers\App\PriceLists\PriceListController::class)
+    Route::resource('/price-lists', \App\Http\Controllers\Application\PriceLists\PriceListController::class)
         ->except(['edit'])
         ->names([
             'index' => 'app.price-lists.index',
@@ -15,10 +15,10 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.price-lists.destroy',
         ]);
 
-    Route::match(['put', 'patch'], '/price-lists/{priceList}/sales', \App\Http\Controllers\App\PriceLists\PriceListSalesUpdate::class)
+    Route::match(['put', 'patch'], '/price-lists/{priceList}/sales', \App\Http\Controllers\Application\PriceLists\PriceListSalesUpdate::class)
         ->name('app.price-lists.sales.update');
 
-    Route::resource('/price-lists/folders', \App\Http\Controllers\App\PriceLists\FolderController::class)
+    Route::resource('/price-lists/folders', \App\Http\Controllers\Application\PriceLists\FolderController::class)
         ->except(['index', 'edit'])
         ->names([
             'create' => 'app.price-lists.folders.create',
@@ -31,7 +31,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             //'folders' => 'folder',
         ]);
 
-    Route::resource('/price-lists/articles', \App\Http\Controllers\App\PriceLists\ArticleController::class)
+    Route::resource('/price-lists/articles', \App\Http\Controllers\Application\PriceLists\ArticleController::class)
         ->except(['index', 'edit'])
         ->names([
             'create' => 'app.price-lists.articles.create',
@@ -44,7 +44,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             //'articles' => 'article',
         ]);
 
-    Route::resource('/price-lists/memberships', \App\Http\Controllers\App\PriceLists\MembershipController::class)
+    Route::resource('/price-lists/memberships', \App\Http\Controllers\Application\PriceLists\MembershipController::class)
         ->except(['index', 'edit'])
         ->names([
             'create' => 'app.price-lists.memberships.create',
@@ -54,7 +54,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.price-lists.memberships.destroy',
         ]);
 
-    Route::resource('/price-lists/subscriptions', \App\Http\Controllers\App\PriceLists\SubscriptionController::class)
+    Route::resource('/price-lists/subscriptions', \App\Http\Controllers\Application\PriceLists\SubscriptionController::class)
         ->except(['index', 'edit'])
         ->names([
             'create' => 'app.price-lists.subscriptions.create',
@@ -64,6 +64,6 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.price-lists.subscriptions.destroy',
         ]);
 
-    Route::match(['put', 'patch'], '/price-lists/subscriptions/{subscription}/optional-content', \App\Http\Controllers\App\PriceLists\OptionalContentSubscriptionUpdateController::class)
+    Route::match(['put', 'patch'], '/price-lists/subscriptions/{subscription}/optional-content', \App\Http\Controllers\Application\PriceLists\OptionalContentSubscriptionUpdateController::class)
         ->name('price-lists.subscriptions.optional-content.update');
 });

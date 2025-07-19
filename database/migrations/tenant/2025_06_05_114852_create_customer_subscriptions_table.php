@@ -28,6 +28,7 @@ return new class extends Migration
             $table->morphs('entitable');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
+            $table->string('card_number')->nullable();
             $table->text('notes')->nullable(); // Additional notes about the subscription
             $table->timestamps();
         });

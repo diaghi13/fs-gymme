@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
@@ -39,6 +40,14 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        if (Auth::check()) {
+            $request->user()->load([
+                'tenants',
+                'roles.permissions',
+                'permissions',
+            ]);
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -55,6 +64,7 @@ class HandleInertiaRequests extends Middleware
                 'status' => fn() => $request->session()->get('status'),
                 'message' => fn() => $request->session()->get('message'),
             ],
+            'currentTenantId' => $request->session()->get('current_tenant_id'),
         ];
     }
 }

@@ -1,6 +1,9 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
+use Laravel\Cashier\Exceptions\IncompletePayment;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware([])->group(function () {
@@ -50,5 +53,21 @@ Route::middleware([])->group(function () {
         return $paymentCondition->load(['installments', 'payment_method']);
     })->middleware('auth:sanctum')
         ->name('api.v1.payment-conditions.show');
+
+    Route::get('customers', function (\Illuminate\Http\Request $request) {
+        return \App\Models\Customer\Customer::query()
+            ->when($request->has('term'), function ($query) use ($request) {
+                $query->where('first_name', 'like', '%' . $request->term . '%')
+                    ->orWhere('last_name', 'like', '%' . $request->term . '%')
+                    ->orWhere('email', 'like', '%' . $request->term . '%');
+            })
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->limit(10)
+            ->get(['id', 'first_name', 'last_name', 'email', 'birth_date']);
+    })->middleware('auth:sanctum')
+        ->name('api.v1.customers.index');
+
+    Route::post('/subscribe', [\App\Http\Controllers\Central\SubscriptionPlan\SubscribeController::class, 'subscribe'])->name('subscription-plan.subscribe');
 
 });

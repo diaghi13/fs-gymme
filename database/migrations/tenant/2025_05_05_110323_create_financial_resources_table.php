@@ -18,8 +18,13 @@ return new class extends Migration
             $table->string('name');
             $table->string('iban')->nullable();
             $table->string('bic')->nullable();
+            $table->boolean('is_active')
+                ->default(true);
+            $table->boolean('default')
+                ->default(false);
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

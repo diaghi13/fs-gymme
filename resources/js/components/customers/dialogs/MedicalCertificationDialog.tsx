@@ -16,7 +16,7 @@ interface MedicalCertificationDialogProps {
 export default function MedicalCertificationDialog(
   { medicalCertification, open, onClose }: MedicalCertificationDialogProps
 ) {
-  const { customer } = usePage<CustomerShowProps>().props;
+  const { customer, currentTenantId } = usePage<CustomerShowProps>().props;
 
   const formik: FormikConfig<MedicalCertification> = {
     initialValues: {
@@ -28,7 +28,7 @@ export default function MedicalCertificationDialog(
     onSubmit: (values) => {
       if (!medicalCertification?.id) {
         router.post(
-          route('app.customers.medical-certifications.store', { customer: customer.id }),
+          route('app.customers.medical-certifications.store', { customer: customer.id, tenant: currentTenantId }),
           values as unknown as RequestPayload,
           {
             preserveState: false,
@@ -39,7 +39,7 @@ export default function MedicalCertificationDialog(
         router.patch(
           route(
             'customers.medical-certifications.update',
-            { customer: customer.id, medicalCertification: medicalCertification.id }
+            { customer: customer.id, medicalCertification: medicalCertification.id, tenant: currentTenantId }
           ),
           values as unknown as RequestPayload,
           {

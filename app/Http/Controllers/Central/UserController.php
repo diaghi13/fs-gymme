@@ -14,7 +14,11 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = \App\Models\CentralUser::all();
+        $users = \App\Models\CentralUser::with([
+            'tenants',
+            'roles.permissions',
+            'permissions',
+        ])->get();
 
         return Inertia::render('central/users/index', [
             'users' => $users,

@@ -19,24 +19,10 @@ use Inertia\Inertia;
 
 Route::middleware([])->group(function () {
 
-    Route::get('dashboard', function () {
-//        tenancy()->central(function () {
-//            $role = Role::create(['name' => 'super-admin']);
-//            $permission = Permission::create(['name' => 'manage sales']);
-//
-//            $role->givePermissionTo($permission);
-//
-//            $user = auth()->user();
-//
-//            if ($user) {
-//                $user->assignRole($role);
-//            }
-//        });
+    Route::get('dashboard', \App\Http\Controllers\Application\DashboardController::class)
+        ->name('app.dashboard');
 
-        return Inertia::render('dashboard');
-    })->name('app.dashboard');
-
-    Route::resource('sales', \App\Http\Controllers\App\Sales\SaleController::class)
+    Route::resource('sales', \App\Http\Controllers\Application\Sales\SaleController::class)
         ->except(['edit'])
         ->names([
             'index' => 'app.sales.index',
@@ -47,9 +33,16 @@ Route::middleware([])->group(function () {
             'destroy' => 'app.sales.destroy',
         ]);
 
-    Route::get('sales/{sale}/export-xml', \App\Http\Controllers\App\Sales\ExportXml::class)
+    Route::get('sales/{sale}/export-xml', \App\Http\Controllers\Application\Sales\ExportXml::class)
         ->name('app.sales.export-xml');
 
+    Route::get('subscription-plan', \App\Http\Controllers\Application\SubscriptionPlanChoiceController::class)
+        ->withoutMiddleware(\App\Http\Middleware\HasActiveSubscriptionPlan::class)
+        ->name('app.subscription-plans.index');
+
+    Route::get('subscription-plan-payment/{subscriptionPlan}', \App\Http\Controllers\Application\SubscriptionPlanPaymentController::class)
+        ->withoutMiddleware(\App\Http\Middleware\HasActiveSubscriptionPlan::class)
+        ->name('app.subscription-plans.payment');
 });
 
 require __DIR__ . '/products.php';

@@ -2,6 +2,8 @@
 
 namespace App\Models\Product;
 
+use App\Models\Scopes\StructureScope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Parental\HasParent;
@@ -12,6 +14,19 @@ use Parental\HasParent;
 class BaseProduct extends Product
 {
     use HasParent;
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($product) {
+            $product->selling_description = !$product->selling_description
+                ? $product->name
+                : $product->selling_description;
+
+            $product->structure_id = 1;
+        });
+    }
 
     public function getIsSchedulableAttribute()
     {

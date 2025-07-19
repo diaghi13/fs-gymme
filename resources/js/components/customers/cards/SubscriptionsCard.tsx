@@ -14,18 +14,22 @@ const SubscriptionsCard = () => {
   const { active_subscriptions: subscriptions } = usePage<CustomerShowProps>().props.customer;
 
   if (!subscriptions || subscriptions.length === 0) {
-    return null; // Render nothing if there are no subscriptions
+    return (
+      <Card>
+        <CardHeader title={<Typography variant={'h6'}>Abbonamenti Attivi</Typography>} />
+        <CardContent sx={{ p: 0 }}>
+            <Typography sx={{ px: 2 }}>
+              Nessun abbonamento presente
+            </Typography>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
     <Card>
       <CardHeader title={<Typography variant={'h6'}>Abbonamenti Attivi</Typography>} />
       <CardContent sx={{ p: 0 }}>
-        {subscriptions.length === 0 && (
-          <Typography sx={{ px: 2 }}>
-            Nessun abbonamento presente
-          </Typography>
-        )}
         <List>
           {subscriptions.map((item, index: number) => (
             <SubscriptionItem subscription={item} index={index} key={`customer-subscription-item-${index}`} />

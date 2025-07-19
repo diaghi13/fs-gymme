@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('interval')->default('month'); // e.g., 'month', 'year'
             $table->integer('trial_days')->default(0); // Number of trial days
             $table->boolean('is_active')->default(true); // Indicates if the plan is active
+            $table->string('stripe_price_id')->nullable(); // Stripe price ID for integration
             $table->timestamps();
         });
     }

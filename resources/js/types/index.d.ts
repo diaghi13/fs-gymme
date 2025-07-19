@@ -13,6 +13,7 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     status: 'default' | 'success' | 'info' | 'warning' | 'error' | undefined;
     message: string;
   };
+  currentTenantId: string;
 };
 
 export type AutocompleteOption = {
@@ -77,6 +78,22 @@ export interface User {
     id: string;
   }[]
 
+  company?: {
+    id: string;
+    name: string;
+    slug: string;
+    vat_number: string;
+    tax_code: string;
+    address: string;
+    city: string;
+    postal_code: string;
+    country: string;
+    phone: string;
+    email: string;
+    pec_email: string;
+    sdi_code: string;
+  }
+
   [key: string]: unknown; // This allows for additional properties...
 }
 
@@ -140,6 +157,19 @@ export interface Tenant {
   }
 
   [key: string]: unknown; // This allows for additional properties...
+}
+
+export interface SubscriptionPlan {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  currency: string;
+  interval: string; // e.g., 'month', 'year'
+  trial_days: number;
+  is_active: boolean;
+  stripe_price_id: string;
 }
 
 export interface VatRate {
@@ -314,6 +344,17 @@ export interface Sale {
     payed: number;
     due: number;
   }
+
+  sale_summary: {
+    gross_price: number;
+    net_price: number;
+    total_tax: number;
+    total_quantity: number;
+    total_paid: number;
+    total_due: number;
+    absolute_discount: number;
+    percentage_discount: number;
+  }
 }
 
 export interface SaleRow {
@@ -408,6 +449,7 @@ export interface Customer {
   uuid: string;
   first_name: string;
   last_name: string;
+  full_name: string;
   birth_date: Date | string | null;
   gender: "female" | "male" | "other" | null;
   birthplace: string | null;
@@ -492,4 +534,5 @@ export interface CityFull extends City{
   lat: string;
   lon: string;
   superficie_kmq: string;
+  cap: string;
 }

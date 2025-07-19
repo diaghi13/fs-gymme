@@ -1,20 +1,23 @@
 import * as React from 'react';
-import { User } from '@/types';
+import { PageProps, User } from '@/types';
 import AppLayout from '@/layouts/AppLayout';
 import { Grid, List } from '@mui/material';
 import MyCard from '@/components/ui/MyCard';
 import { PropsWithChildren } from 'react';
 import { configurationMenuList } from '@/layouts';
 import DrawerItem from '@/components/layout/DrawerItem';
+import { usePage } from '@inertiajs/react';
 
 const Layout : React.FC<PropsWithChildren<{user: User}>> = ({user, children}) => {
+  const props = usePage<PageProps>().props;
+
   return (
    <AppLayout user={user}>
      <Grid container spacing={2} sx={{ p: 2 }}>
        <Grid size={3}>
          <MyCard title={""} disablePadding>
            <List disablePadding>
-             {configurationMenuList.map((item, index) => (
+             {configurationMenuList(props.currentTenantId).map((item, index) => (
                <DrawerItem {...item} key={index} />
              ))}
               {/*<ListItemButton>*/}

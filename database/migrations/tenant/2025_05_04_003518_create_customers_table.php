@@ -13,6 +13,18 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('structure_id')
+                ->nullable()
+                ->constrained('structures')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
+            $table->foreignId('user_id')
+                ->nullable()
+                ->constrained('users')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
+
             $table->string("uuid", 50)
                 ->unique()
                 ->index();
@@ -31,6 +43,21 @@ return new class extends Migration
             $table->string('zip')->nullable();
             $table->string('province')->nullable();
             $table->string('country')->nullable();
+
+            $table->boolean('gdpr_consent')
+                ->default(false);
+            $table->date('gdpr_consent_at')
+                ->nullable();
+            $table->boolean('marketing_consent')
+                ->default(false);
+            $table->date('marketing_consent_at')
+                ->nullable();
+            $table->boolean('photo_consent')
+                ->default(false);
+            $table->boolean('medical_data_consent')
+                ->default(false);
+            $table->timestamp('data_retention_until')
+                ->nullable();
 
             $table->timestamps();
             $table->softDeletes();

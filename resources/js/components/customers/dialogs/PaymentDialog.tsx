@@ -23,7 +23,7 @@ interface PaymentDialogProps {
 }
 
 const PaymentDialog = ({sale, open, onClose, payment}: PaymentDialogProps) => {
-  const {props: {payment_methods, customer}} = usePage<CustomerShowProps>();
+  const {props: {payment_methods, customer, currentTenantId}} = usePage<CustomerShowProps>();
 
   return (
     <Formik
@@ -37,13 +37,13 @@ const PaymentDialog = ({sale, open, onClose, payment}: PaymentDialogProps) => {
         //console.log(values);
         if (payment) {
           router.put(
-            route('app.customer-sale-payments.update', {customer: customer.id, sale: sale.id,  payment: payment.id}),
+            route('app.customer-sale-payments.update', {customer: customer.id, sale: sale.id,  payment: payment.id, tenant: currentTenantId}),
             values,
             {preserveScroll: true}
           )
         } else {
           router.post(
-            route('app.customer-sale-payments.store', {customer: customer.id, sale: sale.id}),
+            route('app.customer-sale-payments.store', {customer: customer.id, sale: sale.id, tenant: currentTenantId}),
             values,
             {preserveScroll: true}
           )

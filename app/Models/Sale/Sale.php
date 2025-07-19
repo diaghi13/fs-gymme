@@ -3,13 +3,16 @@
 namespace App\Models\Sale;
 
 use App\Casts\MoneyCast;
+use App\Models\Scopes\StructureScope;
+use App\Models\Traits\HasStructure;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Sale extends Model
 {
     /** @use HasFactory<\Database\Factories\Sale\SaleFactory> */
-    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes;
+    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, HasStructure;
 
     protected $fillable = [
         'uuid',
@@ -186,6 +189,47 @@ class Sale extends Model
             'total_gross'  => round($total_gross, 2),
             'payed'        => round($payed, 2),
             'due'          => round($due, 2),
+        ];
+    }
+
+    public function getSaleSummaryAttribute(): array
+    {
+        $grossPrice = $this->rows->sum(function ($row) {
+            return $row->quantity * $row->unit_price;
+        });
+
+        $netPrice = $this->rows->sum(function ($row) {
+            $rowTotal = ($row->quantity * $row->unit_price) - ($row->absolute_discount ?? 0);
+            if (!empty($row->percentage_discount)) {
+                $rowTotal -= $rowTotal * ($row->percentage_discount / 100);
+            }
+            // Rimuovi l'IVA dal totale della riga
+            return $row->vat_rate ? $rowTotal / (1 + ($row->vat_rate->percentage / 100)) : $rowTotal;
+        });
+
+        $totalTax = $this->rows->sum(function ($row) {
+            $rowTotal = ($row->quantity * $row->unit_price) - ($row->absolute_discount ?? 0);
+            if (!empty($row->percentage_discount)) {
+                $rowTotal -= $rowTotal * ($row->percentage_discount / 100);
+            }
+            return $row->vat_rate ? $rowTotal * ($row->vat_rate->percentage / 100) : 0;
+        });
+
+        $totalQuantity = $this->rows->sum('quantity');
+
+        $totalPaid = $this->payments->sum('amount');
+
+        $totalDue = max(0, $netPrice - $totalPaid);
+
+        return [
+            'gross_price' => round($grossPrice, 2),
+            'net_price' => round($netPrice, 2),
+            'total_tax' => round($totalTax, 2),
+            'total_quantity' => $totalQuantity,
+            'total_paid' => round($totalPaid, 2),
+            'total_due' => round($totalDue, 2),
+            'absolute_discount' => round($this->discount_absolute ?? 0, 2),
+            'percentage_discount' => round($this->discount_percentage ?? 0, 2),
         ];
     }
 }

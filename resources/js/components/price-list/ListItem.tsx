@@ -12,7 +12,7 @@ import { PriceListFolderTree, AllPriceLists } from '@/types';
 
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import FolderIcon from '@mui/icons-material/Folder';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
@@ -21,7 +21,7 @@ import CardMembershipIcon from '@mui/icons-material/CardMembership';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import { useTheme } from '@mui/material/styles';
-import { ARTICLE, FOLDER, MEMBERSHIP, SUBSCRIPTION } from '@/pages/price-lists/price-lists';
+import { ARTICLE, FOLDER, MEMBERSHIP, PriceListPageProps, SUBSCRIPTION } from '@/pages/price-lists/price-lists';
 
 interface ListItemProps {
   priceList: AllPriceLists;
@@ -39,6 +39,8 @@ export default function ListItem({ priceList, nested = 0, onClick, canCreate }: 
   const color = priceList.type !== FOLDER
     ? priceList.color
     : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,1)' : 'rgba(0, 0, 0, 0.54)');
+
+  const page = usePage<PriceListPageProps>().props;
 
   const handleClick = () => {
     if (isFolder) {
@@ -59,7 +61,7 @@ export default function ListItem({ priceList, nested = 0, onClick, canCreate }: 
           <ListItemText primary={priceList.name} />
           {canCreate && priceList.type === FOLDER && (
             <IconButton
-              onClick={() => router.get(route('app.price-lists.folders.show', { 'folder': priceList.id }))}
+              onClick={() => router.get(route('app.price-lists.folders.show', { 'tenant': page.auth.user.company?.id, 'folder': priceList.id }))}
             >
               <MoreVertIcon />
             </IconButton>

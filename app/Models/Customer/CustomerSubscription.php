@@ -2,6 +2,7 @@
 
 namespace App\Models\Customer;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -46,5 +47,19 @@ class CustomerSubscription extends Model
     public function entity()
     {
         return $this->morphTo('entity', 'entitable_type', 'entitable_id');
+    }
+
+    public function scopeActive(Builder $query)
+    {
+        return $query->where('start_date', '<=', now('Europe/Rome'))
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now('Europe/Rome'));
+            });
+    }
+
+    public function scopeOfType(Builder $query, string $type)
+    {
+        return $query->where('type', $type);
     }
 }

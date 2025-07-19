@@ -3,9 +3,11 @@ import { PageProps, Tenant } from '@/types';
 import CentralLayout from '@/layouts/CentralLayout';
 import { DataGrid, GridActionsCellItem, GridColDef } from '@mui/x-data-grid';
 import { Box } from '@mui/material';
+import { router } from '@inertiajs/react';
 
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
+import AppsIcon from '@mui/icons-material/Apps';
 
 const columns: GridColDef<Tenant>[] = [
   { field: 'id', headerName: 'ID', flex: 0.5 },
@@ -46,7 +48,7 @@ const columns: GridColDef<Tenant>[] = [
     field: 'actions',
     type: 'actions',
     width: 40,
-    getActions: () => [
+    getActions: (params) => [
       <GridActionsCellItem
         icon={<VisibilityIcon />}
         label="Visualizza"
@@ -59,6 +61,12 @@ const columns: GridColDef<Tenant>[] = [
         onClick={() => {}}
         showInMenu
       />,
+      <GridActionsCellItem
+        icon={<AppsIcon />}
+        label="App"
+        showInMenu
+        onClick={() => router.get(route('central.redirectToApp', { tenant: params.row.id }))}
+      />
     ]
   }
 ];

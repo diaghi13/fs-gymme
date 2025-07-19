@@ -10,6 +10,7 @@ class Subscription extends PriceList
     use HasParent;
 
     protected $fillable = [
+        "structure_id",
         "name",
         "color",
         "saleable",

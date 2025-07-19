@@ -3,6 +3,7 @@
 namespace App\Models\Sale;
 
 use App\Casts\MoneyCast;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -50,5 +51,16 @@ class Payment extends Model
     public function getIsPayedAttribute()
     {
         return $this->payed_at !== null;
+    }
+
+    public function scopeDailySum(Builder $query)
+    {
+        return $query->whereDate('payed_at', now('Europe/Rome'))->sum('amount') / 100;
+    }
+
+    public function scopePending(Builder $query)
+    {
+        return $query->whereDate('due_date', '<=', now('Europe/Rome'))
+            ->whereNull('payed_at');
     }
 }

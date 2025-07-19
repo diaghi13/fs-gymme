@@ -23,6 +23,7 @@ import currency from 'currency.js';
 import DatePicker from '@/components/ui/DatePicker';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { addDays, endOfMonth } from 'date-fns';
+import axios from 'axios';
 
 export interface SaleInstallmentFormValues {
   due_date: Date | null;
@@ -159,11 +160,13 @@ export default function PaymentCard({ calculator, setCalculator }: PaymentCardPr
   };
 
   const getPaymentConditionData = useCallback(async (id: number) => {
-    const response = await fetch(route('api.v1.payment-conditions.show', { paymentCondition: id }));
-    const resData: PaymentCondition = await response.json();
+    const response = await axios.get(route('api.v1.payment-conditions.show', { paymentCondition: id }));
+    const resData: PaymentCondition = await response.data;
 
-    setAvailableFinancialResources(financialResources.filter(f => f.financial_resource_type_id === resData.financial_resource_type_id));
-    await setFieldValue('financial_resource', financialResources.filter(f => f.financial_resource_type_id === resData.financial_resource_type_id).find(f => f.default) || null);
+    //setAvailableFinancialResources(financialResources.filter(f => f.financial_resource_type_id === resData.financial_resource_type_id));
+    //await setFieldValue('financial_resource', financialResources.filter(f => f.financial_resource_type_id === resData.financial_resource_type_id).find(f => f.default) || null);
+    setAvailableFinancialResources(financialResources);
+    await setFieldValue('financial_resource', financialResources.find(f => f.default) || null);
 
     if (!resData.installments || resData.installments.length === 0) {
       await setFieldValue('payments', [{

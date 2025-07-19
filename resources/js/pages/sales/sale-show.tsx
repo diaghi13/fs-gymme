@@ -1,18 +1,20 @@
 import * as React from 'react';
 import { PageProps, Sale } from '@/types';
-import { Grid, IconButton, Stack, Tooltip } from '@mui/material';
+import { Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import { CodeIcon, PrinterIcon, SendIcon } from 'lucide-react';
-import { router } from '@inertiajs/react';
 import AppLayout from '@/layouts/AppLayout';
 import SaleHeaderCard from '@/components/sales/cards/SaleHeaderCard';
-import TotalsCard from '@/components/sales/cards/TotalsCard';
+import SaleTotalsCard from '@/components/sales/cards/SaleTotalsCard';
+import MyCard from '@/components/ui/MyCard';
+import SaleCustomerCard from '@/components/sales/cards/SaleCustomerCard';
+import SaleRowsCard from '@/components/sales/cards/SaleRowsCard';
 
 interface SaleShowProps extends PageProps {
   sale: Sale;
 }
 
-const SaleShow: React.FC<SaleShowProps> = ({ auth, sale }) => {
+const SaleShow: React.FC<SaleShowProps> = ({ auth, sale, currentTenantId }) => {
   console.log('sale', sale);
 
   return (
@@ -26,7 +28,7 @@ const SaleShow: React.FC<SaleShowProps> = ({ auth, sale }) => {
               </IconButton>
             </Tooltip>
             <Tooltip title="Esporta XML">
-              <IconButton href={route('sales.export-xml', { sale: sale.id! })}>
+              <IconButton href={route('app.sales.export-xml', { tenant: currentTenantId, sale: sale.id! })}>
                 <CodeIcon />
               </IconButton>
             </Tooltip>
@@ -42,14 +44,17 @@ const SaleShow: React.FC<SaleShowProps> = ({ auth, sale }) => {
             </Tooltip>
           </Stack>
         </Grid>
-        <Grid size={6}>
-          <SaleHeaderCard sale={{
-            date: sale.date,
-            customer: sale.customer ? { label: sale.customer.full_name! } : undefined
-          }} />
+        <Grid size={4}>
+          <SaleHeaderCard sale={sale} />
         </Grid>
-        <Grid size={6}>
-          {/*<TotalsCard sale_price={} total_price={} sale={}*/}
+        <Grid size={4}>
+          <SaleCustomerCard sale={sale} />
+        </Grid>
+        <Grid size={4}>
+          <SaleTotalsCard sale={sale} />
+        </Grid>
+        <Grid size={12}>
+          <SaleRowsCard sale={sale} />
         </Grid>
       </Grid>
     </AppLayout>

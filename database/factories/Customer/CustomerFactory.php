@@ -3,6 +3,7 @@
 namespace Database\Factories\Customer;
 
 use App\Enums\GenderEnum;
+use App\Models\Structure;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,6 +19,7 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
+            'structure_id' => fake()->randomElement(Structure::all()->pluck('id')),
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'birth_date' => fake()->dateTimeBetween('-50 years', '-18 years'),

@@ -5,17 +5,24 @@ namespace App\Models\PriceList;
 use App\Contracts\PriceListContract;
 use App\Contracts\VatRateable;
 use App\Enums\PriceListItemTypeEnum;
+use App\Models\Scopes\StructureScope;
+use App\Models\Traits\HasStructure;
 use App\Models\VatRate;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Parental\HasChildren;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
 class PriceList extends Model implements PriceListContract, VatRateable
 {
     use HasRecursiveRelationships,
         HasChildren,
-        SoftDeletes;
+        SoftDeletes,
+        HasStructure,
+        LogsActivity;
 
     protected $childTypes = [
         PriceListItemTypeEnum::FOLDER->value => Folder::class,
@@ -58,5 +65,15 @@ class PriceList extends Model implements PriceListContract, VatRateable
     public function sale_row()
     {
         return $this->morphOne(\App\Models\Sale\SaleRow::class, 'enitable');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('price_list')
+            ->logOnly(['name'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn (string $eventName) => "Price list {$this->name} has been {$eventName}");
     }
 }

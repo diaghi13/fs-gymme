@@ -25,11 +25,17 @@ return Application::configure(basePath: dirname(__DIR__))
                     ->group(base_path('routes/central/api/routes.php'));
             }
 
-            Route::middleware(['web', \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class, 'auth'])
-                ->prefix('/app')
+            Route::middleware([
+                'web',
+                //\Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
+                'tenant',
+                'auth',
+                'log',
+            ])
+                ->prefix('/app/{tenant}')
                 ->group(base_path('routes/tenant/web/routes.php'));
 
-            Route::middleware(['api', \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class, 'auth:sanctum'])
+            Route::middleware(['api', \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class])
                 ->prefix('/api/v1')
                 ->group(base_path('routes/tenant/api/routes.php'));
 
@@ -55,6 +61,20 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'log.view' => \App\Http\Middleware\LogResourceView::class,
+            'log.page' => \App\Http\Middleware\LogPageView::class,
+        ]);
+
+        $middleware->group('tenant', [
+            \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
+            \App\Http\Middleware\EnsureTenantSet::class,
+            \App\Http\Middleware\EnsureUserIsInTenantMiddleware::class,
+            \App\Http\Middleware\HasActiveSubscriptionPlan::class,
+        ]);
+
+        $middleware->group('log', [
+            \App\Http\Middleware\LogResourceView::class,
+            \App\Http\Middleware\LogPageView::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -14,6 +14,11 @@ return new class extends Migration
         Schema::create('promotions', function (Blueprint $table) {
             $table->id();
 
+            $table->foreignId('structure_id')
+                ->nullable()
+                ->constrained('structures')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
             $table->string('name');
             $table->string('code')->nullable();
             $table->longText('description')->nullable();

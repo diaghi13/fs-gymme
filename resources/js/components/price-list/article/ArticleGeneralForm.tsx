@@ -6,14 +6,14 @@ import FolderIcon from '@mui/icons-material/Folder';
 import Select from '@/components/ui/Select';
 import FormikSaveButton from '@/components/ui/FormikSaveButton';
 import ColorInput from '@/components/ui/ColorInput';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
   AutocompleteOption,
-  AutocompleteOptions,
+  AutocompleteOptions, PageProps, PriceList,
   PriceListArticle,
   PriceListFolder,
   PriceListFolderTree,
-  PriceListMembershipFee
+  PriceListMembershipFee, VatRate
 } from '@/types';
 import Autocomplete from '@/components/ui/Autocomplete';
 import FolderPriceListDialog from '@/components/price-list/FolderPriceListDialog';
@@ -33,9 +33,9 @@ export type FormikValues = {
 
 interface ArticleGeneralFormProps {
   priceList: PriceListArticle | PriceListMembershipFee;
-  priceListOptions: AutocompleteOptions<number>
+  priceListOptions: PriceList[]
   priceListOptionsTree: Array<PriceListFolderTree>;
-  vatCodes: AutocompleteOptions<number>,
+  vatCodes: VatRate[],
   ref: React.RefObject<FormikProps<FormikValues>>;
 }
 
@@ -48,6 +48,7 @@ export default function ArticleGeneralForm(
     ref
   }: ArticleGeneralFormProps) {
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const page = usePage<PageProps>().props;
 
   const initialValues = {
     name: priceList.name ?? '',
@@ -74,14 +75,14 @@ export default function ArticleGeneralForm(
 
       if (!priceList.id) {
         router.post(
-          route(priceList.type === ARTICLE ? 'app.price-lists.articles.store' : 'app.price-lists.memberships.store'),
+          route(priceList.type === ARTICLE ? 'app.price-lists.articles.store' : 'app.price-lists.memberships.store', { tenant: page.currentTenantId}),
           { ...values, vat_rate_id },
           { preserveState: false }
         );
       } else {
         router.patch(
           route(priceList.type === ARTICLE ? 'app.price-lists.articles.update' : 'app.price-lists.memberships.update',
-            priceList.type === ARTICLE ? { article: priceList.id } : { membership: priceList.id }
+            priceList.type === ARTICLE ? { article: priceList.id, tenant: page.currentTenantId } : { membership: priceList.id, tenant: page.currentTenantId }
           ),
           { ...values, vat_rate_id },
           { preserveState: false }

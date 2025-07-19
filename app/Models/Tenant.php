@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Laravel\Cashier\Billable;
 use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
@@ -10,7 +11,7 @@ use Stancl\Tenancy\Database\Models\TenantPivot;
 
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
-    use HasDatabase, HasDomains;
+    use HasDatabase, HasDomains, Billable;
 
     protected $guarded = [];
 
@@ -38,6 +39,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'pec_email',
             'sdi_code',
             'is_active',
+            'stripe_id',
+            'pm_type',
+            'pm_last_four',
+            'trial_ends_at',
         ];
     }
 

@@ -1,12 +1,13 @@
 import React from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Alert, Box, Grid, Tab, Typography } from '@mui/material';
 import AppLayout from '@/layouts/AppLayout';
 import {
   AutocompleteOptions,
   CourseProduct,
   PageProps,
-  ProductListItem
+  ProductListItem, ProductPlanning,
+  VatRate
 } from '@/types';
 import ProductListCard from '@/components/products/ProductListCard';
 import MyCard from '@/components/ui/MyCard';
@@ -14,38 +15,42 @@ import { TabContext, TabList, TabPanel } from '@mui/lab';
 import GeneralTab from '@/components/products/course-product/GeneralTab';
 import { useSearchParams } from '@/hooks/useSearchParams';
 import SaleTab from '@/components/products/course-product/SaleTab';
+import { useQueryParam } from '@/hooks/useQueryParam';
 
 const tabs = {
   courseProductTabs: [
     { label: 'Generale', value: '1', name: 'general' },
-    {label: "Timetable", value: "2", name: 'timetable'},
-    {label: "Prenotazioni", value: "3", name: 'bookings'},
-    {label: "Vendita", value: "4", name: 'selling'}
+    { label: 'Timetable', value: '2', name: 'timetable' },
+    { label: 'Prenotazioni', value: '3', name: 'bookings' },
+    { label: 'Vendita', value: '4', name: 'selling' }
   ]
 };
 
 export interface CourseProductPageProps extends PageProps {
   products: Array<ProductListItem>;
   product?: CourseProduct;
-  vatRateOptions?: AutocompleteOptions<number>;
-  planningOptions: AutocompleteOptions<number>;
+  vatRateOptions?: VatRate[];
+  planningOptions: ProductPlanning[];
 }
 
 export default function CourseProductPage({ auth, products, product }: CourseProductPageProps) {
-  const tab = useSearchParams('tab')?.toString();
+  //const tab = useSearchParams('tab')?.toString();
+  const [tab, setTab] = useQueryParam('tab', 'general');
   const title = 'Prodotti base';
   const [tabValue, setTabValue] = React.useState(tab || '1');
   const isNew = !product?.id;
+  const props = usePage<PageProps>().props;
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
-    history.pushState({}, '', `${location.pathname}?tab=${newValue}`);
+    //history.pushState({}, '', `${location.pathname}?tab=${newValue}`);
+    setTab(newValue);
 
     setTabValue(newValue);
   };
 
   function handleSelect(selectedProduct: ProductListItem) {
     router.get(
-      route('app.course-products.show', selectedProduct.id),
+      route('app.course-products.show', { course_product: selectedProduct.id, tenant: props.currentTenantId }),
       undefined,
       { preserveState: true }
     );
@@ -54,7 +59,7 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
 
   function handleCreate() {
     router.get(
-      route('app.course-products.create'),
+      route('app.course-products.create', { tenant: props.currentTenantId }),
       undefined,
       { preserveState: true }
     );
@@ -62,7 +67,7 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
 
   function handleDismiss() {
     router.get(
-      route('app.course-products.index'),
+      route('app.course-products.index', { tenant: props.currentTenantId }),
       undefined,
       { preserveState: true }
     );
@@ -110,14 +115,14 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
 
                   {!isNew && (
                     <>
-                      <TabPanel value="2" sx={{width: "100%"}}>
-                        <Typography variant={"h6"}>Coming soon...</Typography>
+                      <TabPanel value="2" sx={{ width: '100%' }}>
+                        <Typography variant={'h6'}>Coming soon...</Typography>
                         {/*<TimeTableTab product={product}  planningOptions={planningOptions}/>*/}
                       </TabPanel>
-                      <TabPanel value="3" sx={{width: "100%"}}>
-                        <Typography variant={"h6"}>Coming soon...</Typography>
+                      <TabPanel value="3" sx={{ width: '100%' }}>
+                        <Typography variant={'h6'}>Coming soon...</Typography>
                       </TabPanel>
-                      <TabPanel value="4" sx={{width: "100%"}}>
+                      <TabPanel value="4" sx={{ width: '100%' }}>
                         <SaleTab product={product} onDismiss={handleDismiss} />
                       </TabPanel>
                     </>

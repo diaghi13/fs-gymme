@@ -21,7 +21,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import {useTheme} from "@mui/material/styles";
 import { Color } from '@/support/Color';
-import { SparkLineChart } from '@mui/x-charts';
+import { SparkLineChart } from '@mui/x-charts/SparkLineChart';
 
 const StyledPaper = styled(Paper, {
   shouldForwardProp: (prop) => prop !== "color",
@@ -187,7 +187,7 @@ const Card = ({content, description, link, details, color = "primary", loading,}
                     data={Object.values(details) as number[]}
                     height={60}
                     showTooltip
-                    //colors={[color === "primary" ? theme.palette.secondary.main : theme.palette.primary.main]}
+                    color={color === "primary" ? theme.palette.secondary.main : theme.palette.primary.main}
                     xAxis={{
                       scaleType: 'band',
                       data: Object.keys(details),

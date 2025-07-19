@@ -68,8 +68,14 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('app.tenants.select');
         }
 
+        $tenant = Auth::user()->tenants->first()->id;
+
+        $request->session()->put('current_tenant_id', $tenant);
+
         return redirect()
-            ->intended(route('app.dashboard', absolute: false) . '?tenant=' . Auth::user()->tenants->first()->id);
+            ->intended(
+                route('app.dashboard', parameters: ['tenant' => $tenant], absolute: false)
+            );
     }
 
     /**

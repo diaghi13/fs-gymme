@@ -20,11 +20,13 @@ class PriceListSeeder extends Seeder
     public function run(): void
     {
         $folder = Folder::create([
+            'structure_id' => 1,
             'name' => 'Folder 1',
             'saleable' => true,
         ]);
 
         $article1 = Article::create([
+            'structure_id' => 1,
             'name' => 'Article 1',
             'color' => Color::randomHex(),
             'saleable' => true,
@@ -34,6 +36,7 @@ class PriceListSeeder extends Seeder
         ]);
 
         $article2 = Article::create([
+            'structure_id' => 1,
             'name' => 'Article 2',
             'color' => Color::randomHex(),
             'saleable' => true,
@@ -43,6 +46,7 @@ class PriceListSeeder extends Seeder
         ]);
 
         $membershipFee = Membership::create([
+            'structure_id' => 1,
             'name' => 'Membership Fee',
             'color' => Color::randomHex(),
             'saleable' => true,
@@ -53,6 +57,7 @@ class PriceListSeeder extends Seeder
         ]);
 
         $subscription = Subscription::create([
+            'structure_id' => 1,
             'name' => 'Subscription 1',
             'color' => Color::randomHex(),
             'saleable' => true,

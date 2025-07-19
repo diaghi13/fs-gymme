@@ -17,13 +17,22 @@ return new class extends Migration
             $table->string('uuid', 50)
                 ->unique()
                 ->index();
+            $table->foreignId('structure_id')
+                ->nullable()
+                ->constrained('structures')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
             $table->foreignIdFor(\App\Models\Support\DocumentType::class)
                 ->constrained()
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
-            $table->string('progressive_number', 50)->nullable();
+            $table->foreignIdFor(\App\Models\Support\DocumentTypeElectronicInvoice::class)
+                ->constrained()
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
+            $table->string('sale_number', 50)->nullable();
             $table->string('description')->nullable();
-            $table->timestamp('date')->nullable();
+            $table->timestamp('sale_date')->nullable();
             $table->integer('year')->nullable();
             $table->foreignId('customer_id')
                 ->constrained()
@@ -56,7 +65,7 @@ return new class extends Migration
             $table->string('exported_status')->default('pending'); // in attesa, esportata, non esportata
             $table->string('currency')->default('EUR');
 
-            $table->longText('notes');
+            $table->longText('notes')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

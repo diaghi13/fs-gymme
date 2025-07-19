@@ -19,8 +19,11 @@ import LogoutIcon from '@mui/icons-material/Logout';
 
 import { drawerWidth } from '@/layouts/AppLayout';
 import { ColorModeContext } from '@/theme/ColorModeContext';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import SearchDialog from '@/components/layout/SearchDialog';
+import { PageProps } from '@/types';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import { useRolesPermissions } from '@/hooks/useRolesPermissions';
 
 interface StyledAppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -81,6 +84,8 @@ export default function AppBar({ open, setOpen }: AppBarProps) {
   const menuOpen = Boolean(anchorEl);
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
+  const page = usePage<PageProps>().props;
+  const { role } = useRolesPermissions(page.auth.user);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -124,6 +129,18 @@ export default function AppBar({ open, setOpen }: AppBarProps) {
           </Typography>
         </Search>
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          {role('super-admin') && (
+            <Tooltip title="Amministrazione">
+              <IconButton
+                sx={{ ml: 2 }}
+                onClick={() => router.get(route('central.redirectToCentral'))}
+                size="small"
+                color="inherit"
+              >
+                <AdminPanelSettingsIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           <IconButton
             sx={{ ml: 1 }}
             onClick={colorMode.toggleColorMode}
@@ -146,7 +163,7 @@ export default function AppBar({ open, setOpen }: AppBarProps) {
           </IconButton>
           <Tooltip title="Configurazioni">
             <IconButton
-              onClick={() => router.get(route('app.configurations.index'))}
+              onClick={() => router.get(route('app.configurations.index', { tenant: page.currentTenantId }))}
               size="small"
               color="inherit"
               aria-controls={open ? 'settings-menu' : undefined}
@@ -165,7 +182,12 @@ export default function AppBar({ open, setOpen }: AppBarProps) {
               aria-haspopup="true"
               aria-expanded={open ? 'true' : undefined}
             >
-              <Avatar sx={{ width: 32, height: 32 }}>DD</Avatar>
+              <Avatar sx={{ width: 32, height: 32 }}>
+                {
+                  page.auth.user.first_name.charAt(0).toUpperCase() +
+                  page.auth.user.last_name.charAt(0).toUpperCase()
+                }
+              </Avatar>
             </IconButton>
           </Tooltip>
         </Box>

@@ -13,10 +13,15 @@ return new class extends Migration {
         Schema::create('price_lists', function (Blueprint $table) {
             $table->id();
 
+            $table->foreignId('structure_id')
+                ->nullable()
+                ->constrained('structures')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
             $table->string('type')->nullable();
             $table->string('name');
             $table->string('color')->nullable();
-            $table->boolean('visible')->default(true);
+            $table->boolean('saleable')->default(true);
             $table->foreignId('parent_id')->nullable();
             $table->date('saleable_from')->nullable();
             $table->date('saleable_to')->nullable();
@@ -27,6 +32,8 @@ return new class extends Migration {
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
             $table->integer('months_duration')->nullable();
+            $table->longText('selling_description')
+                ->nullable();
 
             $table->timestamps();
             $table->softDeletes();

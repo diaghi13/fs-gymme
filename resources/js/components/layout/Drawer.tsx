@@ -21,6 +21,8 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import {drawerWidth} from "@/layouts/AppLayout";
 
 import {menuList, subMenuList} from '@/layouts';
+import { PageProps } from '@/types';
+import { usePage } from '@inertiajs/react';
 
 const openedMixin = (theme: Theme): CSSObject => ({
     width: drawerWidth,
@@ -69,6 +71,7 @@ interface DrawerProps {
 export default function Drawer({open, setOpen, menuList}: DrawerProps){
     const [subMenu, setSubMenu] = useState(false);
     const containerRef = useRef(null);
+    const props = usePage<PageProps>().props;
 
     const toggleSubMenu = () => {
         setSubMenu((prevState) => !prevState);
@@ -96,7 +99,7 @@ export default function Drawer({open, setOpen, menuList}: DrawerProps){
                     }
                 >
                     <List sx={{ width: drawerWidth }}>
-                        {menuList.map((item, index) => (
+                        {menuList(props.currentTenantId).map((item, index) => (
                             <DrawerItem {...item} key={index} />
                         ))}
                         <ListItemButton onClick={toggleSubMenu}>

@@ -4,15 +4,21 @@ namespace App\Models\Customer;
 
 use App\Enums\GenderEnum;
 use App\Models\Sale\SaleRow;
+use App\Models\Scopes\StructureScope;
+use App\Models\Traits\HasStructure;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
     /** @use HasFactory<\Database\Factories\Customer\CustomerFactory> */
-    use HasFactory;
+    use HasFactory, HasStructure, SoftDeletes;
 
     protected $fillable = [
+        'structure_id',
+        'user_id',
         'uuid',
         'first_name',
         'last_name',
@@ -61,6 +67,11 @@ class Customer extends Model
     public function getFullNameAttribute()
     {
         return $this->first_name . ' ' . $this->last_name;
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\CentralUser::class, 'user_id');
     }
 
     public function subscriptions()

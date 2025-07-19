@@ -14,7 +14,7 @@ interface MembershipDialogProps {
 }
 
 export default function MembershipDialog({ membership, open, onClose }: MembershipDialogProps) {
-  const { customer } = usePage<CustomerShowProps>().props;
+  const { customer, currentTenantId } = usePage<CustomerShowProps>().props;
 
   const formik: FormikConfig<Partial<Membership>> = {
     initialValues: {
@@ -26,7 +26,7 @@ export default function MembershipDialog({ membership, open, onClose }: Membersh
     onSubmit: (values) => {
       if (!membership?.id) {
         router.post(
-          route('app.customers.memberships.store', { customer: customer.id }),
+          route('app.customers.memberships.store', { customer: customer.id, tenant: currentTenantId }),
           values as unknown as RequestPayload,
           {
             preserveState: false,
@@ -37,7 +37,7 @@ export default function MembershipDialog({ membership, open, onClose }: Membersh
         router.patch(
           route(
             'customers.memberships.update',
-            { customerSubscription: membership.id }
+            { customerSubscription: membership.id, tenant: currentTenantId }
           ),
           values as unknown as RequestPayload,
           {

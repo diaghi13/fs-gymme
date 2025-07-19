@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['web', 'auth'])->group(function () {
 
     /* Products controllers */
-    Route::resource('/base-products', \App\Http\Controllers\App\Products\BaseProductController::class)
+    Route::resource('/base-products', \App\Http\Controllers\Application\Products\BaseProductController::class)
         ->except(['edit'])
         ->names([
             'index' => 'app.base-products.index',
@@ -16,20 +16,20 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.base-products.destroy',
         ]);
 
-    Route::post('/base-products/{product}/schedules', [\App\Http\Controllers\App\Products\BaseProductScheduleController::class, 'store'])
+    Route::post('/base-products/{product}/schedules', [\App\Http\Controllers\Application\Products\BaseProductScheduleController::class, 'store'])
         ->name('app.base-products.schedules.store');
 
-    Route::resource('/base-products/schedules', \App\Http\Controllers\App\Products\BaseProductScheduleController::class)
+    Route::resource('/base-products/schedules', \App\Http\Controllers\Application\Products\BaseProductScheduleController::class)
         ->only(['update', 'destroy'])
         ->names([
             'update' => 'app.base-products.schedules.update',
             'destroy' => 'app.base-products.schedules.destroy',
         ]);
 
-    Route::patch('base-products/{product}/sales', \App\Http\Controllers\App\Products\BaseProductSaleUpdate::class)
+    Route::patch('base-products/{product}/sales', \App\Http\Controllers\Application\Products\BaseProductSaleUpdate::class)
         ->name('app.base-products.sales.update');
 
-    Route::resource('/course-products', \App\Http\Controllers\App\Products\CourseProductController::class)
+    Route::resource('/course-products', \App\Http\Controllers\Application\Products\CourseProductController::class)
         ->except(['edit'])
         ->names([
             'index' => 'app.course-products.index',
@@ -40,7 +40,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.course-products.destroy',
         ]);
 
-    Route::patch('course-products/{product}/sales', \App\Http\Controllers\App\Products\CourseProductSaleUpdate::class)
+    Route::patch('course-products/{product}/sales', \App\Http\Controllers\Application\Products\CourseProductSaleUpdate::class)
         ->name('app.course-products.sales.update');
 
 });

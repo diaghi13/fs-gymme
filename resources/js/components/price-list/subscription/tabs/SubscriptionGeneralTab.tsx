@@ -9,6 +9,7 @@ import {
 import { router, usePage } from '@inertiajs/react';
 import GeneralForm from '@/components/price-list/subscription/forms/GeneralForm';
 import { PriceListPageProps } from '@/pages/price-lists/price-lists';
+import { RequestPayload } from '@inertiajs/core';
 
 export type SubscriptionGeneralFormValues = {
   type: string;
@@ -45,7 +46,7 @@ interface SubscriptionGeneralFormProps {
 }
 
 export default function SubscriptionGeneralTab({ priceList }: SubscriptionGeneralFormProps) {
-  const {vatRateOptions} = usePage<PriceListPageProps>().props;
+  const {vatRateOptions, currentTenantId} = usePage<PriceListPageProps>().props;
 
   const formik: FormikConfig<Partial<SubscriptionGeneralFormValues>> = {
     initialValues: {
@@ -73,14 +74,14 @@ export default function SubscriptionGeneralTab({ priceList }: SubscriptionGenera
 
       if (!priceList.id) {
         router.post(
-          route('app.price-lists.subscriptions.store'),
-          data as any,
+          route('app.price-lists.subscriptions.store', { tenant: currentTenantId }),
+          data as unknown as RequestPayload,
           { preserveState: false }
         );
       } else {
         router.patch(
-          route('app.price-lists.subscriptions.update', { subscription: priceList.id }),
-          data as any,
+          route('app.price-lists.subscriptions.update', { subscription: priceList.id, tenant: currentTenantId }),
+          data as unknown as RequestPayload,
           { preserveState: false }
         );
       }

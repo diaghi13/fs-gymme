@@ -152,7 +152,7 @@ export default function Sales({ auth, sale, customers, paymentMethods, documentT
 
       console.log(data);
 
-      router.post(route('app.sales.store'), data as unknown as FormData);
+      router.post(route('app.sales.store', {tenant: auth.user.company!.id}), data as unknown as FormData);
     }
   };
 
