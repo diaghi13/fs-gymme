@@ -67,4 +67,9 @@ class Color
             'name' => self::randomName(),
         ];
     }
+
+    public static function isValidHex($value): bool
+    {
+        return preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $value) === 1;
+    }
 }

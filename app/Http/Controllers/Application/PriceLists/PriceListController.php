@@ -29,7 +29,10 @@ class PriceListController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('price-lists/create-price-list', [
+            'priceLists' => [],
+            'priceList' => new PriceList(),
+        ]);
     }
 
     /**

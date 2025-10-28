@@ -15,16 +15,16 @@ class TenantSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             StructureSeeder::class,
-            BaseProductSeeder::class,
+            //BaseProductSeeder::class,
             VatRateSeeder::class,
-            CourseProductSeeder::class,
-            PriceListSeeder::class,
+            //CourseProductSeeder::class,
+            //PriceListSeeder::class,
             PaymentMethodSeeder::class,
             DocumentTypeSeeder::class,
             PaymentConditionSeeder::class,
             FinancialResourceTypeSeeder::class,
-            CustomerSeeder::class,
-            FinancialResourceSeeder::class,
+            //CustomerSeeder::class,
+            //FinancialResourceSeeder::class,
         ]);
     }
 }

@@ -31,6 +31,55 @@ class PriceList extends Model implements PriceListContract, VatRateable
         PriceListItemTypeEnum::SUBSCRIPTION->value => Subscription::class,
     ];
 
+    protected $fillable = [
+        'structure_id',
+        'parent_id',
+        'name',
+        'slug',
+        'description',
+        'list_type',
+        'list_scope',
+        'facility_id',
+        'customer_group_id',
+        'level',
+        'path',
+        'priority',
+        'inherit_from_parent',
+        'override_parent_prices',
+        'is_default',
+        'valid_from',
+        'valid_to',
+        'currency',
+        'tax_included',
+        'default_tax_rate',
+        'base_discount_percentage',
+        'volume_discount_enabled',
+        'loyalty_discount_enabled',
+        'auto_calculate_subscriptions',
+        'round_prices_to',
+        'settings',
+        'color',
+        'icon',
+        'is_active'
+    ];
+
+    protected $casts = [
+        'inherit_from_parent' => 'boolean',
+        'override_parent_prices' => 'boolean',
+        'is_default' => 'boolean',
+        'tax_included' => 'boolean',
+        'volume_discount_enabled' => 'boolean',
+        'loyalty_discount_enabled' => 'boolean',
+        'auto_calculate_subscriptions' => 'boolean',
+        'is_active' => 'boolean',
+        'settings' => 'array',
+        'valid_from' => 'date',
+        'valid_to' => 'date',
+        'default_tax_rate' => 'float',
+        'base_discount_percentage' => 'float',
+        'round_prices_to' => 'float'
+    ];
+
     public function toTree(): \Staudenmeir\LaravelAdjacencyList\Eloquent\Collection
     {
         return $this->tree()

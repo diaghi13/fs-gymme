@@ -3,8 +3,7 @@ import { Form, useFormikContext } from 'formik';
 import {
   Box,
   Button,
-  Grid,
-  IconButton,
+  Grid, IconButton,
   Table,
   TableBody,
   TableCell,
@@ -14,27 +13,25 @@ import {
 } from '@mui/material';
 import FormikSaveButton from '@/components/ui/FormikSaveButton';
 import Checkbox from '@/components/ui/Checkbox';
+import { useTheme } from '@mui/material/styles';
 import Autocomplete from '@/components/ui/Autocomplete';
 import TimePicker from '@/components/ui/TimePicker';
+
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { useTheme } from '@mui/material/styles';
-import { scheduleOptions } from '../index';
-import { AutocompleteOption, ProductSchedule } from '@/types';
-import { router } from '@inertiajs/react';
-import { normalizeScheduleToSave } from '@/components/products/base-product/ScheduleTab';
+import { scheduleOptions } from '@/components/products';
 
-interface ProductScheduleRowProps {
-  day: AutocompleteOption<string> | null;
-  from_time: Date | number;
-  to_time: Date | number;
-}
+const createDefaultOperatingHours = () => {
+  return scheduleOptions.map(option => ({
+    day: option,
+    open: new Date('1970-01-01T00:00:00'),
+    close: new Date('1970-01-01T23:59:59')
+  }));
+};
 
-const createRow = (dayBefore: string): ProductScheduleRowProps => {
-  return {
-    day: scheduleOptions.find(option => option.value === dayBefore) ?? null,
-    from_time: new Date().setHours(0, 0, 0),
-    to_time: new Date().setHours(23, 59, 59)
-  };
+const getNextDay = (lastDay: { label: string, value: string }) => {
+  const currentIndex = scheduleOptions.findIndex(option => option.value === lastDay.value);
+  const nextIndex = (currentIndex + 1) % scheduleOptions.length;
+  return scheduleOptions[nextIndex];
 };
 
 interface ScheduleFormProps {
@@ -44,51 +41,48 @@ interface ScheduleFormProps {
 export default function ScheduleForm({ onDismiss }: ScheduleFormProps) {
   const { values, setFieldValue } = useFormikContext<{
     is_schedulable: boolean,
-    product_schedules: ProductSchedule[]
+    operating_hours: { day: { label: string, value: string }, open: Date, close: Date }[]
   }>();
   const theme = useTheme();
   const checked = values.is_schedulable;
 
-  const handleCreate = () => {
-    setFieldValue('product_schedules', [
-      ...values.product_schedules,
-      createRow(scheduleOptions[0].value)
-    ]);
-  };
-
-  const handleUpdate = (index: number, field: string, value: any) => {
-    const data = {
-      ...values.product_schedules[index],
-      [field]: value
-    };
-
-    router.patch(
-      route('app.base-products.schedules.update', values.product_schedules[index].id),
-      normalizeScheduleToSave(data),
-      {
-        preserveState: true
-      }
-    );
-  };
-
-  const handleDelete = (index: number) => {
-    router.delete(
-      route('app.base-products.schedules.destroy', values.product_schedules[index].id),
-      {
-        preserveState: true
-      });
-  };
-
   useEffect(() => {
-    if (checked && values.product_schedules.length === 0) {
-      const scheduleItems = scheduleOptions.map(item => createRow(item.value));
-      setFieldValue('product_schedules', [...scheduleItems]);
+    if (!checked) {
+      setFieldValue('operating_hours', []);
+    } else if (checked && values.operating_hours.length === 0) {
+      setFieldValue('operating_hours', createDefaultOperatingHours());
+    }
+  }, [checked, setFieldValue, values.operating_hours.length]);
+
+  const handleAddRow = () => {
+    const day = values.operating_hours.length > 0
+      ? getNextDay(values.operating_hours[values.operating_hours.length - 1].day)
+      : scheduleOptions[0];
+
+    setFieldValue('operating_hours', [
+      ...values.operating_hours,
+      {
+        day,
+        open: new Date('1970-01-01T00:00:00'),
+        close: new Date('1970-01-01T23:59:59')
+      }
+    ]);
+
+    if (values.operating_hours.length === 0) {
+      setFieldValue('is_schedulable', true);
+    }
+  };
+
+  const handleRemoveRow = (index: number) => {
+    const updatedHours = values.operating_hours.filter((_, i) => i !== index);
+
+    if (updatedHours.length === 0) {
+      setFieldValue('is_schedulable', false);
+      return;
     }
 
-    if (!checked) {
-      setFieldValue('product_schedules', []);
-    }
-  }, [checked, setFieldValue, values.product_schedules.length]);
+    setFieldValue('operating_hours', updatedHours);
+  };
 
   return (
     <Form>
@@ -119,63 +113,44 @@ export default function ScheduleForm({ onDismiss }: ScheduleFormProps) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {values.product_schedules?.length > 0 && values.product_schedules.map((item: ProductSchedule, index: number) => (
+              {values.operating_hours.map((_, index) => (
                 <TableRow
                   key={index}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
                   <TableCell>
-                    <Autocomplete
+                    <Autocomplete<{ label: string, value: string }>
                       options={scheduleOptions}
-                      name={`product_schedules[${index}]day`}
+                      name={`operating_hours[${index}]day`}
                       label="Giorno"
-                      onBlur={() => {
-                        handleUpdate(index, 'day', values.product_schedules[index].day);
-                      }}
                     />
                   </TableCell>
                   <TableCell sx={{ maxWidth: 150 }}>
                     <TimePicker
                       label="Inizio"
-                      name={`product_schedules[${index}]from_time`}
-                      onBlur={() => {
-                        const from_time = values.product_schedules[index].from_time;
-                        if (from_time) {
-                          handleUpdate(index, 'from_time', from_time);
-                        }
-                      }}
+                      name={`operating_hours[${index}]open`}
                     />
                   </TableCell>
                   <TableCell sx={{ maxWidth: 150 }}>
                     <TimePicker
                       label="Fine"
-                      name={`product_schedules[${index}]to_time`}
-                      onBlur={() => {
-                        const to_time = values.product_schedules[index].to_time;
-                        if (to_time) {
-                          handleUpdate(index, 'to_time', to_time);
-                        }
-                      }}
+                      name={`operating_hours[${index}]close`}
                     />
                   </TableCell>
                   <TableCell sx={{ maxWidth: 50 }}>
                     <Tooltip title="Rimuovi">
-                      <IconButton onClick={() => handleDelete(index)}>
+                      <IconButton onClick={() => handleRemoveRow(index)}>
                         <DeleteOutlineIcon />
                       </IconButton>
                     </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}
-              {values.is_schedulable && (
-                <TableRow>
-                  <TableCell colSpan={4} sx={{ textAlign: 'center' }}>
-                    <Button onClick={handleCreate}>Aggiungi rigo</Button>
-                  </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
+        </Grid>
+        <Grid size={12}>
+          <Button onClick={handleAddRow}>Aggiungi Giorno</Button>
         </Grid>
         <Grid size={12} sx={{ textAlign: 'end' }}>
           <Button size="small" sx={{ marginRight: 2 }} onClick={onDismiss}>Annulla</Button>

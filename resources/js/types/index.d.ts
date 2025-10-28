@@ -197,21 +197,104 @@ export type ProductTypes =
   | 'App\\Models\\Product\\SubscriptionProduct'
   | 'App\\Models\\Product\\ServiceProduct';
 
-export interface Product {
-  id?: number;
+export interface ProductCategory {
+  id: number;
+  parent_id?: number | null;
   name: string;
+  slug?: string | null;
+  description?: string | null;
+  image_path?: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+}
+
+export interface Product {
+  id: number;
+  structure_id?: number | null;
+  vat_rate_id?: number | null;
+  name: string;
+  slug?: string | null;
   color: string;
-  type: ProductTypes;
-  visible: boolean;
-  sale_in_subscription?: boolean;
-  selling_description?: string;
-  vat_rate: VatRate | null;
-  vat_rate_id: number | null;
+  description?: string | null;
+  short_description?: string | null;
+  sku?: string | null;
+  type?: string | null;
+  unit_type: string;
+  is_bookable: boolean;
+  requires_trainer: boolean;
+  duration_minutes?: number | null;
+  max_participants?: number | null;
+  min_participants?: number | null;
+  min_age?: number | null;
+  max_age?: number | null;
+  gender_restriction: string;
+  prerequisites?: string | null;
+  subscription_duration_months?: number | null;
+  subscription_duration_days?: number | null;
+  subscription_type: string;
+  is_renewable: boolean;
+  auto_renew_default: boolean;
+  validity_days?: number | null;
+  max_uses_per_period?: number | null;
+  max_uses_total?: number | null;
+  settings?: Record<string, boolean | string | number | object | Array> | null;
+  image_path?: string | null;
+  is_active: boolean;
+  saleable_in_subscription: boolean;
+  selling_description?: string | null;
+
+  vat_rate?: VatRate | null;
+
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+}
+
+export interface SubscriptionComposition {
+  id: number;
+  subscription_product_id: number;
+  included_product_id: number;
+  quantity: number;
+  max_uses?: number | null;
+  unlimited_uses: boolean;
+  validity_from_day: number;
+  validity_to_day?: number | null;
+  validity_type: string;
+  is_included_in_base_price: boolean;
+  additional_cost: number;
+  cost_per_use: number;
+  requires_booking: boolean;
+  booking_advance_days: number;
+  cancellation_hours: number;
+  max_uses_per_day?: number | null;
+  max_uses_per_week?: number | null;
+  max_uses_per_month?: number | null;
+  allowed_days?: string[] | null;
+  allowed_time_slots?: string[] | null;
+  allowed_time_slot_tolerance_in_minutes: number;
+  blackout_dates?: string[] | null;
+  priority: number;
+  sort_order: number;
+  notes?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
 }
 
 export interface BaseProduct extends Product {
   is_schedulable: boolean;
   product_schedules: ProductSchedule[];
+  settings: {
+    facility: {
+      operating_hours: { day: string; open: string; close: string }[];
+      max_occupancy: number | null;
+      allow_overbooking: boolean;
+    }
+  }
 }
 
 export interface CourseProduct extends Product {
@@ -244,14 +327,39 @@ export interface ProductSchedule {
 }
 
 export interface PriceList {
-  id?: number | null;
-  structure_id: number;
-  parent_id: number | string | null;
+  id?: number | string | null;
+  company_id: number | string;
+  parent_id?: number | string | null;
   name: string;
-  type: PriceListType;
-  saleable: boolean;
-  saleable_from: string | number | Date | null;
-  saleable_to: string | number | Date | null;
+  slug: string;
+  description?: string | null;
+  list_type: PriceListListType; // previously string
+  list_scope: PriceListScope; // previously string
+  facility_id?: number | string | null;
+  customer_group_id?: number | string | null;
+  level: number;
+  path?: string | null;
+  priority: number;
+  inherit_from_parent: boolean;
+  override_parent_prices: boolean;
+  is_default: boolean;
+  valid_from?: string | Date | null;
+  valid_to?: string | Date | null;
+  currency: string;
+  tax_included: boolean;
+  default_tax_rate: number;
+  base_discount_percentage: number;
+  volume_discount_enabled: boolean;
+  loyalty_discount_enabled: boolean;
+  auto_calculate_subscriptions: boolean;
+  round_prices_to: number;
+  settings?: Record<string, unknown> | null;
+  color?: string | null;
+  icon?: string | null;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
 }
 
 export interface PriceListFolder extends PriceList {
@@ -536,3 +644,68 @@ export interface CityFull extends City{
   superficie_kmq: string;
   cap: string;
 }
+
+export interface PriceListItem {
+  id?: number | string | null;
+  price_list_id: number | string;
+  product_id: number | string;
+  base_price: number;
+  discount_percentage: number;
+  discount_amount: number;
+  final_price: number;
+  price_source: PriceSource; // was string
+  inherited_from_list_id?: number | string | null;
+  price_calculation_method: PriceCalculationMethod; // was string
+  price_formula?: string | null;
+  markup_percentage: number;
+  markup_amount: number;
+  min_quantity: number;
+  max_quantity?: number | null;
+  volume_discount_percentage: number;
+  seasonal_adjustment: number;
+  peak_hours_surcharge: number;
+  payment_options?: Record<string, unknown> | null;
+  installment_available: boolean;
+  installment_months: number;
+  installment_surcharge: number;
+  is_locked: boolean;
+  lock_reason?: string | null;
+  valid_from?: string | Date | null;
+  valid_to?: string | Date | null;
+  is_active: boolean;
+  last_updated_by?: number | string | null;
+  last_update_reason?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PriceListRule {
+  id?: number | string | null;
+  price_list_id: number | string;
+  rule_type: RuleType; // was string
+  customer_group_ids?: Array<number | string> | null;
+  facility_ids?: Array<number | string> | null;
+  valid_from_date?: string | Date | null;
+  valid_to_date?: string | Date | null;
+  valid_days_of_week?: Array<number> | null;
+  valid_time_slots?: Array<string> | null;
+  min_quantity?: number | null;
+  max_quantity?: number | null;
+  min_total_amount?: number | null;
+  max_total_amount?: number | null;
+  min_membership_months?: number | null;
+  customer_registration_after?: string | Date | null;
+  custom_conditions?: Record<string, unknown> | null;
+  priority: number;
+  can_combine_with_other_rules: boolean;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Enum types (string unions) - corrispondono alle enum PHP in app/Enums
+export type PriceListListType = 'standard' | 'promotional' | 'member' | 'corporate' | 'seasonal' | 'group' | 'facility';
+export type PriceListScope = 'global' | 'facility' | 'customer_group' | 'individual';
+export type PriceSource = 'manual' | 'inherited' | 'calculated' | 'formula';
+export type PriceCalculationMethod = 'manual' | 'auto_sum' | 'auto_weighted' | 'formula';
+export type RuleType = 'customer_group' | 'facility' | 'date_range' | 'quantity' | 'total_amount' | 'membership_duration' | 'custom';

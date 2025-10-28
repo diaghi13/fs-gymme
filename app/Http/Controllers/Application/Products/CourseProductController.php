@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Application\Products;
 
+use App\Dtos\Product\CourseProductDto;
 use App\Http\Controllers\Controller;
+use App\Models\Product\CourseProduct;
 use App\Models\VatRate;
+use App\Services\Product\CourseProductService;
 use Illuminate\Http\Request;
 
 class CourseProductController extends Controller
@@ -14,65 +17,52 @@ class CourseProductController extends Controller
     public function index()
     {
         return inertia("products/course-products", [
-            "products" => \App\Models\Product\CourseProduct::all(['id', 'name', 'color']),
+            "products" => CourseProduct::all(['id', 'name', 'color']),
         ]);
     }
 
     /**
      * CustomerShow the form for creating a new resource.
      */
-    public function create()
+    public function create(CourseProductService $service)
     {
-        return inertia("products/course-products", [
-            "products" => \App\Models\Product\CourseProduct::all(),
-            "product" => new \App\Models\Product\CourseProduct([
-                "name" => "",
-                "color" => '#' . str_pad(dechex(mt_rand(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT),
-                //"type" => BaseProduct::BASE_PRODUCT,
-                "visible" => true
-            ]),
+        return inertia('products/course-products', [
+            'products' => CourseProduct::all(),
+            'product' => $service->newProduct(),
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
+     * @throws \Throwable
      */
-    public function store(Request $request)
+    public function store(Request $request, CourseProductDto $dto, CourseProductService $service)
     {
-        $product = \App\Models\Product\CourseProduct::create($request->validate([
-            "name" => "required|string|max:255",
-            "color" => "required|string|max:7",
-            "visible" => "boolean",
-        ]));
+        try {
+            $product = $service->store($dto);
 
-        return to_route("app.course-products.show", [
-            'tenant' => $request->session()->get('current_tenant_id'),
-            "course_product" => $product->id
-        ])
-            ->with('status', 'success')
-            ->with('message', 'Product created successfully');
+            return to_route("app.course-products.show", [
+                'tenant' => $request->session()->get('current_tenant_id'),
+                'course_product' => $product->id
+            ])
+                ->with('status', 'success')
+                ->with('message', 'Product created successfully');
+        } catch (\Throwable $exception) {
+            return back()
+                ->with('status', 'error')
+                ->with('message', 'Failed to create the product.')
+                ->withErrors(['error' => 'Failed to create the product: ' . $exception->getMessage()]);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(CourseProduct $courseProduct, CourseProductService $service)
     {
-        $product = \App\Models\Product\CourseProduct::with(['planning', 'plannings', 'vat_rate'])->findOrFail($id);
-
-        $plannings = $product->plannings();
-
-        return inertia("products/course-products", [
-            "products" => \App\Models\Product\CourseProduct::all(['id', 'name', 'color']),
-            "product" => $product,
-            "vatRateOptions" => $vatRates = VatRate::query()
-                ->get()
-                ->map(function ($vatRate) {
-                    return [
-                        'value' => $vatRate->id,
-                        'label' => $vatRate->code . ' - ' . $vatRate->description,
-                    ];
-                }),
+        return inertia('products/course-products', [
+            'products' => CourseProduct::all(['id', 'name', 'color']),
+            ...$service->show($courseProduct),
             'planningOptions' => []
         ]);
     }
@@ -88,35 +78,36 @@ class CourseProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, CourseProductDto $dto, CourseProductService $service)
     {
-        $product = \App\Models\Product\CourseProduct::findOrFail($id);
+        try {
+            $product = $service->update($dto);
 
-        $product->update($request->validate([
-            "name" => "required|string|max:255",
-            "color" => "required|string|max:7",
-            "visible" => "boolean",
-        ]));
-
-        return to_route("app.course-products.show", [
-            'tenant' => $request->session()->get('current_tenant_id'),
-            "course_product" => $product->id
-        ])
-            ->with('status', 'success')
-            ->with('message', 'Product updated successfully');
+            return to_route("app.course-products.show", [
+                'tenant' => $request->session()->get('current_tenant_id'),
+                'course_product' => $product->id,
+                'tab' => $request->get('tab', '1'),
+            ])
+                ->with('status', 'success')
+                ->with('message', 'Product updated successfully');
+        } catch (\Throwable $exception) {
+            return back()
+                ->with('status', 'error')
+                ->with('message', 'Failed to update the product.')
+                ->withErrors(['error' => 'Failed to update the product: ' . $exception->getMessage()]);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id, CourseProductService $service)
     {
-        $product = \App\Models\Product\CourseProduct::findOrFail($id);
+        $service->delete($id);
 
-        $product->delete();
 
         return to_route("app.course-products.index", [
-            'tenant' => session()->get('current_tenant_id'),
+            'tenant' => session('current_tenant_id'),
         ])
             ->with('status', 'success')
             ->with('message', 'Product deleted successfully');

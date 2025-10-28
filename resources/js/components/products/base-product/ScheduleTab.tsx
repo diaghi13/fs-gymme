@@ -1,93 +1,89 @@
 import React from 'react';
 import { Formik, FormikConfig } from 'formik';
 import { format } from 'date-fns/format';
-import { router, usePage } from '@inertiajs/react';
-import { BaseProduct, PageProps, ProductSchedule } from '@/types';
+import { BaseProduct } from '@/types';
+import { route } from 'ziggy-js';
 import ScheduleForm from '@/components/products/forms/ScheduleForm';
 import { scheduleOptions } from '@/components/products';
+import { router, usePage } from '@inertiajs/react';
+import { RequestPayload } from '@inertiajs/core';
+import { BaseProductPageProps } from '@/pages/products/base-products';
 
-interface ScheduleFormProps {
+
+const parseTime = (time: string): Date => {
+  const [hours, minutes] = time.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+};
+
+interface ScheduleTabProps {
   product: BaseProduct;
   onDismiss: () => void;
+  tab: string | number;
 }
 
-export const normalizeSchedule = (schedule: ProductSchedule): ProductSchedule => {
-  let from_time = schedule.from_time;
-  let to_time = schedule.to_time;
+export default function ScheduleTab({ product, onDismiss, tab }: ScheduleTabProps) {
+  const { currentTenantId } = usePage<BaseProductPageProps>().props;
+  const parseOperatingHours = function(operatingHours: { day: string, open: string, close: string }[]): {
+    day: { label: string, value: string },
+    open: Date,
+    close: Date
+  }[] {
+    if (!operatingHours) {
+      return [];
+    }
 
-  if (typeof schedule.from_time === 'string') {
-    const parts = schedule.from_time.split(':').map((number: string) => parseInt(number));
-    from_time = new Date().setHours(parts[0], parts[1], parts[2]);
-  }
-
-  if (typeof schedule.to_time === 'string') {
-    const parts = schedule.to_time.split(':').map((number: string) => parseInt(number));
-    to_time = new Date().setHours(parts[0], parts[1], parts[2]);
-  }
-
-  if (typeof schedule.from_time === 'number') {
-    from_time = new Date(schedule.from_time);
-  }
-
-  if (typeof schedule.to_time === 'number') {
-    to_time = new Date(schedule.to_time);
-  }
-
-  const day = scheduleOptions.find(option => option.value === schedule.day)!;
-
-  return {
-    ...schedule,
-    day,
-    from_time,
-    to_time
-  };
-};
-
-export const normalizeScheduleToSave = (schedule: ProductSchedule) => {
-  let day = schedule.day;
-  let from_time = schedule.from_time;
-  let to_time = schedule.to_time;
-
-  if (from_time instanceof Date || typeof from_time === 'number') {
-    from_time = format(from_time, 'HH:mm:ss');
-  }
-
-  if (to_time instanceof Date || typeof to_time === 'number') {
-    to_time = format(to_time, 'HH:mm:ss');
-  }
-
-  if (typeof day === 'object') {
-    day = day.value;
-  }
-
-  return {
-    ...schedule,
-    day,
-    from_time,
-    to_time
-  };
-};
-
-export default function ScheduleTab({ product, onDismiss }: ScheduleFormProps) {
-  const { currentTenantId } = usePage<PageProps>().props;
+    return operatingHours.map(({ day, open, close }) => {
+      const dayOption = scheduleOptions.find(option => option.value === day);
+      if (!dayOption) {
+        throw new Error(`Invalid day value: ${day}`);
+      }
+      return {
+        day: dayOption,
+        open: parseTime(open),
+        close: parseTime(close)
+      };
+    });
+  }(product.settings.facility.operating_hours);
 
   const formik: FormikConfig<{
-    is_schedulable: boolean,
-    product_schedules: ProductSchedule[]
+    is_schedulable: boolean;
+    operating_hours: { day: { label: string, value: string }; open: Date; close: Date }[];
   }> = {
     initialValues: {
-      is_schedulable: product.is_schedulable,
-      product_schedules: product.product_schedules && product.product_schedules.map(normalizeSchedule)
+      is_schedulable: parseOperatingHours.length > 0,
+      operating_hours: parseOperatingHours.length > 0
+        ? parseOperatingHours
+        : []
     },
     onSubmit: (values) => {
-      router.post(
-        route('app.base-products.schedules.store', { product: product.id, tenant: currentTenantId }),
-        { schedules: values.product_schedules.map(normalizeScheduleToSave) },
-        {
-          preserveState: true,
-          preserveScroll: true
-        }
-      );
+      if (product.id) {
+        const operatingHours = values.operating_hours.map(({ day, open, close }) => ({
+          day: day.value,
+          open: format(open, 'HH:mm:ss'),
+          close: format(close, 'HH:mm:ss')
+        }));
+
+        const updatedSettings = {
+          ...product.settings,
+          facility: {
+            ...product.settings.facility,
+            operating_hours: values.is_schedulable ? operatingHours : []
+          }
+        };
+
+        const data = {
+          ...product,
+          settings: updatedSettings
+        };
+
+        router.patch(
+          route('app.base-products.update', { base_product: product.id, tenant: currentTenantId, tab }),
+          data as unknown as RequestPayload,
+          { preserveState: false }
+        );
+      }
     },
     enableReinitialize: true
   };

@@ -18,6 +18,15 @@ class EnsureTenantSet
     {
         if (Auth::check() && !$request->session()->has('current_tenant_id')) {
             $user = Auth::user();
+
+            if ($user->hasRole('super-admin') && $user->tenants->isEmpty()) {
+                $tenantId = $request->route()->originalParameter('tenant');
+
+                if ($tenantId) {
+                    $request->session()->put('current_tenant_id', $tenantId);
+                }
+            }
+
             if ($user->tenants && $user->tenants->count() > 0) {
                 $request->session()->put('current_tenant_id', $user->tenants->first()->id);
             }

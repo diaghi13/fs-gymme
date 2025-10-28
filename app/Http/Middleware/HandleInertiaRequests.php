@@ -64,7 +64,8 @@ class HandleInertiaRequests extends Middleware
                 'status' => fn() => $request->session()->get('status'),
                 'message' => fn() => $request->session()->get('message'),
             ],
-            'currentTenantId' => $request->session()->get('current_tenant_id'),
+            //'currentTenantId' => $request->session()->get('current_tenant_id'),
+            'currentTenantId' => $request->route()->originalParameter('tenant') ?: $request->session()->get('current_tenant_id'),
         ];
     }
 }

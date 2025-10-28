@@ -28,8 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware([
                 'web',
                 //\Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
-                'tenant',
                 'auth',
+                'tenant',
                 'log',
             ])
                 ->prefix('/app/{tenant}')
@@ -66,8 +66,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->group('tenant', [
-            \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
             \App\Http\Middleware\EnsureTenantSet::class,
+            \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
             \App\Http\Middleware\EnsureUserIsInTenantMiddleware::class,
             \App\Http\Middleware\HasActiveSubscriptionPlan::class,
         ]);

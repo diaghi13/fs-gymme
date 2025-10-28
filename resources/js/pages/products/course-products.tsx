@@ -3,7 +3,6 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { Alert, Box, Grid, Tab, Typography } from '@mui/material';
 import AppLayout from '@/layouts/AppLayout';
 import {
-  AutocompleteOptions,
   CourseProduct,
   PageProps,
   ProductListItem, ProductPlanning,
@@ -13,9 +12,9 @@ import ProductListCard from '@/components/products/ProductListCard';
 import MyCard from '@/components/ui/MyCard';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import GeneralTab from '@/components/products/course-product/GeneralTab';
-import { useSearchParams } from '@/hooks/useSearchParams';
 import SaleTab from '@/components/products/course-product/SaleTab';
 import { useQueryParam } from '@/hooks/useQueryParam';
+import DeleteIconButton from '@/components/ui/DeleteIconButton';
 
 const tabs = {
   courseProductTabs: [
@@ -33,9 +32,9 @@ export interface CourseProductPageProps extends PageProps {
   planningOptions: ProductPlanning[];
 }
 
-export default function CourseProductPage({ auth, products, product }: CourseProductPageProps) {
+export default function CourseProductPage({ auth, products, product, currentTenantId }: CourseProductPageProps) {
   //const tab = useSearchParams('tab')?.toString();
-  const [tab, setTab] = useQueryParam('tab', 'general');
+  const [tab, setTab] = useQueryParam('tab', '1');
   const title = 'Prodotti base';
   const [tabValue, setTabValue] = React.useState(tab || '1');
   const isNew = !product?.id;
@@ -89,7 +88,14 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
         </Grid>
         <Grid size={8}>
           {product && (
-            <MyCard sx={{ p: 0 }} title={product.name} bgColor={product.color}>
+            <MyCard sx={{ p: 0 }} title={product.name} bgColor={product.color} action={
+              <DeleteIconButton
+                routeName="app.course-products.destroy"
+                urlParams={[
+                  {key: "tenant", value: currentTenantId },
+                  {key: "course_product", value: product.id},
+                ]} />
+            }>
               <Box sx={{ flexGrow: 1, display: 'flex' }}>
                 <TabContext value={tabValue}>
                   <TabList
@@ -105,7 +111,7 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
 
                   </TabList>
                   <TabPanel value="1" sx={{ width: '100%' }}>
-                    {!product.visible && (
+                    {!product.is_active && (
                       <Box sx={{ mb: 2 }}>
                         <Alert severity="warning">Questo prodotto non è visibile nelle liste</Alert>
                       </Box>

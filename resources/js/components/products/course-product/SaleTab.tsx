@@ -1,11 +1,12 @@
 import React from 'react';
 import { Formik, FormikConfig } from 'formik';
 import * as Yup from 'yup';
-import { AutocompleteOption, BaseProduct, CourseProduct } from '@/types';
+import { AutocompleteOption, BaseProduct, CourseProduct, VatRate } from '@/types';
 import SaleForm from '@/components/products/forms/SaleForm';
 import { router, usePage } from '@inertiajs/react';
 import { BaseProductPageProps } from '@/pages/products/base-products';
 import { CourseProductPageProps } from '@/pages/products/course-products';
+import { RequestPayload } from '@inertiajs/core';
 
 interface SellingFormProps {
   product: BaseProduct | CourseProduct;
@@ -13,16 +14,16 @@ interface SellingFormProps {
 }
 
 export default function SaleTab({ product, onDismiss }: SellingFormProps) {
-  const { vatRateOptions, currentTenantId } = usePage<BaseProductPageProps | CourseProductPageProps>().props;
+  const { currentTenantId } = usePage<BaseProductPageProps | CourseProductPageProps>().props;
 
   const formik: FormikConfig<{
-    sale_in_subscription: boolean;
-    vat_rate: AutocompleteOption<number> | null;
+    saleable_in_subscription: boolean;
+    vat_rate: VatRate | null;
     selling_description: string;
   }> = {
     initialValues: {
-      sale_in_subscription: product.sale_in_subscription!,
-      vat_rate: product.vat_rate ? vatRateOptions!.find(option => option.value === product.vat_rate?.id) ?? null : null,
+      saleable_in_subscription: product.saleable_in_subscription!,
+      vat_rate: product.vat_rate ?? null,
       selling_description: product.selling_description!
     },
     validationSchema: Yup.object({
@@ -30,9 +31,15 @@ export default function SaleTab({ product, onDismiss }: SellingFormProps) {
       'selling_description': Yup.string().required('Il campo è richiesto')
     }),
     onSubmit: (values) => {
+      const data = {
+        ...product,
+        ...values,
+        vat_rate_id: values.vat_rate?.id ?? null
+      };
+
       router.patch(
-        route('app.course-products.sales.update', { product: product.id!, tenant: currentTenantId }),
-        values,
+        route('app.course-products.update', { course_product: product.id!, tenant: currentTenantId, tab: '4' }),
+        data as unknown as RequestPayload,
         {
           preserveScroll: true,
           preserveState: false

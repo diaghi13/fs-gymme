@@ -2,10 +2,14 @@
 
 namespace App\Services\Product;
 
+use App\Dtos\Product\BaseProductDto;
+use App\Enums\SkuProductPrefix;
 use App\Models\Product\BaseProduct;
-use App\Services\VatRateService;
+use App\Models\Product\Product;
+use App\Models\VatRate;
+use App\Support\Color;
+use App\Support\ProductUtil;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class BaseProductService
@@ -19,7 +23,8 @@ class BaseProductService
                 'vat_rate'
             ]);
 
-        $vatRates = VatRateService::toOptions();
+        //$vatRates = VatRateService::toOptions();
+        $vatRates = VatRate::all('id', 'code', 'description');
 
         return [
             'product' => $product,
@@ -27,71 +32,104 @@ class BaseProductService
         ];
     }
 
+    public function newProduct(): BaseProduct
+    {
+        return new BaseProduct([
+            'name' => '',
+            'slug' => '',
+            'color' => Color::randomHex(),
+            'sku' => '',
+            'saleable_in_subscription' => true,
+            'is_active' => true,
+        ]);
+    }
+
     /**
-     * @throws ValidationException
+     * @throws \Throwable
      */
     public function store(array $data): BaseProduct
     {
-        $validatedData = $this->validate($data);
+        return DB::transaction(function () use ($data) {
+            $lastId = Product::max('id') ?? 0;
+            $sku = ProductUtil::generateSku($data['name'], $lastId + 1, SkuProductPrefix::BASE_PRODUCT->value);
+            $slug = ProductUtil::generateProductSlug($data['name'], $lastId + 1);
+            $sellingDescription = $data['selling_description'] ?? $data['name'];
 
-        return DB::transaction(function () use ($validatedData) {
-            return $this->createProduct($validatedData);
+            return BaseProduct::create([
+                ...$data,
+                'sku' => $sku,
+                'slug' => $slug,
+                'selling_description' => $sellingDescription,
+            ]);
         });
     }
 
-    public function update(array $data, BaseProduct $product): BaseProduct
+    /**
+     * @throws \Throwable
+     */
+    public function update(BaseProductDto $dto): BaseProduct
     {
-        $validatedData = $this->validate($data);
+        $product = BaseProduct::find($dto->id);
 
-        return DB::transaction(function () use ($validatedData, $product) {
-            $product->update($validatedData);
+        if (!$product) {
+            throw ValidationException::withMessages(['product' => 'Product not found.']);
+        }
+
+        return DB::transaction(function () use ($product, $dto) {
+            $product->fill($dto->toArray());
+
+            if ($dto->name === $dto->selling_description) {
+                $product->selling_description = $dto->name;
+            }
+
+            if ($dto->name !== $product->getOriginal('name')) {
+                // Name has changed, update slug
+                $product->slug = $this->updateSlug([
+                    'name' => $dto->name,
+                    'id' => $dto->id,
+                ]);
+            }
+
+            if ($dto->name !== $product->getOriginal('name')) {
+                // Name has changed, update SKU
+                $product->sku = $this->updateSku([
+                    'name' => $dto->name,
+                    'id' => $dto->id,
+                ]);
+            }
+
+            if ($dto->vat_rate) {
+                $product->vat_rate()->associate($dto->vat_rate);
+            }
+
+            $product->save();
+
             return $product;
         });
     }
 
-    public function delete(BaseProduct $product): bool
+    public function delete(string $id): true
     {
-        return DB::transaction(function () use ($product) {
-            // Check if the product is used in any schedules
-            if ($product->product_schedules()->exists()) {
-                return to_route('base-products.index')
-                    ->with('status', 'error')
-                    ->with('message', 'Cannot delete a product that is used in schedules.');
-            }
+        $product = BaseProduct::find($id);
 
-            // Delete the product
-            return $product->delete();
-        });
-    }
-
-    /**
-     * @throws ValidationException
-     */
-    private function validate(array $data): array
-    {
-        // Perform validation logic here
-        // For example, you can use Laravel's Validator facade
-        $validator = Validator::make($data, [
-            'name' => 'required|string|max:255',
-            'color' => 'required|string|max:7',
-            'visible' => 'required|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            throw new \Illuminate\Validation\ValidationException($validator);
+        if (!$product) {
+            throw ValidationException::withMessages(['product' => 'Product not found.']);
         }
 
-        return $validator->validated();
+        $product->delete();
+
+        return true;
     }
 
-    private function createProduct(array $validatedData)
+    /** @param array{id: int, name: string} $data */
+    private function updateSlug(array $data): string
     {
-        // Create a new BaseProduct instance
-        $product = new BaseProduct($validatedData);
+        return ProductUtil::generateProductSlug($data['name'], $data['id']);
+    }
 
-        // Save the product to the database
-        $product->save();
-
-        return $product;
+    /** @param array{id: int, name: string} $data */
+    private function updateSku(array $data): string
+    {
+        return ProductUtil::generateSku($data['name'], $data['id'], SkuProductPrefix::BASE_PRODUCT->value);
     }
 }

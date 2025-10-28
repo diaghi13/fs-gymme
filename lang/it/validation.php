@@ -1,0 +1,31 @@
+<?php
+
+return [
+    'required' => 'Il campo :attribute è obbligatorio.',
+    'accepted' => 'Il campo :attribute deve essere accettato.',
+    'accepted_if' => 'Il campo :attribute deve essere accettato quando :other è :value.',
+    'active_url' => 'Il campo :attribute non è un URL valido.',
+    'after' => 'Il campo :attribute deve essere una data successiva a :date.',
+    'after_or_equal' => 'Il campo :attribute deve essere una data successiva o uguale a :date.',
+    'alpha' => 'Il campo :attribute può contenere solo lettere.',
+    'alpha_dash' => 'Il campo :attribute può contenere solo lettere, numeri, trattini e trattini bassi.',
+    'alpha_num' => 'Il campo :attribute può contenere solo lettere e numeri.',
+    'array' => 'Il campo :attribute deve essere un array.',
+    'before' => 'Il campo :attribute deve essere una data precedente a :date.',
+    'before_or_equal' => 'Il campo :attribute deve essere una data precedente o uguale a :date.',
+    'between' => [
+        'array' => 'Il campo :attribute deve avere tra :min e :max elementi.',
+        'file' => 'Il campo :attribute deve essere compreso tra :min e :max kilobyte.',
+        'numeric' => 'Il campo :attribute deve essere compreso tra :min e :max.',
+        'string' => 'Il campo :attribute deve essere compreso tra :min e :max caratteri.',
+    ],
+    'boolean' => 'Il campo :attribute deve essere vero o falso.',
+    'confirmed' => 'La conferma del campo :attribute non corrisponde.',
+    'current_password' => 'La password non è corretta.',
+    'date' => 'Il campo :attribute non è una data valida.',
+    'date_equals' => 'Il campo :attribute deve essere una data uguale a :date.',
+    'date_format' => 'Il campo :attribute non corrisponde al formato :format.',
+    'different' => 'I campi :attribute e :other devono essere diversi.',
+    'digits' => 'Il campo :attribute deve essere composto da :digits cifre.',
+    'digits_between' => 'Il campo :attribute deve essere compreso tra :min e :max cifre.',
+];
