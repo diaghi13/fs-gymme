@@ -14,6 +14,20 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     message: string;
   };
   currentTenantId: string;
+  tenant?: {
+    id: string;
+    name: string;
+    onboarding_completed_at: string | null;
+    trial_ends_at: string | null;
+  };
+  structures?: {
+    list: Array<{
+      id: number;
+      name: string;
+      address: string;
+    }>;
+    current_id: number | null;
+  } | null;
 };
 
 export type AutocompleteOption = {
@@ -299,6 +313,29 @@ export interface BaseProduct extends Product {
 
 export interface CourseProduct extends Product {
   plannings: ProductPlanning[];
+}
+
+export interface BookableService extends Product {
+  settings: {
+    booking: {
+      advance_days: number;
+      min_advance_hours: number;
+      cancellation_hours: number;
+      max_per_day: number | null;
+      buffer_minutes: number;
+    };
+    availability: {
+      days: string[];
+      time_slots: Array<{ start: string; end: string }>;
+      blackout_dates: string[];
+    };
+    requirements: {
+      requires_trainer: boolean;
+      requires_equipment: boolean;
+      requires_room: boolean;
+      min_preparation_minutes: number;
+    };
+  };
 }
 
 export interface ProductPlanning {

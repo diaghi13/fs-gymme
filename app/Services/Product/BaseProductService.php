@@ -20,10 +20,10 @@ class BaseProductService
             ->append('is_schedulable')
             ->load([
                 'product_schedules',
-                'vat_rate'
+                'vat_rate',
             ]);
 
-        //$vatRates = VatRateService::toOptions();
+        // $vatRates = VatRateService::toOptions();
         $vatRates = VatRate::all('id', 'code', 'description');
 
         return [
@@ -39,7 +39,6 @@ class BaseProductService
             'slug' => '',
             'color' => Color::randomHex(),
             'sku' => '',
-            'saleable_in_subscription' => true,
             'is_active' => true,
         ]);
     }
@@ -53,13 +52,11 @@ class BaseProductService
             $lastId = Product::max('id') ?? 0;
             $sku = ProductUtil::generateSku($data['name'], $lastId + 1, SkuProductPrefix::BASE_PRODUCT->value);
             $slug = ProductUtil::generateProductSlug($data['name'], $lastId + 1);
-            $sellingDescription = $data['selling_description'] ?? $data['name'];
 
             return BaseProduct::create([
                 ...$data,
                 'sku' => $sku,
                 'slug' => $slug,
-                'selling_description' => $sellingDescription,
             ]);
         });
     }
@@ -71,16 +68,12 @@ class BaseProductService
     {
         $product = BaseProduct::find($dto->id);
 
-        if (!$product) {
+        if (! $product) {
             throw ValidationException::withMessages(['product' => 'Product not found.']);
         }
 
         return DB::transaction(function () use ($product, $dto) {
             $product->fill($dto->toArray());
-
-            if ($dto->name === $dto->selling_description) {
-                $product->selling_description = $dto->name;
-            }
 
             if ($dto->name !== $product->getOriginal('name')) {
                 // Name has changed, update slug
@@ -112,7 +105,7 @@ class BaseProductService
     {
         $product = BaseProduct::find($id);
 
-        if (!$product) {
+        if (! $product) {
             throw ValidationException::withMessages(['product' => 'Product not found.']);
         }
 

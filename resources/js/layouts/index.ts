@@ -55,6 +55,10 @@ export const menuList = (tenant: string) => ([
         name: 'Corsi',
         href: route('app.course-products.index', { tenant })
       },
+      {
+        name: 'Servizi Prenotabili',
+        href: route('app.bookable-services.index', { tenant })
+      },
       /*{
         name: "Multi Attività",
         href: "/multi-activities",

@@ -2,49 +2,44 @@ import React from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { Alert, Box, Grid, Tab } from '@mui/material';
 import AppLayout from '@/layouts/AppLayout';
-import { BaseProduct, PageProps, ProductListItem, VatRate } from '@/types';
+import { BookableService, PageProps, ProductListItem } from '@/types';
 import ProductListCard from '@/components/products/ProductListCard';
 import MyCard from '@/components/ui/MyCard';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
-import GeneralTab from '@/components/products/base-product/GeneralTab';
-import ScheduleTab from '@/components/products/base-product/ScheduleTab';
+import GeneralTab from '@/components/products/bookable-service/GeneralTab';
 import { useQueryParam } from '@/hooks/useQueryParam';
-import OnlineTab from '@/components/products/base-product/OnlineTab';
-
 import DeleteIconButton from '@/components/ui/DeleteIconButton';
 
 const tabs = {
-  baseProductTabs: [
+  bookableServiceTabs: [
     { label: 'Generale', value: '1', name: 'general' },
-    { label: 'Orari', value: '2', name: 'schedule' },
-    { label: 'Online', value: '3', name: 'online' }
+    { label: 'Prenotazioni', value: '2', name: 'bookings' },
+    { label: 'Disponibilità', value: '3', name: 'availability' },
+    { label: 'Vendita', value: '4', name: 'sale' }
   ]
 };
 
-export interface BaseProductPageProps extends PageProps {
-  products: Array<ProductListItem>;
-  product?: BaseProduct;
-  vatRateOptions: VatRate[];
+export interface BookableServicePageProps extends PageProps {
+  services: Array<ProductListItem>;
+  service?: BookableService;
   currentTenantId: string;
 }
 
-export default function BaseProductPage({ auth, products, product, currentTenantId }: BaseProductPageProps) {
+export default function BookableServicePage({ auth, services, service, currentTenantId }: BookableServicePageProps) {
   const [tab, setTab] = useQueryParam('tab');
-  const title = 'Prodotti base';
+  const title = 'Servizi Prenotabili';
   const [tabValue, setTabValue] = React.useState(tab || '1');
-  const isNew = !product?.id;
+  const isNew = !service?.id;
   const props = usePage<PageProps>().props;
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
-    //history.pushState({}, '', `${location.pathname}?tab=${newValue}`);
     setTab(newValue);
-
     setTabValue(newValue);
   };
 
-  function handleSelect(selectedProduct: ProductListItem) {
+  function handleSelect(selectedService: ProductListItem) {
     router.get(
-      route('app.base-products.show', { base_product: selectedProduct.id, tenant: props.currentTenantId }),
+      route('app.bookable-services.show', { bookable_service: selectedService.id, tenant: props.currentTenantId }),
       undefined,
       { preserveState: true }
     );
@@ -53,7 +48,7 @@ export default function BaseProductPage({ auth, products, product, currentTenant
 
   function handleCreate() {
     router.get(
-      route('app.base-products.create', { tenant: props.currentTenantId }),
+      route('app.bookable-services.create', { tenant: props.currentTenantId }),
       undefined,
       { preserveState: true }
     );
@@ -61,7 +56,7 @@ export default function BaseProductPage({ auth, products, product, currentTenant
 
   function handleDismiss() {
     router.get(
-      route('app.base-products.index', { tenant: props.currentTenantId }),
+      route('app.bookable-services.index', { tenant: props.currentTenantId }),
       undefined,
       { preserveState: true }
     );
@@ -74,53 +69,55 @@ export default function BaseProductPage({ auth, products, product, currentTenant
       <Grid container spacing={2} sx={{ p: 2 }}>
         <Grid size={4}>
           <ProductListCard
-            products={products}
+            products={services}
             onSelect={handleSelect}
             selectedId={null}
             onCreate={handleCreate}
-            title="Prodotti base"
+            title="Servizi Prenotabili"
           />
         </Grid>
         <Grid size={8}>
-          {product && (
-            <MyCard sx={{ p: 0 }} title={product.name} bgColor={product.color} action={
+          {service && (
+            <MyCard sx={{ p: 0 }} title={service.name} bgColor={service.color} action={
               <DeleteIconButton
-                routeName="app.base-products.destroy"
+                routeName="app.bookable-services.destroy"
                 urlParams={[
                   {key: "tenant", value: currentTenantId },
-                  {key: "base_product", value: product.id},
+                  {key: "bookable_service", value: service.id},
                 ]} />
             }>
               <Box sx={{ flexGrow: 1, display: 'flex' }}>
                 <TabContext value={tabValue}>
                   <TabList
                     onChange={handleTabChange}
-                    aria-label="lab API tabs example"
+                    aria-label="bookable service tabs"
                     orientation={'vertical'}
                     sx={{ borderRight: 1, borderColor: 'divider' }}
                   >
                     <Tab label="Generale" value="1" />
-                    {!isNew && tabs.baseProductTabs.slice(1).map(
+                    {!isNew && tabs.bookableServiceTabs.slice(1).map(
                       (tab, index) => <Tab key={index} label={tab.label} value={tab.value} />
                     )}
-
                   </TabList>
                   <TabPanel value="1" sx={{ width: '100%' }}>
-                    {!product.is_active && (
+                    {!service.is_active && (
                       <Box sx={{ mb: 2 }}>
-                        <Alert severity="warning">Questo prodotto non è visibile nelle liste</Alert>
+                        <Alert severity="warning">Questo servizio non è visibile nelle liste</Alert>
                       </Box>
                     )}
-                    <GeneralTab product={product} onDismiss={handleDismiss} />
+                    <GeneralTab service={service} onDismiss={handleDismiss} />
                   </TabPanel>
 
                   {!isNew && (
                     <>
                       <TabPanel value="2" sx={{ width: '100%' }}>
-                        <ScheduleTab product={product} onDismiss={handleDismiss} tab="2" />
+                        <Box>Impostazioni prenotazioni (TODO)</Box>
                       </TabPanel>
                       <TabPanel value="3" sx={{ width: '100%' }}>
-                        <OnlineTab product={product} onDismiss={handleDismiss} tab="3" />
+                        <Box>Disponibilità (TODO)</Box>
+                      </TabPanel>
+                      <TabPanel value="4" sx={{ width: '100%' }}>
+                        <Box>Vendita (TODO)</Box>
                       </TabPanel>
                     </>
                   )}

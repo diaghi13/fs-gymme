@@ -2,7 +2,6 @@
 
 namespace App\Services\Product;
 
-use App\Dtos\Product\BaseProductDto;
 use App\Dtos\Product\CourseProductDto;
 use App\Enums\SkuProductPrefix;
 use App\Models\Product\BaseProduct;
@@ -35,7 +34,6 @@ class CourseProductService
             'slug' => '',
             'color' => Color::randomHex(),
             'sku' => '',
-            'saleable_in_subscription' => true,
             'is_active' => true,
         ]);
     }
@@ -49,13 +47,11 @@ class CourseProductService
             $lastId = Product::max('id') ?? 0;
             $sku = ProductUtil::generateSku($dto->name, $lastId + 1, SkuProductPrefix::COURSE_PRODUCT->value);
             $slug = ProductUtil::generateProductSlug($dto->name, $lastId + 1);
-            $sellingDescription = $data['selling_description'] ?? $dto->name;
 
             return CourseProduct::create([
                 ...$dto->toArray(),
                 'sku' => $sku,
                 'slug' => $slug,
-                'selling_description' => $sellingDescription,
             ]);
         });
     }
@@ -67,16 +63,12 @@ class CourseProductService
     {
         $product = CourseProduct::find($dto->id);
 
-        if (!$product) {
+        if (! $product) {
             throw ValidationException::withMessages(['product' => 'Product not found.']);
         }
 
         return DB::transaction(function () use ($product, $dto) {
             $product->fill($dto->toArray());
-
-            if ($dto->selling_description === $product->getOriginal('name') && $dto->name !== $product->getOriginal('name')) {
-                $product->selling_description = $dto->name;
-            }
 
             if ($dto->name !== $product->getOriginal('name')) {
                 // Name has changed, update slug
@@ -108,7 +100,7 @@ class CourseProductService
     {
         $product = CourseProduct::find($id);
 
-        if (!$product) {
+        if (! $product) {
             throw ValidationException::withMessages(['product' => 'Product not found.']);
         }
 
