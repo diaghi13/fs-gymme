@@ -5,25 +5,24 @@ namespace App\Models\Product;
 use App\Enums\ProductType;
 use App\Models\PriceList\Article;
 use App\Models\PriceList\SubscriptionContent;
-use App\Models\Scopes\StructureScope;
 use App\Models\Traits\HasSettings;
+// use App\Models\Traits\HasTenantScope;
 use App\Models\VatRate;
-use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Product extends Model
 {
-    use \Illuminate\Database\Eloquent\Factories\HasFactory,
-        \Parental\HasChildren,
+    use \App\Models\Traits\HasStructure,
+        HasSettings,
+        // HasTenantScope, - disabled temporarily
+        \Illuminate\Database\Eloquent\Factories\HasFactory,
         \Illuminate\Database\Eloquent\SoftDeletes,
-        \App\Models\Traits\HasStructure,
-        HasSettings;
+        \Parental\HasChildren;
 
     protected $fillable = [
         'structure_id',
         'vat_rate_id',
-        'product_id',
         'name',
         'slug',
         'color',
@@ -31,7 +30,6 @@ class Product extends Model
         'short_description',
         'sku',
         'type',
-        'unit_type',
         'is_bookable',
         'requires_trainer',
         'duration_minutes',
@@ -41,25 +39,14 @@ class Product extends Model
         'max_age',
         'gender_restriction',
         'prerequisites',
-        'subscription_duration_months',
-        'subscription_duration_days',
-        'subscription_type',
-        'is_renewable',
-        'auto_renew_default',
-        'validity_days',
-        'max_uses_per_period',
-        'max_uses_total',
         'settings',
         'image_path',
         'is_active',
-        'saleable_in_subscription',
-        'selling_description',
     ];
 
     protected $casts = [
         'structure_id' => 'integer',
         'vat_rate_id' => 'integer',
-        'category_id' => 'integer',
         'is_bookable' => 'boolean',
         'requires_trainer' => 'boolean',
         'duration_minutes' => 'integer',
@@ -67,31 +54,14 @@ class Product extends Model
         'min_participants' => 'integer',
         'min_age' => 'integer',
         'max_age' => 'integer',
-        'subscription_duration_months' => 'integer',
-        'subscription_duration_days' => 'integer',
-        'is_renewable' => 'boolean',
-        'auto_renew_default' => 'boolean',
-        'validity_days' => 'integer',
-        'max_uses_per_period' => 'integer',
-        'max_uses_total' => 'integer',
         'settings' => 'array',
         'is_active' => 'boolean',
-        'saleable_in_subscription' => 'boolean',
     ];
 
     protected $childTypes = [
-        ProductType::SERVICE->value => Service::class,                      // Listino
-        ProductType::BASE_PRODUCT->value => BaseProduct::class,             // Pagina propria
-        ProductType::COURSE->value => CourseProduct::class,                 // Pagina propria
-        ProductType::PERSONAL_TRAINING->value => PersonalTraining::class,   // Listino
-        ProductType::SUBSCRIPTION->value => Subscription::class,            // Listino
-        ProductType::ARTICLE->value => Article::class,                      // Listino
-        ProductType::MEMBERSHIP_FEE->value => MembershipFee::class,         // Listino
-        ProductType::DAY_PASS->value => DayPass::class,                     // Listino
-        ProductType::TOKEN->value => Token::class,                          // Listino
-        ProductType::RENTAL->value => Rental::class,
-        ProductType::GIFT_CARD->value => GiftCard::class,                   // Listino
-        ProductType::OTHER->value => Other::class,                          // Listino
+        ProductType::BASE_PRODUCT->value => BaseProduct::class,
+        ProductType::COURSE->value => CourseProduct::class,
+        ProductType::BOOKABLE_SERVICE->value => BookableService::class,
     ];
 
     protected function getCommonSettingsDefaults(): array

@@ -2,54 +2,60 @@
 
 namespace App\Enums;
 
+/**
+ * Product Type Enum
+ *
+ * Defines the types of SERVICES/PRODUCTS in the catalog.
+ * Products = what we physically offer (catalog)
+ * PriceList = how we sell them (commercial offerings)
+ *
+ * This is the STI discriminator for Product model.
+ */
 enum ProductType: string
 {
-    case SERVICE = 'service';                       // Servizio singolo (es. massaggio, consulenza)
-    case BASE_PRODUCT = 'base_product';             // Prodotto base (es. sala pesi, piscina)
-    case COURSE = 'course';                         // Corso (es. yoga, pilates)
-    case PERSONAL_TRAINING = 'personal_training';   // Allenamento personale
-    case SUBSCRIPTION = 'subscription';             // Abbonamento (contiene altri prodotti)
-    case ARTICLE = 'article';                       // Articolo (es. attrezzatura, abbigliamento)
-    case MEMBERSHIP_FEE = 'membership_fee';         // Quota associativa
-    case DAY_PASS = 'day_pass';                     // Ingresso giornaliero
-    case TOKEN = 'token';                           // Token (es. buono, credito)
-    case RENTAL = 'rental';                         // Noleggio (es. attrezzatura, spazio)
-    case GIFT_CARD = 'gift_card';                   // Carta regalo
-    case OTHER = 'other';                           // Altro tipo di prodotto non specificato
+    case BASE_PRODUCT = 'base_product';             // Prodotto base (es. sala pesi, piscina, sauna)
+    case COURSE = 'course';                         // Corso di gruppo (es. yoga, pilates, spinning)
+    case BOOKABLE_SERVICE = 'bookable_service';     // Servizio prenotabile (es. PT, massaggio, consulenza)
 
     public function label(): string
     {
         return match ($this) {
-            self::SERVICE => 'Servizio singolo',
-            self::BASE_PRODUCT => 'Prodotto base',
+            self::BASE_PRODUCT => 'Prodotto Base',
             self::COURSE => 'Corso',
-            self::PERSONAL_TRAINING => 'Allenamento personale',
-            self::SUBSCRIPTION => 'Abbonamento',
-            self::ARTICLE => 'Articolo',
-            self::MEMBERSHIP_FEE => 'Quota associativa',
-            self::DAY_PASS => 'Ingresso giornaliero',
-            self::TOKEN => 'Token',
-            self::RENTAL => 'Noleggio',
-            self::GIFT_CARD => 'Carta regalo',
-            self::OTHER => 'Altro tipo di prodotto',
+            self::BOOKABLE_SERVICE => 'Servizio Prenotabile',
         };
     }
 
     public function icon(): string
     {
         return match ($this) {
-            self::SERVICE => 'i-heroicons-cube',
-            self::BASE_PRODUCT => 'i-heroicons-cube',
-            self::COURSE => 'i-heroicons-book-open',
-            self::PERSONAL_TRAINING => 'i-heroicons-user-group',
-            self::SUBSCRIPTION => 'i-heroicons-credit-card',
-            self::ARTICLE => 'i-heroicons-shopping-bag',
-            self::MEMBERSHIP_FEE => 'i-heroicons-users',
-            self::DAY_PASS => 'i-heroicons-calendar',
-            self::TOKEN => 'i-heroicons-ticket',
-            self::RENTAL => 'i-heroicons-key',
-            self::GIFT_CARD => 'i-heroicons-gift',
-            self::OTHER => 'i-heroicons-question-mark-circle',
+            self::BASE_PRODUCT => 'i-heroicons-building-office',
+            self::COURSE => 'i-heroicons-academic-cap',
+            self::BOOKABLE_SERVICE => 'i-heroicons-calendar-days',
+        };
+    }
+
+    /**
+     * Check if this product type requires booking
+     */
+    public function requiresBooking(): bool
+    {
+        return match ($this) {
+            self::COURSE => true,
+            self::BOOKABLE_SERVICE => true,
+            self::BASE_PRODUCT => false,
+        };
+    }
+
+    /**
+     * Check if this product type supports scheduling
+     */
+    public function supportsScheduling(): bool
+    {
+        return match ($this) {
+            self::BASE_PRODUCT => true,  // Operating hours
+            self::COURSE => true,         // Weekly timetable
+            self::BOOKABLE_SERVICE => true, // Available slots
         };
     }
 }
