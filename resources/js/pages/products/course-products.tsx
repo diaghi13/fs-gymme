@@ -14,12 +14,14 @@ import { TabContext, TabList, TabPanel } from '@mui/lab';
 import GeneralTab from '@/components/products/course-product/GeneralTab';
 import { useQueryParam } from '@/hooks/useQueryParam';
 import DeleteIconButton from '@/components/ui/DeleteIconButton';
+import SaleTab from '@/components/products/course-product/SaleTab';
 
 const tabs = {
   courseProductTabs: [
     { label: 'Generale', value: '1', name: 'general' },
     { label: 'Timetable', value: '2', name: 'timetable' },
-    { label: 'Prenotazioni', value: '3', name: 'bookings' }
+    { label: 'Prenotazioni', value: '3', name: 'bookings' },
+    { label: 'Vendita', value: '4', name: 'sale' }
   ]
 };
 
@@ -125,6 +127,9 @@ export default function CourseProductPage({ auth, products, product, currentTena
                       </TabPanel>
                       <TabPanel value="3" sx={{ width: '100%' }}>
                         <Typography variant={'h6'}>Coming soon...</Typography>
+                      </TabPanel>
+                      <TabPanel value="4" sx={{ width: '100%' }}>
+                        <SaleTab product={product} onDismiss={handleDismiss} />
                       </TabPanel>
                     </>
                   )}

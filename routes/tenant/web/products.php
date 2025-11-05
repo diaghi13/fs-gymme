@@ -26,6 +26,9 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.base-products.schedules.destroy',
         ]);
 
+    Route::patch('base-products/{product}/sales', \App\Http\Controllers\Application\Products\BaseProductSaleUpdate::class)
+        ->name('app.base-products.sales.update');
+
     Route::resource('/course-products', \App\Http\Controllers\Application\Products\CourseProductController::class)
         ->except(['edit'])
         ->names([
@@ -36,6 +39,9 @@ Route::middleware(['web', 'auth'])->group(function () {
             'update' => 'app.course-products.update',
             'destroy' => 'app.course-products.destroy',
         ]);
+
+    Route::patch('course-products/{product}/sales', \App\Http\Controllers\Application\Products\CourseProductSaleUpdate::class)
+        ->name('app.course-products.sales.update');
 
     Route::resource('/bookable-services', \App\Http\Controllers\Application\Products\BookableServiceController::class)
         ->except(['edit'])

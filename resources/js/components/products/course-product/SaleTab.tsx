@@ -32,18 +32,15 @@ export default function SaleTab({ product, onDismiss }: SellingFormProps) {
     }),
     onSubmit: (values) => {
       const data = {
-        ...product,
-        ...values,
-        vat_rate_id: values.vat_rate?.id ?? null
+        saleable_in_subscription: values.saleable_in_subscription,
+        vat_rate: values.vat_rate ? { value: values.vat_rate.id } : null,
+        selling_description: values.selling_description
       };
 
       router.patch(
-        route('app.course-products.update', { course_product: product.id!, tenant: currentTenantId, tab: '4' }),
+        route('app.course-products.sales.update', { product: product.id, tenant: currentTenantId }),
         data as unknown as RequestPayload,
-        {
-          preserveScroll: true,
-          preserveState: false
-        }
+        { preserveState: false }
       );
     },
     enableReinitialize: true

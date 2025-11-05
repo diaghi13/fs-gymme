@@ -10,6 +10,7 @@ import GeneralTab from '@/components/products/base-product/GeneralTab';
 import ScheduleTab from '@/components/products/base-product/ScheduleTab';
 import { useQueryParam } from '@/hooks/useQueryParam';
 import OnlineTab from '@/components/products/base-product/OnlineTab';
+import SaleTab from '@/components/products/base-product/SaleTab';
 
 import DeleteIconButton from '@/components/ui/DeleteIconButton';
 
@@ -17,7 +18,8 @@ const tabs = {
   baseProductTabs: [
     { label: 'Generale', value: '1', name: 'general' },
     { label: 'Orari', value: '2', name: 'schedule' },
-    { label: 'Online', value: '3', name: 'online' }
+    { label: 'Vendita', value: '3', name: 'sale' },
+    { label: 'Online', value: '4', name: 'online' }
   ]
 };
 
@@ -120,7 +122,10 @@ export default function BaseProductPage({ auth, products, product, currentTenant
                         <ScheduleTab product={product} onDismiss={handleDismiss} tab="2" />
                       </TabPanel>
                       <TabPanel value="3" sx={{ width: '100%' }}>
-                        <OnlineTab product={product} onDismiss={handleDismiss} tab="3" />
+                        <SaleTab product={product} onDismiss={handleDismiss} />
+                      </TabPanel>
+                      <TabPanel value="4" sx={{ width: '100%' }}>
+                        <OnlineTab product={product} onDismiss={handleDismiss} tab="4" />
                       </TabPanel>
                     </>
                   )}

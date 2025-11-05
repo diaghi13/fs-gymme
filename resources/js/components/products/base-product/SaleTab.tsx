@@ -33,15 +33,13 @@ export default function SaleTab({ product, onDismiss }: SellingFormProps) {
     }),
     onSubmit: (values) => {
       const data = {
-        ...product,
         saleable_in_subscription: values.saleable_in_subscription,
-        vat_rate_id: values.vat_rate?.id || null,
-        vat_rate: values.vat_rate || null,
+        vat_rate: values.vat_rate ? { value: values.vat_rate.id } : null,
         selling_description: values.selling_description
       };
 
-      router.put(
-        route('app.base-products.update', { base_product: product.id, tenant: currentTenantId }),
+      router.patch(
+        route('app.base-products.sales.update', { product: product.id, tenant: currentTenantId }),
         data as unknown as RequestPayload,
         { preserveState: false }
       );

@@ -236,7 +236,6 @@ export interface Product {
   short_description?: string | null;
   sku?: string | null;
   type?: string | null;
-  unit_type: string;
   is_bookable: boolean;
   requires_trainer: boolean;
   duration_minutes?: number | null;
@@ -246,14 +245,6 @@ export interface Product {
   max_age?: number | null;
   gender_restriction: string;
   prerequisites?: string | null;
-  subscription_duration_months?: number | null;
-  subscription_duration_days?: number | null;
-  subscription_type: string;
-  is_renewable: boolean;
-  auto_renew_default: boolean;
-  validity_days?: number | null;
-  max_uses_per_period?: number | null;
-  max_uses_total?: number | null;
   settings?: Record<string, boolean | string | number | object | Array> | null;
   image_path?: string | null;
   is_active: boolean;

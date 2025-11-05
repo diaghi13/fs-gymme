@@ -3,7 +3,6 @@
 namespace App\Models\Product;
 
 use App\Enums\ProductType;
-use App\Models\PriceList\Article;
 use App\Models\PriceList\SubscriptionContent;
 use App\Models\Traits\HasSettings;
 // use App\Models\Traits\HasTenantScope;
@@ -42,6 +41,8 @@ class Product extends Model
         'settings',
         'image_path',
         'is_active',
+        'saleable_in_subscription',
+        'selling_description',
     ];
 
     protected $casts = [
@@ -56,6 +57,7 @@ class Product extends Model
         'max_age' => 'integer',
         'settings' => 'array',
         'is_active' => 'boolean',
+        'saleable_in_subscription' => 'boolean',
     ];
 
     protected $childTypes = [

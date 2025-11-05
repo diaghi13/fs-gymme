@@ -35,6 +35,7 @@ class CourseProductService
             'color' => Color::randomHex(),
             'sku' => '',
             'is_active' => true,
+            'saleable_in_subscription' => true,
         ]);
     }
 
