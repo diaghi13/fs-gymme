@@ -25,12 +25,16 @@ interface ScheduleTabProps {
 
 export default function ScheduleTab({ product, onDismiss, tab }: ScheduleTabProps) {
   const { currentTenantId } = usePage<BaseProductPageProps>().props;
+
+  // Safely extract operating_hours with null checks
+  const operatingHoursData = product.settings?.facility?.operating_hours || [];
+
   const parseOperatingHours = function(operatingHours: { day: string, open: string, close: string }[]): {
     day: { label: string, value: string },
     open: Date,
     close: Date
   }[] {
-    if (!operatingHours) {
+    if (!operatingHours || operatingHours.length === 0) {
       return [];
     }
 
@@ -45,7 +49,7 @@ export default function ScheduleTab({ product, onDismiss, tab }: ScheduleTabProp
         close: parseTime(close)
       };
     });
-  }(product.settings.facility.operating_hours);
+  }(operatingHoursData);
 
   const formik: FormikConfig<{
     is_schedulable: boolean;
@@ -66,9 +70,9 @@ export default function ScheduleTab({ product, onDismiss, tab }: ScheduleTabProp
         }));
 
         const updatedSettings = {
-          ...product.settings,
+          ...(product.settings || {}),
           facility: {
-            ...product.settings.facility,
+            ...(product.settings?.facility || {}),
             operating_hours: values.is_schedulable ? operatingHours : []
           }
         };

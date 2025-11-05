@@ -17,6 +17,15 @@ class CourseProductService
 {
     public function show(CourseProduct $product): array
     {
+        // Ensure settings are initialized if null (for legacy products or edge cases)
+        if (is_null($product->settings)) {
+            $product->settings = array_merge(
+                $product->getCommonSettingsDefaults(),
+                $product->getExtraSettingsDefaults()
+            );
+            $product->save();
+        }
+
         $product->load(['vat_rate']);
 
         $vatRates = VatRate::all('id', 'code', 'description');

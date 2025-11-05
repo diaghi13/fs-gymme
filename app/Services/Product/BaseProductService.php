@@ -16,6 +16,15 @@ class BaseProductService
 {
     public function show(BaseProduct $product)
     {
+        // Ensure settings are initialized if null (for legacy products or edge cases)
+        if (is_null($product->settings)) {
+            $product->settings = array_merge(
+                $product->getCommonSettingsDefaults(),
+                $product->getExtraSettingsDefaults()
+            );
+            $product->save();
+        }
+
         $product
             ->append('is_schedulable')
             ->load([

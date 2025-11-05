@@ -108,6 +108,15 @@ class BookableServiceController extends Controller
      */
     public function show(BookableService $bookableService)
     {
+        // Ensure settings are initialized if null (for legacy products or edge cases)
+        if (is_null($bookableService->settings)) {
+            $bookableService->settings = array_merge(
+                $bookableService->getCommonSettingsDefaults(),
+                $bookableService->getExtraSettingsDefaults()
+            );
+            $bookableService->save();
+        }
+
         return Inertia::render('products/bookable-services', [
             'services' => $this->services,
             'service' => $bookableService->load(['vat_rate']),
