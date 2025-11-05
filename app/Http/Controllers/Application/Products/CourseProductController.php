@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Application\Products;
 use App\Dtos\Product\CourseProductDto;
 use App\Http\Controllers\Controller;
 use App\Models\Product\CourseProduct;
-use App\Models\VatRate;
 use App\Services\Product\CourseProductService;
 use Illuminate\Http\Request;
 
@@ -16,8 +15,8 @@ class CourseProductController extends Controller
      */
     public function index()
     {
-        return inertia("products/course-products", [
-            "products" => CourseProduct::all(['id', 'name', 'color']),
+        return inertia('products/course-products', [
+            'products' => CourseProduct::all(['id', 'name', 'color']),
         ]);
     }
 
@@ -34,6 +33,7 @@ class CourseProductController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
      * @throws \Throwable
      */
     public function store(Request $request, CourseProductDto $dto, CourseProductService $service)
@@ -41,9 +41,9 @@ class CourseProductController extends Controller
         try {
             $product = $service->store($dto);
 
-            return to_route("app.course-products.show", [
+            return to_route('app.course-products.show', [
                 'tenant' => $request->session()->get('current_tenant_id'),
-                'course_product' => $product->id
+                'course_product' => $product->id,
             ])
                 ->with('status', 'success')
                 ->with('message', 'Product created successfully');
@@ -51,7 +51,7 @@ class CourseProductController extends Controller
             return back()
                 ->with('status', 'error')
                 ->with('message', 'Failed to create the product.')
-                ->withErrors(['error' => 'Failed to create the product: ' . $exception->getMessage()]);
+                ->withErrors(['error' => 'Failed to create the product: '.$exception->getMessage()]);
         }
     }
 
@@ -63,7 +63,6 @@ class CourseProductController extends Controller
         return inertia('products/course-products', [
             'products' => CourseProduct::all(['id', 'name', 'color']),
             ...$service->show($courseProduct),
-            'planningOptions' => []
         ]);
     }
 
@@ -83,7 +82,7 @@ class CourseProductController extends Controller
         try {
             $product = $service->update($dto);
 
-            return to_route("app.course-products.show", [
+            return to_route('app.course-products.show', [
                 'tenant' => $request->session()->get('current_tenant_id'),
                 'course_product' => $product->id,
                 'tab' => $request->get('tab', '1'),
@@ -94,7 +93,7 @@ class CourseProductController extends Controller
             return back()
                 ->with('status', 'error')
                 ->with('message', 'Failed to update the product.')
-                ->withErrors(['error' => 'Failed to update the product: ' . $exception->getMessage()]);
+                ->withErrors(['error' => 'Failed to update the product: '.$exception->getMessage()]);
         }
     }
 
@@ -105,8 +104,7 @@ class CourseProductController extends Controller
     {
         $service->delete($id);
 
-
-        return to_route("app.course-products.index", [
+        return to_route('app.course-products.index', [
             'tenant' => session('current_tenant_id'),
         ])
             ->with('status', 'success')

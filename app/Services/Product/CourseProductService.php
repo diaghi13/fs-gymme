@@ -26,13 +26,22 @@ class CourseProductService
             $product->save();
         }
 
-        $product->load(['vat_rate']);
+        $product->load(['vat_rate', 'plannings.details']);
 
         $vatRates = VatRate::all('id', 'code', 'description');
+
+        // Format plannings for autocomplete options
+        $planningOptions = $product->plannings->map(function ($planning) {
+            return [
+                'value' => $planning->id,
+                'label' => $planning->name.' ('.$planning->start_date->format('d/m/Y').' - '.$planning->end_date->format('d/m/Y').')',
+            ];
+        })->toArray();
 
         return [
             'product' => $product,
             'vatRateOptions' => $vatRates,
+            'planningOptions' => $planningOptions,
         ];
     }
 

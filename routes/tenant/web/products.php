@@ -43,6 +43,16 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::patch('course-products/{product}/sales', \App\Http\Controllers\Application\Products\CourseProductSaleUpdate::class)
         ->name('app.course-products.sales.update');
 
+    // Course Product Plannings (nested resource)
+    Route::post('course-products/{course_product}/plannings', [\App\Http\Controllers\Application\Products\CourseProductPlanningController::class, 'store'])
+        ->name('app.course-products.plannings.store');
+
+    Route::put('course-products/{course_product}/plannings/{planning}', [\App\Http\Controllers\Application\Products\CourseProductPlanningController::class, 'update'])
+        ->name('app.course-products.plannings.update');
+
+    Route::delete('course-products/{course_product}/plannings/{planning}', [\App\Http\Controllers\Application\Products\CourseProductPlanningController::class, 'destroy'])
+        ->name('app.course-products.plannings.destroy');
+
     Route::resource('/bookable-services', \App\Http\Controllers\Application\Products\BookableServiceController::class)
         ->except(['edit'])
         ->names([

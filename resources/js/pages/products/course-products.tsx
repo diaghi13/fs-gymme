@@ -15,6 +15,7 @@ import GeneralTab from '@/components/products/course-product/GeneralTab';
 import { useQueryParam } from '@/hooks/useQueryParam';
 import DeleteIconButton from '@/components/ui/DeleteIconButton';
 import SaleTab from '@/components/products/course-product/SaleTab';
+import TimeTableTab from '@/components/products/course-product/TimeTableTab';
 
 const tabs = {
   courseProductTabs: [
@@ -32,7 +33,7 @@ export interface CourseProductPageProps extends PageProps {
   planningOptions: ProductPlanning[];
 }
 
-export default function CourseProductPage({ auth, products, product, currentTenantId }: CourseProductPageProps) {
+export default function CourseProductPage({ auth, products, product, currentTenantId, planningOptions }: CourseProductPageProps) {
   //const tab = useSearchParams('tab')?.toString();
   const [tab, setTab] = useQueryParam('tab', '1');
   const title = 'Prodotti base';
@@ -122,8 +123,7 @@ export default function CourseProductPage({ auth, products, product, currentTena
                   {!isNew && (
                     <>
                       <TabPanel value="2" sx={{ width: '100%' }}>
-                        <Typography variant={'h6'}>Coming soon...</Typography>
-                        {/*<TimeTableTab product={product}  planningOptions={planningOptions}/>*/}
+                        <TimeTableTab product={product} planningOptions={planningOptions || []} />
                       </TabPanel>
                       <TabPanel value="3" sx={{ width: '100%' }}>
                         <Typography variant={'h6'}>Coming soon...</Typography>
