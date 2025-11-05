@@ -4,11 +4,9 @@ namespace App\Models\PriceList;
 
 use App\Contracts\PriceListContract;
 use App\Contracts\VatRateable;
-use App\Enums\PriceListItemTypeEnum;
-use App\Models\Scopes\StructureScope;
+use App\Enums\PriceListType;
 use App\Models\Traits\HasStructure;
 use App\Models\VatRate;
-use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Parental\HasChildren;
@@ -16,6 +14,21 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
 
+/**
+ * PriceList Model
+ *
+ * Represents commercial offerings (how we sell products).
+ * Uses STI (Single Table Inheritance) via Parental package.
+ *
+ * Child Types:
+ * - Folder: Organizational folder
+ * - Article: Retail products (supplements, equipment, etc.)
+ * - Membership: Membership fees
+ * - Subscription: Bundled product offerings
+ * - DayPass: Single day access
+ * - Token: Prepaid credits/carnets
+ * - GiftCard: Gift cards
+ */
 class PriceList extends Model implements PriceListContract, VatRateable
 {
     use HasRecursiveRelationships,
@@ -25,25 +38,33 @@ class PriceList extends Model implements PriceListContract, VatRateable
         LogsActivity;
 
     protected $childTypes = [
-        PriceListItemTypeEnum::FOLDER->value => Folder::class,
-        PriceListItemTypeEnum::ARTICLE->value => Article::class,
-        PriceListItemTypeEnum::MEMBERSHIP->value => Membership::class,
-        PriceListItemTypeEnum::SUBSCRIPTION->value => Subscription::class,
+        PriceListType::FOLDER->value => Folder::class,
+        PriceListType::ARTICLE->value => Article::class,
+        PriceListType::MEMBERSHIP->value => Membership::class,
+        PriceListType::SUBSCRIPTION->value => Subscription::class,
+        PriceListType::DAY_PASS->value => DayPass::class,
+        PriceListType::TOKEN->value => Token::class,
+        PriceListType::GIFT_CARD->value => GiftCard::class,
     ];
 
     protected $fillable = [
+        'type',
         'structure_id',
+        'vat_rate_id',
         'parent_id',
         'name',
         'slug',
         'description',
+        'selling_description',
+        'price',
+        'duration_months',
+        'duration_days',
+        'is_renewable',
+        'auto_renew_default',
+        'validity_days',
+        'max_uses',
         'list_type',
         'list_scope',
-        'facility_id',
-        'customer_group_id',
-        'level',
-        'path',
-        'priority',
         'inherit_from_parent',
         'override_parent_prices',
         'is_default',
@@ -60,10 +81,22 @@ class PriceList extends Model implements PriceListContract, VatRateable
         'settings',
         'color',
         'icon',
-        'is_active'
+        'is_active',
+        'visible_online',
     ];
 
     protected $casts = [
+        'type' => PriceListType::class,
+        'structure_id' => 'integer',
+        'vat_rate_id' => 'integer',
+        'parent_id' => 'integer',
+        'price' => 'integer',
+        'duration_months' => 'integer',
+        'duration_days' => 'integer',
+        'is_renewable' => 'boolean',
+        'auto_renew_default' => 'boolean',
+        'validity_days' => 'integer',
+        'max_uses' => 'integer',
         'inherit_from_parent' => 'boolean',
         'override_parent_prices' => 'boolean',
         'is_default' => 'boolean',
@@ -72,12 +105,13 @@ class PriceList extends Model implements PriceListContract, VatRateable
         'loyalty_discount_enabled' => 'boolean',
         'auto_calculate_subscriptions' => 'boolean',
         'is_active' => 'boolean',
+        'visible_online' => 'boolean',
         'settings' => 'array',
         'valid_from' => 'date',
         'valid_to' => 'date',
         'default_tax_rate' => 'float',
         'base_discount_percentage' => 'float',
-        'round_prices_to' => 'float'
+        'round_prices_to' => 'float',
     ];
 
     public function toTree(): \Staudenmeir\LaravelAdjacencyList\Eloquent\Collection
@@ -92,14 +126,13 @@ class PriceList extends Model implements PriceListContract, VatRateable
     public function folderTree()
     {
         return $this->tree()
-            ->where('type', PriceListItemTypeEnum::FOLDER->value)
+            ->where('type', PriceListType::FOLDER->value)
             ->orderBy('name')
             ->get([
                 'id',
                 'parent_id',
                 'name',
                 'type',
-                'saleable',
                 'depth',
                 'path'
             ])
