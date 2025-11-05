@@ -3,12 +3,7 @@
 namespace App\Models\Product;
 
 use App\Enums\SkuProductPrefix;
-use App\Models\Scopes\StructureScope;
-use App\Models\Traits\HasSettings;
 use App\Support\ProductUtil;
-use Illuminate\Database\Eloquent\Attributes\ScopedBy;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
 use Parental\HasParent;
 
 /**
@@ -22,13 +17,11 @@ class BaseProduct extends Product
         'structure_id',
 
         // Generali
-        'category_id',
         'name',
         'slug',
         'color',
         'sku',
         'type',
-        'unit_type',
         'is_active',
 
         // Vendita
@@ -37,13 +30,11 @@ class BaseProduct extends Product
         'vat_rate_id',
         'selling_description',
 
-
         // Online
         'description',
         'short_description',
         'image_path',
         'is_bookable',
-
 
         // Avanzate
         'prerequisites',
@@ -70,14 +61,13 @@ class BaseProduct extends Product
     protected $casts = [
         'structure_id' => 'integer',
         'vat_rate_id' => 'integer',
-        'category_id' => 'integer',
         'is_bookable' => 'boolean',
         'requires_trainer' => 'boolean',
         'is_active' => 'boolean',
         'settings' => 'array',
     ];
 
-    protected function getExtraSettingsDefaults(): array
+    public function getExtraSettingsDefaults(): array
     {
         return [
             'facility' => [
@@ -219,20 +209,20 @@ class BaseProduct extends Product
         parent::boot();
 
         static::creating(function ($product) {
-            $product->selling_description = !$product->selling_description
+            $product->selling_description = ! $product->selling_description
                 ? $product->name
                 : $product->selling_description;
         });
 
         static::created(function ($product) {
-            if (!$product->slug) {
+            if (! $product->slug) {
                 $product->slug = ProductUtil::generateProductSlug(
                     $product->name,
                     $product->id,
                 );
             }
 
-            if (!$product->sku) {
+            if (! $product->sku) {
                 $product->sku = ProductUtil::generateSku(
                     $product->name,
                     $product->id,

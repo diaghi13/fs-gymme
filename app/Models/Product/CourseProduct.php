@@ -2,10 +2,7 @@
 
 namespace App\Models\Product;
 
-use App\Models\Scopes\StructureScope;
-use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Parental\HasParent;
 
 class CourseProduct extends Product
@@ -17,13 +14,11 @@ class CourseProduct extends Product
         'structure_id',
 
         // Generali
-        'category_id',
         'name',
         'slug',
         'color',
         'sku',
         'type',
-        'unit_type',
         'is_active',
 
         // Vendita
@@ -32,13 +27,11 @@ class CourseProduct extends Product
         'vat_rate_id',
         'selling_description',
 
-
         // Online
         'description',
         'short_description',
         'image_path',
         'is_bookable',
-
 
         // Avanzate
         'prerequisites',
@@ -65,7 +58,6 @@ class CourseProduct extends Product
     protected $casts = [
         'structure_id' => 'integer',
         'vat_rate_id' => 'integer',
-        'category_id' => 'integer',
         'is_bookable' => 'boolean',
         'requires_trainer' => 'boolean',
         'is_active' => 'boolean',
@@ -81,26 +73,26 @@ class CourseProduct extends Product
                 'lesson_duration_minutes' => 60,
                 'skill_level' => 'beginner|intermediate|advanced',
                 'course_type' => 'group|semi_private',
-                'curriculum' => 'url_to_curriculum.pdf'
+                'curriculum' => 'url_to_curriculum.pdf',
             ],
             'booking' => [
                 'enrollment_deadline_days' => 0,
                 'min_students_to_start' => 1,
                 'max_absences_allowed' => 0,
                 'makeup_lessons_allowed' => true,
-                'transfer_to_next_course' => true
+                'transfer_to_next_course' => true,
             ],
             'materials' => [
                 'equipment_provided' => false,
                 'equipment_list' => [],
                 'bring_own_equipment' => true,
-                'materials_fee' => 0
+                'materials_fee' => 0,
             ],
             'progression' => [
                 'has_certification' => false,
                 'next_level_course_id' => null,
-                'prerequisites' => []
-            ]
+                'prerequisites' => [],
+            ],
         ];
     }
 
