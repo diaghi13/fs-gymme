@@ -427,24 +427,82 @@ export interface PriceListSubscription extends PriceList {
   optional_content: PriceListSubscriptionContent[];
 }
 
+export interface PriceListSubscriptionContentService {
+  id: number;
+  usage_limit?: number | null;
+  usage_period?: 'day' | 'week' | 'month' | null;
+}
+
+export interface PriceListSubscriptionContentTimeRestriction {
+  id?: number;
+  days?: Array<'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'> | null;
+  start_time?: string | null;
+  end_time?: string | null;
+  restriction_type?: 'allowed' | 'blocked';
+  description?: string | null;
+}
+
 export interface PriceListSubscriptionContent {
   id?: number;
   price: number;
   vat_tax: VatCode;
   is_optional: boolean;
-  days_duration: number | null,
-  months_duration: number | null,
-  entrances?: number;
-  daily_access?: number;
-  weekly_access?: number;
-  reservation_limit?: number;
-  daily_reservation_limit?: number;
+  days_duration: number | null;
+  months_duration: number | null;
+  entrances?: number | null;
+  vat_rate_id: number;
+  vat_rate: VatRate;
+  price_listable_id: number;
+  price_listable_type: 'App\\Models\\Product\\Product' | 'App\\Models\\PriceList\\PriceList';
+  price_listable: Product | PriceListMembershipFee | PriceListArticle;
   selected?: boolean;
-  vat_rate_id: number,
-  vat_rate: VatRate,
-  price_listable_id: number,
-  price_listable_type: 'App\\Models\\Product\\Product' | 'App\\Models\\PriceList\\PriceList',
-  price_listable: Product | PriceListMembershipFee | PriceListArticle,
+
+  // Access rules
+  unlimited_entries?: boolean;
+  total_entries?: number | null;
+  daily_entries?: number | null;
+  weekly_entries?: number | null;
+  monthly_entries?: number | null;
+
+  // Booking rules
+  max_concurrent_bookings?: number | null;
+  daily_bookings?: number | null;
+  weekly_bookings?: number | null;
+  advance_booking_days?: number | null;
+  cancellation_hours?: number | null;
+
+  // Validity rules
+  validity_type?: 'duration' | 'fixed_date' | 'first_use';
+  validity_days?: number | null;
+  validity_months?: number | null;
+  valid_from?: string | null;
+  valid_to?: string | null;
+  freeze_days_allowed?: number | null;
+  freeze_cost_cents?: number | null;
+
+  // Time restrictions
+  has_time_restrictions?: boolean;
+  time_restrictions?: PriceListSubscriptionContentTimeRestriction[];
+
+  // Service access
+  service_access_type?: 'all' | 'included' | 'excluded';
+  services?: PriceListSubscriptionContentService[];
+
+  // Benefits & perks
+  guest_passes_total?: number | null;
+  guest_passes_per_month?: number | null;
+  multi_location_access?: boolean;
+  discount_percentage?: number | null;
+
+  // Metadata
+  sort_order?: number;
+  settings?: Record<string, any> | null;
+
+  // Legacy fields (backward compatibility)
+  daily_access?: number | null;
+  weekly_access?: number | null;
+  reservation_limit?: number | null;
+  daily_reservation_limit?: number | null;
 }
 
 export type AllPriceLists = PriceListFolderTree | PriceListArticle | PriceListMembershipFee | PriceListSubscription
