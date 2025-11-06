@@ -65,7 +65,7 @@ interface TimetableFormProps {
 
 export default function TimetableForm({ product, planningOptions }: TimetableFormProps) {
   const { values, setFieldValue, resetForm } = useFormikContext<{
-    name: string;
+    planning_id: number | null;
     from_date: Date | null;
     to_date: Date | null;
     details: Array<{
@@ -78,7 +78,7 @@ export default function TimetableForm({ product, planningOptions }: TimetableFor
   }>();
   const [reformatPlanningOptions, setReformatPlanningOptions] = React.useState(planningOptions);
 
-  const [planningSelect, setPlanningSelect] = React.useState(getCurrentPlanning(product.plannings!));
+  const [planningSelect, setPlanningSelect] = React.useState(values.planning_id?.toString() || '');
 
   const handleChange = (event: SelectChangeEvent) => {
     setPlanningSelect(event.target.value as string);
@@ -124,23 +124,23 @@ export default function TimetableForm({ product, planningOptions }: TimetableFor
     setFieldValue('details', newValues);
   };
 
-  // React.useEffect(() => {
-  //   if (planningSelect) {
-  //     const planning = product.plannings!.find(planning => planning.id === planningSelect as unknown as number)!;
-  //     const currentValues = fillPlanning(planning);
-  //
-  //     resetForm({ values: currentValues });
-  //   } else {
-  //     const currentValues = {
-  //       name: '',
-  //       from_date: null,
-  //       to_date: null,
-  //       details: []
-  //     };
-  //
-  //     resetForm({ values: currentValues });
-  //   }
-  // }, [planningSelect, product.plannings, resetForm]);
+  React.useEffect(() => {
+    if (planningSelect) {
+      const planning = product.plannings!.find(planning => planning.id === planningSelect as unknown as number)!;
+      const currentValues = fillPlanning(planning);
+
+      resetForm({ values: { ...currentValues, planning_id: planning.id } });
+    } else {
+      const currentValues = {
+        planning_id: null,
+        from_date: null,
+        to_date: null,
+        details: []
+      };
+
+      resetForm({ values: currentValues });
+    }
+  }, [planningSelect, product.plannings, resetForm]);
 
   return (
     <Form id={'planning_form'}>

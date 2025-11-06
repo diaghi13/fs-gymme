@@ -16,7 +16,6 @@ class CourseProductPlanningController extends Controller
     public function store(Request $request, CourseProduct $courseProduct)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'details' => 'required|array|min:1',
@@ -29,11 +28,20 @@ class CourseProductPlanningController extends Controller
 
         try {
             DB::transaction(function () use ($courseProduct, $validated) {
+                // Auto-generate name from date range
+                $startDate = \Carbon\Carbon::parse($validated['start_date']);
+                $endDate = \Carbon\Carbon::parse($validated['end_date']);
+
+                $name = $this->generatePlanningName($startDate, $endDate);
+
+                // Deselect all other plannings for this product
+                $courseProduct->plannings()->update(['selected' => false]);
+
                 $planning = $courseProduct->plannings()->create([
-                    'name' => $validated['name'],
+                    'name' => $name,
                     'start_date' => $validated['start_date'],
                     'end_date' => $validated['end_date'],
-                    'selected' => false,
+                    'selected' => true, // New planning is selected by default
                 ]);
 
                 foreach ($validated['details'] as $detail) {
@@ -59,12 +67,32 @@ class CourseProductPlanningController extends Controller
     }
 
     /**
+     * Generate a readable name for the planning based on date range
+     */
+    private function generatePlanningName(\Carbon\Carbon $startDate, \Carbon\Carbon $endDate): string
+    {
+        $startMonth = $startDate->locale('it')->isoFormat('MMM YYYY');
+        $endMonth = $endDate->locale('it')->isoFormat('MMM YYYY');
+
+        if ($startMonth === $endMonth) {
+            // Same month: "Planning Gen 2025"
+            return 'Planning '.$startMonth;
+        }
+
+        // Different months: "Planning Gen - Mar 2025" or "Planning Dic 2024 - Feb 2025"
+        if ($startDate->year === $endDate->year) {
+            return 'Planning '.$startDate->locale('it')->isoFormat('MMM').' - '.$endMonth;
+        }
+
+        return 'Planning '.$startMonth.' - '.$endMonth;
+    }
+
+    /**
      * Update the specified planning.
      */
     public function update(Request $request, CourseProduct $courseProduct, CourseProductPlanning $planning)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'details' => 'required|array|min:1',
@@ -77,8 +105,14 @@ class CourseProductPlanningController extends Controller
 
         try {
             DB::transaction(function () use ($planning, $validated) {
+                // Regenerate name from new date range
+                $startDate = \Carbon\Carbon::parse($validated['start_date']);
+                $endDate = \Carbon\Carbon::parse($validated['end_date']);
+
+                $name = $this->generatePlanningName($startDate, $endDate);
+
                 $planning->update([
-                    'name' => $validated['name'],
+                    'name' => $name,
                     'start_date' => $validated['start_date'],
                     'end_date' => $validated['end_date'],
                 ]);
