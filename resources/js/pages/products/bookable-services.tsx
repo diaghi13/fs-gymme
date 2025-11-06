@@ -7,6 +7,9 @@ import ProductListCard from '@/components/products/ProductListCard';
 import MyCard from '@/components/ui/MyCard';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import GeneralTab from '@/components/products/bookable-service/GeneralTab';
+import BookingsTab from '@/components/products/bookable-service/BookingsTab';
+import AvailabilityTab from '@/components/products/bookable-service/AvailabilityTab';
+import SaleTab from '@/components/products/bookable-service/SaleTab';
 import { useQueryParam } from '@/hooks/useQueryParam';
 import DeleteIconButton from '@/components/ui/DeleteIconButton';
 
@@ -111,13 +114,13 @@ export default function BookableServicePage({ auth, services, service, currentTe
                   {!isNew && (
                     <>
                       <TabPanel value="2" sx={{ width: '100%' }}>
-                        <Box>Impostazioni prenotazioni (TODO)</Box>
+                        <BookingsTab service={service} onDismiss={handleDismiss} />
                       </TabPanel>
                       <TabPanel value="3" sx={{ width: '100%' }}>
-                        <Box>Disponibilità (TODO)</Box>
+                        <AvailabilityTab service={service} onDismiss={handleDismiss} />
                       </TabPanel>
                       <TabPanel value="4" sx={{ width: '100%' }}>
-                        <Box>Vendita (TODO)</Box>
+                        <SaleTab service={service} onDismiss={handleDismiss} />
                       </TabPanel>
                     </>
                   )}

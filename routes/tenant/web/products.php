@@ -64,4 +64,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.bookable-services.destroy',
         ]);
 
+    Route::patch('bookable-services/{bookable_service}/sales', \App\Http\Controllers\Application\Products\BookableServiceSaleUpdate::class)
+        ->name('app.bookable-services.sales.update');
+
 });
