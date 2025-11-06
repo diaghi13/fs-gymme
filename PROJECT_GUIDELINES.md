@@ -369,6 +369,136 @@ validationSchema: Yup.object({
 **Causa**: Vincoli backend più restrittivi di frontend
 **Fix**: Allineare Yup schema con Laravel validation rules
 
+## PriceLists & Subscriptions System
+
+### Panoramica
+Il sistema PriceLists gestisce tutti gli oggetti commerciali vendibili: abbonamenti, quote associative, articoli retail, ingressi giornalieri, token/carnets, gift cards. Usa STI (Single Table Inheritance) come i Products.
+
+### Tipi PriceList (Enum)
+- **FOLDER**: Cartella organizzativa (non vendibile)
+- **ARTICLE**: Articolo retail (integratori, abbigliamento, etc.)
+- **MEMBERSHIP**: Quota associativa annuale
+- **SUBSCRIPTION**: Abbonamento (bundle di prodotti con regole)
+- **DAY_PASS**: Ingresso giornaliero
+- **TOKEN**: Token/Carnet (crediti prepagati, es. 10 ingressi)
+- **GIFT_CARD**: Carta regalo
+
+### Subscription Structure
+Un **Subscription** è un contenitore che include:
+- **Standard Contents**: Prodotti sempre inclusi (non opzionabili)
+- **Optional Contents**: Prodotti che il cliente può scegliere
+
+Ogni **SubscriptionContent** può avere regole specifiche indipendenti.
+
+### SubscriptionContent - Campi Principali
+
+#### Access Rules (Limitazioni Ingressi)
+```php
+unlimited_entries: boolean          // Accesso illimitato
+total_entries: integer             // Totale ingressi (es. carnet 10 ingressi)
+daily_entries: integer             // Max ingressi al giorno
+weekly_entries: integer            // Max ingressi a settimana
+monthly_entries: integer           // Max ingressi al mese
+```
+
+#### Booking Rules (Limitazioni Prenotazioni)
+```php
+max_concurrent_bookings: integer   // Max prenotazioni attive simultanee
+daily_bookings: integer            // Max prenotazioni al giorno
+weekly_bookings: integer           // Max prenotazioni a settimana
+advance_booking_days: integer      // Anticipo massimo prenotazione
+cancellation_hours: integer        // Ore prima per cancellare gratis
+```
+
+#### Validity Rules (Validità per Singolo Content)
+```php
+validity_type: enum               // 'duration' | 'fixed_date' | 'first_use'
+validity_days: integer            // Durata in giorni
+validity_months: integer          // Durata in mesi
+valid_from: date                  // Data inizio validità (fixed_date)
+valid_to: date                    // Data fine validità (fixed_date)
+freeze_days_allowed: integer      // Giorni congelamento permessi
+freeze_cost_cents: integer        // Costo mensile durante freeze
+```
+
+**Esempio pratico**: Abbonamento annuale sala pesi + corso promo 1 mese
+- Content 1: "Sala Pesi" validity_type='duration', validity_months=12
+- Content 2: "Corso Yoga Promo" validity_type='duration', validity_months=1
+
+#### Time Restrictions (Fasce Orarie)
+```php
+has_time_restrictions: boolean    // Flag se ci sono restrizioni orarie
+
+// Tabella subscription_content_time_restrictions:
+days: array                       // ['monday', 'wednesday', 'friday']
+start_time: time                  // '06:00'
+end_time: time                    // '13:00'
+restriction_type: enum            // 'allowed' | 'blocked'
+description: string               // 'Abbonamento mattutino'
+```
+
+**Esempio**: Abbonamento "Solo Mattino" 06:00-13:00 Lun-Ven
+
+#### Service Access (Servizi Inclusi/Esclusi)
+```php
+service_access_type: enum         // 'all' | 'included' | 'excluded'
+
+// Tabella subscription_content_services (pivot):
+product_id: FK                    // Quale prodotto/servizio
+usage_limit: integer              // Limite uso specifico (opzionale)
+usage_period: enum                // 'day' | 'week' | 'month'
+```
+
+**Esempi**:
+- `service_access_type='all'`: Accesso a tutti i servizi
+- `service_access_type='included'` + services=[Yoga, Pilates]: Solo questi corsi
+- `service_access_type='excluded'` + services=[CrossFit]: Tutti tranne CrossFit
+
+#### Benefits & Perks (Benefici Extra)
+```php
+guest_passes_total: integer       // Totale pass ospite annuali (es. 12)
+guest_passes_per_month: integer   // Pass ospite al mese (es. 1)
+multi_location_access: boolean    // Accesso a più sedi
+discount_percentage: integer      // Sconto % su servizi extra (es. 10% PT)
+```
+
+#### Metadata
+```php
+sort_order: integer               // Ordine visualizzazione UI
+settings: json                    // Regole custom/edge cases
+```
+
+### Casistiche Supportate
+
+1. **Carnet Ingressi**: total_entries=10, validity_days=60
+2. **Abbonamento Illimitato**: unlimited_entries=true, validity_months=12
+3. **Abbonamento 3x/settimana**: weekly_entries=3, validity_months=3
+4. **Abbonamento Mattutino**: has_time_restrictions=true, time_restrictions=['06:00-13:00 Lun-Ven']
+5. **Promo Corso**: validity_months=1, service_access_type='included', services=[Yoga]
+6. **Freeze Management**: freeze_days_allowed=30, freeze_cost_cents=1000 (10€/mese)
+7. **Guest Passes**: guest_passes_total=12, guest_passes_per_month=1
+8. **Multi-location**: multi_location_access=true
+9. **Discounts**: discount_percentage=10 (10% su PT e retail)
+10. **Class Credits**: total_entries=20 (20 sessioni), service_access_type='included'
+
+### Database Tables
+
+```
+price_lists                              // Main table (STI)
+├── subscription_contents                // Products in subscription
+│   ├── subscription_content_services    // Specific services included/excluded
+│   └── subscription_content_time_restrictions // Time-based access rules
+```
+
+### Relationships
+
+```php
+Subscription hasMany SubscriptionContents
+SubscriptionContent morphTo price_listable (Product | PriceList)
+SubscriptionContent belongsToMany Product via subscription_content_services
+SubscriptionContent hasMany SubscriptionContentTimeRestrictions
+```
+
 ## Work In Progress
 
 ### Completato ✅
@@ -377,8 +507,13 @@ validationSchema: Yup.object({
 3. Validazioni frontend e backend complete
 4. Time slots personalizzati per BookableService
 5. UX improvements (loading states, feedback, error handling)
+6. PriceList DB structure completa con comprehensive rules
+7. SubscriptionContent model con access/booking/validity/benefits
+8. Time restrictions e service access tables
 
 ### Da Fare 📋
+1. **PriceLists Frontend**: UI completa per gestione subscriptions
+2. **SubscriptionComposer**: Componente per gestire contents fissi/opzionabili
 1. Applicare TabContainer agli altri tab (CourseProduct, BaseProduct)
 2. Implementare gestione istruttori/sale per time slots
 3. Blackout dates per BookableService availability
