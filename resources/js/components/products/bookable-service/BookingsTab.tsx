@@ -8,6 +8,7 @@ import { Grid, Typography, Divider } from '@mui/material';
 import TextField from '@/components/ui/TextField';
 import FormikSaveButton from '@/components/ui/FormikSaveButton';
 import Switch from '@/components/ui/Switch';
+import TabContainer from '@/components/products/TabContainer';
 
 interface BookingsTabProps {
   service: BookableService;
@@ -105,8 +106,9 @@ export default function BookingsTab({ service, onDismiss }: BookingsTabProps) {
 
   return (
     <Formik {...formik}>
-      <Form>
-        <Grid container spacing={3}>
+      <TabContainer>
+        <Form>
+          <Grid container spacing={3}>
           <Grid size={12}>
             <Typography variant="h6" gutterBottom>Regole Prenotazione</Typography>
             <Divider sx={{ mb: 2 }} />
@@ -142,7 +144,8 @@ export default function BookingsTab({ service, onDismiss }: BookingsTabProps) {
             <FormikSaveButton />
           </Grid>
         </Grid>
-      </Form>
+        </Form>
+      </TabContainer>
     </Formik>
   );
 }
