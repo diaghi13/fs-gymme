@@ -16,6 +16,7 @@ import { useQueryParam } from '@/hooks/useQueryParam';
 import DeleteIconButton from '@/components/ui/DeleteIconButton';
 import SaleTab from '@/components/products/course-product/SaleTab';
 import TimeTableTab from '@/components/products/course-product/TimeTableTab';
+import BookingsTab from '@/components/products/course-product/BookingsTab';
 
 const tabs = {
   courseProductTabs: [
@@ -126,7 +127,7 @@ export default function CourseProductPage({ auth, products, product, currentTena
                         <TimeTableTab product={product} planningOptions={planningOptions || []} />
                       </TabPanel>
                       <TabPanel value="3" sx={{ width: '100%' }}>
-                        <Typography variant={'h6'}>Coming soon...</Typography>
+                        <BookingsTab product={product} onDismiss={handleDismiss} />
                       </TabPanel>
                       <TabPanel value="4" sx={{ width: '100%' }}>
                         <SaleTab product={product} onDismiss={handleDismiss} />
