@@ -1,5 +1,6 @@
 import React from 'react';
 import { Formik, FormikConfig, Form } from 'formik';
+import * as Yup from 'yup';
 import { router, usePage } from '@inertiajs/react';
 import { BookableService, PageProps } from '@/types';
 import { RequestPayload } from '@inertiajs/core';
@@ -41,6 +42,32 @@ export default function BookingsTab({ service, onDismiss }: BookingsTabProps) {
       requires_room: requirementsSettings.requires_room || false,
       min_preparation_minutes: requirementsSettings.min_preparation_minutes || 0,
     },
+    validationSchema: Yup.object({
+      advance_days: Yup.number()
+        .required('Campo obbligatorio')
+        .min(1, 'Deve essere almeno 1 giorno')
+        .max(365, 'Massimo 365 giorni'),
+      min_advance_hours: Yup.number()
+        .required('Campo obbligatorio')
+        .min(0, 'Non può essere negativo')
+        .max(72, 'Massimo 72 ore'),
+      cancellation_hours: Yup.number()
+        .required('Campo obbligatorio')
+        .min(0, 'Non può essere negativo')
+        .max(168, 'Massimo 168 ore (7 giorni)'),
+      max_per_day: Yup.number()
+        .nullable()
+        .min(1, 'Deve essere almeno 1')
+        .max(100, 'Massimo 100'),
+      buffer_minutes: Yup.number()
+        .required('Campo obbligatorio')
+        .min(0, 'Non può essere negativo')
+        .max(120, 'Massimo 120 minuti'),
+      min_preparation_minutes: Yup.number()
+        .required('Campo obbligatorio')
+        .min(0, 'Non può essere negativo')
+        .max(180, 'Massimo 180 minuti'),
+    }),
     onSubmit: (values) => {
       const updatedSettings = {
         ...service.settings,

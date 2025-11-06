@@ -1,5 +1,6 @@
 import React from 'react';
 import { Formik, FormikConfig } from 'formik';
+import * as Yup from 'yup';
 import { router, usePage } from '@inertiajs/react';
 import { CourseProduct } from '@/types';
 import { RequestPayload } from '@inertiajs/core';
@@ -70,6 +71,49 @@ export default function BookingsTab({ product, onDismiss }: BookingsTabProps) {
       materials_fee: materialsSettings.materials_fee || 0,
       has_certification: progressionSettings.has_certification || false,
     },
+    validationSchema: Yup.object({
+      total_lessons: Yup.number()
+        .required('Campo obbligatorio')
+        .min(1, 'Deve essere almeno 1 lezione')
+        .max(200, 'Massimo 200 lezioni'),
+      lessons_per_week: Yup.number()
+        .required('Campo obbligatorio')
+        .min(1, 'Deve essere almeno 1 lezione a settimana')
+        .max(7, 'Massimo 7 lezioni a settimana'),
+      lesson_duration_minutes: Yup.number()
+        .required('Campo obbligatorio')
+        .min(15, 'Minimo 15 minuti')
+        .max(480, 'Massimo 480 minuti (8 ore)'),
+      skill_level: Yup.string()
+        .required('Campo obbligatorio')
+        .oneOf(['beginner', 'intermediate', 'advanced'], 'Valore non valido'),
+      course_type: Yup.string()
+        .required('Campo obbligatorio')
+        .oneOf(['group', 'semi_private'], 'Valore non valido'),
+      curriculum: Yup.string()
+        .url('Deve essere un URL valido')
+        .nullable(),
+      enrollment_deadline_days: Yup.number()
+        .required('Campo obbligatorio')
+        .min(0, 'Non può essere negativo')
+        .max(90, 'Massimo 90 giorni'),
+      min_students_to_start: Yup.number()
+        .required('Campo obbligatorio')
+        .min(1, 'Deve essere almeno 1 studente')
+        .max(100, 'Massimo 100 studenti'),
+      max_absences_allowed: Yup.number()
+        .required('Campo obbligatorio')
+        .min(0, 'Non può essere negativo')
+        .test('max-absences-vs-total', 'Non può superare il numero totale di lezioni', function(value) {
+          const { total_lessons } = this.parent;
+          if (!value || !total_lessons) return true;
+          return value <= total_lessons;
+        }),
+      materials_fee: Yup.number()
+        .required('Campo obbligatorio')
+        .min(0, 'Non può essere negativo')
+        .max(10000, 'Massimo 10.000€'),
+    }),
     onSubmit: (values) => {
       const updatedSettings = {
         ...product.settings,

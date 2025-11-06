@@ -9,23 +9,41 @@ use App\Support\Color;
 final class CourseProductDto extends BaseDto
 {
     public ?int $id = null;
+
     public ?int $category_id = null;
+
     public string $name = '';
+
     public ?string $slug = null;
+
     public string $color = '#000000';
+
     public ?string $sku = null;
+
     public ?string $type = null;
+
     public ?string $unit_type = 'piece';
+
     public bool $is_active = true;
+
     public ?bool $requires_trainer = false;
+
     public ?bool $saleable_in_subscription = true;
+
     public ?int $vat_rate_id = null;
+
     public ?string $selling_description = null;
+
     public ?string $description = null;
+
     public ?string $short_description = null;
+
     public ?string $image_path = null;
+
     public ?bool $is_bookable = false;
+
     public ?string $prerequisites = null;
+
     public ?array $settings = null;
 
     public ?VatRate $vat_rate = null;
@@ -38,8 +56,8 @@ final class CourseProductDto extends BaseDto
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
             'color' => ['required', 'string', 'max:7', function ($attribute, $value, $fail) {
-                if (!Color::isValidHex($value)) {
-                    $fail('The ' . $attribute . ' must be a valid hex color code.');
+                if (! Color::isValidHex($value)) {
+                    $fail('The '.$attribute.' must be a valid hex color code.');
                 }
             }],
             'sku' => ['nullable', 'string', 'max:255'],
@@ -62,6 +80,32 @@ final class CourseProductDto extends BaseDto
             // Avanzate
             'prerequisites' => ['nullable', 'string', 'max:2000'],
             'settings' => ['nullable', 'array'],
+
+            // Course settings validation
+            'settings.course.total_lessons' => ['nullable', 'integer', 'min:1', 'max:200'],
+            'settings.course.lessons_per_week' => ['nullable', 'integer', 'min:1', 'max:7'],
+            'settings.course.lesson_duration_minutes' => ['nullable', 'integer', 'min:15', 'max:480'],
+            'settings.course.skill_level' => ['nullable', 'string', 'in:beginner,intermediate,advanced'],
+            'settings.course.course_type' => ['nullable', 'string', 'in:group,semi_private'],
+            'settings.course.curriculum' => ['nullable', 'url'],
+
+            // Booking settings validation
+            'settings.booking.enrollment_deadline_days' => ['nullable', 'integer', 'min:0', 'max:90'],
+            'settings.booking.min_students_to_start' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'settings.booking.max_absences_allowed' => ['nullable', 'integer', 'min:0'],
+            'settings.booking.makeup_lessons_allowed' => ['nullable', 'boolean'],
+            'settings.booking.transfer_to_next_course' => ['nullable', 'boolean'],
+
+            // Materials settings validation
+            'settings.materials.equipment_provided' => ['nullable', 'boolean'],
+            'settings.materials.bring_own_equipment' => ['nullable', 'boolean'],
+            'settings.materials.materials_fee' => ['nullable', 'numeric', 'min:0', 'max:10000'],
+            'settings.materials.equipment_list' => ['nullable', 'array'],
+
+            // Progression settings validation
+            'settings.progression.has_certification' => ['nullable', 'boolean'],
+            'settings.progression.next_level_course_id' => ['nullable', 'integer'],
+            'settings.progression.prerequisites' => ['nullable', 'array'],
         ];
     }
 

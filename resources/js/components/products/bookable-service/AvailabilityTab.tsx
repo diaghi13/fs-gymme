@@ -1,5 +1,6 @@
 import React from 'react';
 import { Formik, FormikConfig, Form } from 'formik';
+import * as Yup from 'yup';
 import { router, usePage } from '@inertiajs/react';
 import { BookableService, PageProps } from '@/types';
 import { RequestPayload } from '@inertiajs/core';
@@ -53,6 +54,31 @@ export default function AvailabilityTab({ service, onDismiss }: AvailabilityTabP
       slot_duration_minutes: availabilitySettings.slot_duration_minutes || 60,
       max_concurrent_bookings: availabilitySettings.max_concurrent_bookings || 1,
     },
+    validationSchema: Yup.object({
+      available_days: Yup.array()
+        .of(Yup.string())
+        .min(1, 'Seleziona almeno un giorno')
+        .required('Campo obbligatorio'),
+      default_start_time: Yup.date()
+        .required('Campo obbligatorio')
+        .nullable(),
+      default_end_time: Yup.date()
+        .required('Campo obbligatorio')
+        .nullable()
+        .test('is-after-start', 'Deve essere dopo l\'orario di inizio', function(value) {
+          const { default_start_time } = this.parent;
+          if (!value || !default_start_time) return true;
+          return new Date(value).getTime() > new Date(default_start_time).getTime();
+        }),
+      slot_duration_minutes: Yup.number()
+        .required('Campo obbligatorio')
+        .min(15, 'Minimo 15 minuti')
+        .max(480, 'Massimo 480 minuti (8 ore)'),
+      max_concurrent_bookings: Yup.number()
+        .required('Campo obbligatorio')
+        .min(1, 'Deve essere almeno 1')
+        .max(50, 'Massimo 50'),
+    }),
     onSubmit: (values) => {
       const formatTime = (date: Date | null) => {
         if (!date) return null;

@@ -137,6 +137,25 @@ class BookableServiceController extends Controller
             'requires_trainer' => 'boolean',
             'is_active' => 'boolean',
             'settings' => 'nullable|array',
+            // Booking settings validation
+            'settings.booking.advance_days' => 'nullable|integer|min:1|max:365',
+            'settings.booking.min_advance_hours' => 'nullable|integer|min:0|max:72',
+            'settings.booking.cancellation_hours' => 'nullable|integer|min:0|max:168',
+            'settings.booking.max_per_day' => 'nullable|integer|min:1|max:100',
+            'settings.booking.buffer_minutes' => 'nullable|integer|min:0|max:120',
+            // Requirements settings validation
+            'settings.requirements.requires_trainer' => 'nullable|boolean',
+            'settings.requirements.requires_equipment' => 'nullable|boolean',
+            'settings.requirements.requires_room' => 'nullable|boolean',
+            'settings.requirements.min_preparation_minutes' => 'nullable|integer|min:0|max:180',
+            // Availability settings validation
+            'settings.availability.available_days' => 'nullable|array|min:1',
+            'settings.availability.available_days.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'settings.availability.default_start_time' => 'nullable|string',
+            'settings.availability.default_end_time' => 'nullable|string',
+            'settings.availability.slot_duration_minutes' => 'nullable|integer|min:15|max:480',
+            'settings.availability.max_concurrent_bookings' => 'nullable|integer|min:1|max:50',
+            'settings.availability.time_slots' => 'nullable|array',
         ]);
 
         try {
