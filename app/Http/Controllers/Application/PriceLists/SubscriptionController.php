@@ -40,6 +40,11 @@ class SubscriptionController extends Controller
             'color' => 'required|string|max:7',
             'saleable' => 'boolean',
 
+            // Subscription-level benefits
+            'guest_passes_total' => 'nullable|integer|min:0',
+            'guest_passes_per_month' => 'nullable|integer|min:0',
+            'multi_location_access' => 'nullable|boolean',
+
             'standard_content' => 'nullable|array',
             'standard_content.*.id' => 'nullable|integer',
             'standard_content.*.price_listable_id' => 'required|integer',
@@ -81,9 +86,6 @@ class SubscriptionController extends Controller
             'standard_content.*.service_access_type' => 'nullable|string|in:all,included,excluded',
 
             // Benefits & perks
-            'standard_content.*.guest_passes_total' => 'nullable|integer|min:0',
-            'standard_content.*.guest_passes_per_month' => 'nullable|integer|min:0',
-            'standard_content.*.multi_location_access' => 'nullable|boolean',
             'standard_content.*.discount_percentage' => 'nullable|integer|min:0|max:100',
 
             // Metadata
@@ -162,6 +164,11 @@ class SubscriptionController extends Controller
             'color' => 'required|string|max:7',
             'saleable' => 'boolean',
 
+            // Subscription-level benefits
+            'guest_passes_total' => 'nullable|integer|min:0',
+            'guest_passes_per_month' => 'nullable|integer|min:0',
+            'multi_location_access' => 'nullable|boolean',
+
             'standard_content' => 'nullable|array',
             'standard_content.*.id' => 'nullable|integer',
             'standard_content.*.price_listable_id' => 'required|integer',
@@ -203,9 +210,6 @@ class SubscriptionController extends Controller
             'standard_content.*.service_access_type' => 'nullable|string|in:all,included,excluded',
 
             // Benefits & perks
-            'standard_content.*.guest_passes_total' => 'nullable|integer|min:0',
-            'standard_content.*.guest_passes_per_month' => 'nullable|integer|min:0',
-            'standard_content.*.multi_location_access' => 'nullable|boolean',
             'standard_content.*.discount_percentage' => 'nullable|integer|min:0|max:100',
 
             // Metadata

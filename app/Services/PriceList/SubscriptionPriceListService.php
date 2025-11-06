@@ -20,6 +20,9 @@ class SubscriptionPriceListService
                 'parent_id' => $data['parent_id'],
                 'color' => $data['color'],
                 'saleable' => $data['saleable'],
+                'guest_passes_total' => $data['guest_passes_total'] ?? null,
+                'guest_passes_per_month' => $data['guest_passes_per_month'] ?? null,
+                'multi_location_access' => $data['multi_location_access'] ?? false,
             ]);
 
             foreach ($data['standard_content'] as $contentData) {
@@ -63,9 +66,6 @@ class SubscriptionPriceListService
                     'service_access_type' => $contentData['service_access_type'] ?? 'all',
 
                     // Benefits & perks
-                    'guest_passes_total' => $contentData['guest_passes_total'] ?? null,
-                    'guest_passes_per_month' => $contentData['guest_passes_per_month'] ?? null,
-                    'multi_location_access' => $contentData['multi_location_access'] ?? false,
                     'discount_percentage' => $contentData['discount_percentage'] ?? null,
 
                     // Metadata
@@ -102,6 +102,9 @@ class SubscriptionPriceListService
                 'parent_id' => $data['parent_id'],
                 'color' => $data['color'],
                 'saleable' => $data['saleable'],
+                'guest_passes_total' => $data['guest_passes_total'] ?? null,
+                'guest_passes_per_month' => $data['guest_passes_per_month'] ?? null,
+                'multi_location_access' => $data['multi_location_access'] ?? false,
             ]);
 
             $oldContentIds = $subscription->standard_content()->pluck('id')->toArray();
@@ -153,9 +156,6 @@ class SubscriptionPriceListService
                         'service_access_type' => $contentData['service_access_type'] ?? 'all',
 
                         // Benefits & perks
-                        'guest_passes_total' => $contentData['guest_passes_total'] ?? null,
-                        'guest_passes_per_month' => $contentData['guest_passes_per_month'] ?? null,
-                        'multi_location_access' => $contentData['multi_location_access'] ?? false,
                         'discount_percentage' => $contentData['discount_percentage'] ?? null,
 
                         // Metadata
@@ -220,9 +220,6 @@ class SubscriptionPriceListService
                         'service_access_type' => $contentData['service_access_type'] ?? 'all',
 
                         // Benefits & perks
-                        'guest_passes_total' => $contentData['guest_passes_total'] ?? null,
-                        'guest_passes_per_month' => $contentData['guest_passes_per_month'] ?? null,
-                        'multi_location_access' => $contentData['multi_location_access'] ?? false,
                         'discount_percentage' => $contentData['discount_percentage'] ?? null,
 
                         // Metadata
@@ -308,9 +305,6 @@ class SubscriptionPriceListService
                         'service_access_type' => $contentData['service_access_type'] ?? 'all',
 
                         // Benefits & perks
-                        'guest_passes_total' => $contentData['guest_passes_total'] ?? null,
-                        'guest_passes_per_month' => $contentData['guest_passes_per_month'] ?? null,
-                        'multi_location_access' => $contentData['multi_location_access'] ?? false,
                         'discount_percentage' => $contentData['discount_percentage'] ?? null,
 
                         // Metadata
@@ -369,9 +363,6 @@ class SubscriptionPriceListService
                         'service_access_type' => $contentData['service_access_type'] ?? 'all',
 
                         // Benefits & perks
-                        'guest_passes_total' => $contentData['guest_passes_total'] ?? null,
-                        'guest_passes_per_month' => $contentData['guest_passes_per_month'] ?? null,
-                        'multi_location_access' => $contentData['multi_location_access'] ?? false,
                         'discount_percentage' => $contentData['discount_percentage'] ?? null,
 
                         // Metadata
@@ -408,8 +399,8 @@ class SubscriptionPriceListService
     {
         return [
             ...PriceListService::getViewAttributes(),
-            'baseProducts' => BaseProduct::with('vat_rate')->where('sale_in_subscription', true)->get(),
-            'courseProducts' => CourseProduct::with('vat_rate')->where('sale_in_subscription', true)->get(),
+            'baseProducts' => BaseProduct::with('vat_rate')->get(),
+            'courseProducts' => CourseProduct::with('vat_rate')->get(),
             'articles' => Article::with('vat_rate')->get(),
             'membershipFees' => Membership::with('vat_rate')->get(),
         ];

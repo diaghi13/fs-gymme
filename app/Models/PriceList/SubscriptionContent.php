@@ -65,9 +65,6 @@ class SubscriptionContent extends Model
         'service_access_type',
 
         // Benefits & perks
-        'guest_passes_total',
-        'guest_passes_per_month',
-        'multi_location_access',
         'discount_percentage',
 
         // Metadata
@@ -117,9 +114,6 @@ class SubscriptionContent extends Model
         'has_time_restrictions' => 'boolean',
 
         // Benefits
-        'guest_passes_total' => 'integer',
-        'guest_passes_per_month' => 'integer',
-        'multi_location_access' => 'boolean',
         'discount_percentage' => 'integer',
 
         // Metadata

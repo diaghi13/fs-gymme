@@ -17,6 +17,9 @@ class Subscription extends PriceList
         "parent_id",
         "saleable_from",
         "saleable_to",
+        "guest_passes_total",
+        "guest_passes_per_month",
+        "multi_location_access",
     ];
 
     protected $casts = [
@@ -24,6 +27,9 @@ class Subscription extends PriceList
         'parent_id' => 'integer',
         'saleable_from' => 'date',
         'saleable_to' => 'date',
+        'guest_passes_total' => 'integer',
+        'guest_passes_per_month' => 'integer',
+        'multi_location_access' => 'boolean',
     ];
 
     protected $attributes = [
