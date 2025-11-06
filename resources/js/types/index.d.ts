@@ -332,17 +332,18 @@ export interface BookableService extends Product {
 export interface ProductPlanning {
   id: number;
   name: string;
-  from_date: Date | number;
-  to_date: Date | number;
+  from_date: string | Date;
+  to_date: string | Date;
+  selected: boolean;
   details: Array<ProductPlanningDetails>;
 }
 
 export interface ProductPlanningDetails {
-  day: AutocompleteOption<string>;
-  time: Date | number | string;
+  day: string;
+  time: string;
   duration_in_minutes: number;
-  instructor_id: number;
-  room_id: number;
+  instructor_id?: number | null;
+  room_id?: number | null;
 }
 
 export interface ProductSchedule {

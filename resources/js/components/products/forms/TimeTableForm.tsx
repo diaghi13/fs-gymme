@@ -25,19 +25,19 @@ import { scheduleOptions } from '@/components/products';
 
 const fillPlanning = (planning: ProductPlanning) => {
   return {
-    name: planning.name,
+    planning_id: planning.id,
     from_date: new Date(planning.from_date),
     to_date: new Date(planning.to_date),
-    details: planning.details.map(detail => ({
+    details: planning.details?.map(detail => ({
       day: scheduleOptions.find(option => option.value === String(detail.day)),
       time: new Date().setHours(
         Number((detail.time as string).split(':')[0]),
         Number((detail.time as string).split(':')[1])
       ),
       duration_in_minutes: detail.duration_in_minutes,
-      instructor_id: '',
-      room_id: ''
-    }))
+      instructor_id: detail.instructor_id?.toString() || '',
+      room_id: detail.room_id?.toString() || ''
+    })) || []
   };
 };
 
@@ -125,11 +125,13 @@ export default function TimetableForm({ product, planningOptions }: TimetableFor
   };
 
   React.useEffect(() => {
-    if (planningSelect) {
-      const planning = product.plannings!.find(planning => planning.id === planningSelect as unknown as number)!;
-      const currentValues = fillPlanning(planning);
+    if (planningSelect && product.plannings) {
+      const planning = product.plannings.find(planning => planning.id === planningSelect as unknown as number);
 
-      resetForm({ values: { ...currentValues, planning_id: planning.id } });
+      if (planning) {
+        const currentValues = fillPlanning(planning);
+        resetForm({ values: currentValues });
+      }
     } else {
       const currentValues = {
         planning_id: null,
