@@ -8,6 +8,7 @@ import { Grid, Typography, Divider, FormGroup, FormControlLabel, Checkbox } from
 import TextField from '@/components/ui/TextField';
 import FormikSaveButton from '@/components/ui/FormikSaveButton';
 import TimePicker from '@/components/ui/TimePicker';
+import TimeSlotManager from './TimeSlotManager';
 
 interface AvailabilityTabProps {
   service: BookableService;
@@ -30,12 +31,37 @@ export default function AvailabilityTab({ service, onDismiss }: AvailabilityTabP
   const availabilitySettings = service.settings?.availability || {};
   const timeSlots = availabilitySettings.time_slots || [];
 
+  const parseTimeSlots = (slots: any[]) => {
+    return slots.map(slot => ({
+      day: slot.day,
+      start_time: slot.start_time
+        ? new Date().setHours(
+            Number(slot.start_time.split(':')[0]),
+            Number(slot.start_time.split(':')[1])
+          )
+        : null,
+      end_time: slot.end_time
+        ? new Date().setHours(
+            Number(slot.end_time.split(':')[0]),
+            Number(slot.end_time.split(':')[1])
+          )
+        : null,
+      max_bookings: slot.max_bookings || 1,
+    }));
+  };
+
   const formik: FormikConfig<{
     available_days: string[];
     default_start_time: Date | null;
     default_end_time: Date | null;
     slot_duration_minutes: number;
     max_concurrent_bookings: number;
+    time_slots: Array<{
+      day: string;
+      start_time: Date | null;
+      end_time: Date | null;
+      max_bookings: number;
+    }>;
   }> = {
     initialValues: {
       available_days: availabilitySettings.available_days || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
@@ -53,6 +79,7 @@ export default function AvailabilityTab({ service, onDismiss }: AvailabilityTabP
         : new Date().setHours(20, 0),
       slot_duration_minutes: availabilitySettings.slot_duration_minutes || 60,
       max_concurrent_bookings: availabilitySettings.max_concurrent_bookings || 1,
+      time_slots: timeSlots.length > 0 ? parseTimeSlots(timeSlots) : [],
     },
     validationSchema: Yup.object({
       available_days: Yup.array()
@@ -86,6 +113,14 @@ export default function AvailabilityTab({ service, onDismiss }: AvailabilityTabP
         return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
       };
 
+      // Format time slots for backend
+      const formattedTimeSlots = values.time_slots.map(slot => ({
+        day: slot.day,
+        start_time: formatTime(slot.start_time),
+        end_time: formatTime(slot.end_time),
+        max_bookings: slot.max_bookings,
+      }));
+
       const updatedSettings = {
         ...service.settings,
         availability: {
@@ -94,7 +129,7 @@ export default function AvailabilityTab({ service, onDismiss }: AvailabilityTabP
           default_end_time: formatTime(values.default_end_time),
           slot_duration_minutes: values.slot_duration_minutes,
           max_concurrent_bookings: values.max_concurrent_bookings,
-          time_slots: timeSlots, // Preserve existing time slots
+          time_slots: formattedTimeSlots,
         },
       };
 
@@ -173,6 +208,11 @@ export default function AvailabilityTab({ service, onDismiss }: AvailabilityTabP
                 helperText="Max prenotazioni nello stesso orario"
                 fullWidth
               />
+            </Grid>
+
+            <Grid size={12} sx={{ mt: 4 }}>
+              <Divider sx={{ mb: 3 }} />
+              <TimeSlotManager name="time_slots" />
             </Grid>
 
             <Grid size={12} sx={{ mt: 3, textAlign: 'right' }}>

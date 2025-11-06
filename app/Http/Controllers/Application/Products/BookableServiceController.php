@@ -156,6 +156,10 @@ class BookableServiceController extends Controller
             'settings.availability.slot_duration_minutes' => 'nullable|integer|min:15|max:480',
             'settings.availability.max_concurrent_bookings' => 'nullable|integer|min:1|max:50',
             'settings.availability.time_slots' => 'nullable|array',
+            'settings.availability.time_slots.*.day' => 'required_with:settings.availability.time_slots|string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+            'settings.availability.time_slots.*.start_time' => 'required_with:settings.availability.time_slots|string',
+            'settings.availability.time_slots.*.end_time' => 'required_with:settings.availability.time_slots|string',
+            'settings.availability.time_slots.*.max_bookings' => 'required_with:settings.availability.time_slots|integer|min:1|max:50',
         ]);
 
         try {
