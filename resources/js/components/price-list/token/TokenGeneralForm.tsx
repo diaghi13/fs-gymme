@@ -59,7 +59,7 @@ export default function TokenGeneralForm({
     initialValues: {
       name: priceList.name ?? '',
       type: priceList.type,
-      color: priceList.color ?? '',
+      color: priceList.color ?? '#2196F3',
       saleable: priceList.saleable ?? true,
       parent_id: priceList.parent_id ?? null,
       vat_rate: priceList.vat_rate_id ? vatCodes.find(item => (item as any).value === priceList.vat_rate_id)! : null,

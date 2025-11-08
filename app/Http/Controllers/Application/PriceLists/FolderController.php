@@ -32,9 +32,9 @@ class FolderController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:price_lists,id',
-            'saleable' => 'nullable|boolean',
+            'name' => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable', 'integer', 'exists:price_lists,id'],
+            'saleable' => ['nullable', 'boolean'],
         ]);
 
         $folder = Folder::create($data);
@@ -67,17 +67,14 @@ class FolderController extends Controller
     public function update(Request $request, Folder $folder)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:price_lists,id',
-            'saleable' => 'nullable|boolean',
+            'name' => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable', 'integer', 'exists:price_lists,id', function ($attribute, $value, $fail) use ($folder) {
+                if ($value === $folder->id) {
+                    $fail('Una cartella non può essere genitore di se stessa');
+                }
+            }],
+            'saleable' => ['nullable', 'boolean'],
         ]);
-
-        // Prevent circular reference (folder can't be parent of itself)
-        if ($data['parent_id'] == $folder->id) {
-            return back()->withErrors([
-                'parent_id' => 'Una cartella non può essere genitore di se stessa',
-            ]);
-        }
 
         $folder->update($data);
 

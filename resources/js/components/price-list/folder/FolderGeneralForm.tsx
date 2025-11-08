@@ -61,6 +61,8 @@ export default function FolderGeneralForm() {
     enableReinitialize: true
   };
 
+  const selectedFolder = priceListOptions.find(p => p.value === formik.initialValues.parent_id);
+
   return (
     <Formik {...formik}>
       {({ values, setFieldValue }) => {
@@ -74,34 +76,63 @@ export default function FolderGeneralForm() {
           toggleFolderDialogOpen();
         };
 
+        const currentSelectedFolder = priceListOptions.find(p => p.value === values.parent_id);
+
         return (
           <Form>
-            <Grid container spacing={4}>
+            <Grid container spacing={3}>
+              <Grid size={12}>
+                <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <FolderIcon />
+                  Configurazione Cartella
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  Organizza i listini in modo gerarchico creando cartelle e sottocartelle
+                </Typography>
+              </Grid>
+
               <Grid size={12}>
                 <Alert severity="info">
                   <Typography variant="body2">
-                    Le cartelle servono ad organizzare i listini in modo gerarchico.
+                    <strong>Cartella:</strong> Le cartelle servono ad organizzare i listini in modo gerarchico.
                     Puoi creare sottocartelle selezionando una cartella genitore.
                   </Typography>
                 </Alert>
               </Grid>
-              <Grid size={12}>
-                <TextField label={'Nome'} name={'name'} />
-              </Grid>
+
               <Grid size={12}>
                 <Divider />
               </Grid>
+
               <Grid size={12}>
-                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
-                  Cartella genitore (opzionale)
+                <Typography variant="subtitle2" gutterBottom>
+                  Informazioni generali
                 </Typography>
               </Grid>
-              <Grid size={6} display={'flex'} alignItems={'center'}>
-                <FolderIcon sx={{ mr: 1 }} fontSize={'medium'} />
-                <Select name={'parent_id'} label={'Cartella genitore'} options={priceListOptions} />
+
+              <Grid size={12}>
+                <TextField label="Nome della cartella" name="name" placeholder="Es: Abbonamenti, Servizi Extra, Promozioni" />
+              </Grid>
+
+              <Grid size={12}>
+                <Divider />
+              </Grid>
+
+              <Grid size={12}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Cartella genitore
+                </Typography>
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+                  Opzionale - seleziona una cartella genitore per creare una sottocartella
+                </Typography>
+              </Grid>
+
+              <Grid size={6} display="flex" alignItems="center" gap={1}>
+                <FolderIcon fontSize="medium" color="action" />
+                <Select name="parent_id" label="Cartella genitore" options={priceListOptions} disabled />
                 <Button
-                  sx={{ ml: 2, px: 3 }}
-                  variant={'contained'}
+                  sx={{ ml: 1, px: 3 }}
+                  variant="contained"
                   onClick={toggleFolderDialogOpen}
                 >
                   Sfoglia
@@ -113,10 +144,11 @@ export default function FolderGeneralForm() {
                   onClose={toggleFolderDialogOpen}
                 />
               </Grid>
-              <Grid size={6} />
+
               <Grid size={12}>
                 <Divider />
               </Grid>
+
               <Grid size={12}>
                 <Typography variant="subtitle2" gutterBottom>
                   Configurazione vendita
@@ -135,10 +167,36 @@ export default function FolderGeneralForm() {
                     : 'Vendita disabilitata'}
                 </Button>
               </Grid>
+
               <Grid size={12}>
                 <Divider />
               </Grid>
-              <Grid size={12} sx={{ textAlign: 'end' }}>
+
+              <Grid size={12}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Riepilogo
+                </Typography>
+              </Grid>
+
+              <Grid size={12}>
+                <div style={{ padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '4px', border: '1px solid #e0e0e0' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Nome:</strong> {values.name || 'Non specificato'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Cartella genitore:</strong> {currentSelectedFolder?.label || 'Nessuna (cartella radice)'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Vendibilità:</strong> {values.saleable ? 'Abilitata' : 'Disabilitata'}
+                  </Typography>
+                </div>
+              </Grid>
+
+              <Grid size={12}>
+                <Divider />
+              </Grid>
+
+              <Grid size={12} sx={{ textAlign: 'end', mt: 2 }}>
                 <FormikSaveButton />
               </Grid>
             </Grid>
