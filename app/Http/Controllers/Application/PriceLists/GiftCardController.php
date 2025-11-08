@@ -95,6 +95,22 @@ class GiftCardController extends Controller
     }
 
     /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(GiftCard $giftCard)
+    {
+        $newGiftCard = $giftCard->replicate();
+        $newGiftCard->name = 'Copia di '.$giftCard->name;
+        $newGiftCard->save();
+
+        return to_route('app.price-lists.gift-cards.show', [
+            'tenant' => session()->get('current_tenant_id'),
+            'gift_card' => $newGiftCard->id,
+        ])
+            ->with('status', 'success');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(GiftCard $giftCard)

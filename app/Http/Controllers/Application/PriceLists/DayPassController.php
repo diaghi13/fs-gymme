@@ -92,6 +92,22 @@ class DayPassController extends Controller
     }
 
     /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(DayPass $dayPass)
+    {
+        $newDayPass = $dayPass->replicate();
+        $newDayPass->name = 'Copia di '.$dayPass->name;
+        $newDayPass->save();
+
+        return to_route('app.price-lists.day-passes.show', [
+            'tenant' => session()->get('current_tenant_id'),
+            'day_pass' => $newDayPass->id,
+        ])
+            ->with('status', 'success');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(DayPass $dayPass)

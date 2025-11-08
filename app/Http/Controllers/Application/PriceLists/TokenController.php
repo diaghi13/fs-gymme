@@ -211,6 +211,23 @@ class TokenController extends Controller
     }
 
     /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(Token $token)
+    {
+        $newToken = $token->replicate();
+        $newToken->name = 'Copia di '.$token->name;
+        $newToken->settings = $token->settings;
+        $newToken->save();
+
+        return to_route('app.price-lists.tokens.show', [
+            'tenant' => session()->get('current_tenant_id'),
+            'token' => $newToken->id,
+        ])
+            ->with('status', 'success');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Token $token)

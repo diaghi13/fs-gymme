@@ -3,6 +3,7 @@ import { TabContext, TabList, TabPanel } from '@mui/lab';
 import MyCard from '@/components/ui/MyCard';
 import React, { useRef } from 'react';
 import {
+  PageProps,
   PriceList,
   PriceListGiftCard,
   PriceListFolderTree,
@@ -11,6 +12,8 @@ import {
 import { FormikProps } from 'formik';
 import SaleForm from '@/components/price-list/subscription/SaleForm';
 import GiftCardGeneralForm, { FormikValues } from '@/components/price-list/gift-card/GiftCardGeneralForm';
+import PriceListCardActions from '@/components/price-list/PriceListCardActions';
+import { usePage } from '@inertiajs/react';
 
 interface GiftCardPriceListCardProps {
   priceList: PriceListGiftCard;
@@ -27,6 +30,7 @@ export default function GiftCardPriceListCard({
 }: GiftCardPriceListCardProps) {
   const [value, setValue] = React.useState('1');
   const form = useRef<FormikProps<FormikValues>>({} as FormikProps<FormikValues>);
+  const { currentTenantId } = usePage<PageProps>().props;
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     if (form.current?.dirty) {
@@ -37,8 +41,26 @@ export default function GiftCardPriceListCard({
     setValue(newValue);
   };
 
+  const handleUndo = () => {
+    if (form.current?.resetForm) {
+      form.current.resetForm();
+    }
+  };
+
   return (
-    <MyCard sx={{ p: 0 }} title={priceList.name ?? 'Nuova Gift Card'} bgColor={priceList.color}>
+    <MyCard
+      sx={{ p: 0 }}
+      title={priceList.name ?? 'Nuova Gift Card'}
+      bgColor={priceList.color}
+      action={
+        <PriceListCardActions
+          priceListId={priceList.id}
+          priceListType={priceList.type}
+          tenantId={currentTenantId}
+          onUndo={handleUndo}
+        />
+      }
+    >
       <Box sx={{ flexGrow: 1, display: 'flex' }}>
         <TabContext value={value}>
           <TabList

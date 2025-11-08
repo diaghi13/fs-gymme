@@ -95,6 +95,22 @@ class MembershipController extends Controller
     }
 
     /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(Membership $membership)
+    {
+        $newMembership = $membership->replicate();
+        $newMembership->name = 'Copia di '.$membership->name;
+        $newMembership->save();
+
+        return to_route('app.price-lists.memberships.show', [
+            'tenant' => session()->get('current_tenant_id'),
+            'membership' => $newMembership->id,
+        ])
+            ->with('status', 'success');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Membership $membership)

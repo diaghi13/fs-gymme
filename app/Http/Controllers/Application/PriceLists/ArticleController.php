@@ -92,6 +92,22 @@ class ArticleController extends Controller
     }
 
     /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(Article $article)
+    {
+        $newArticle = $article->replicate();
+        $newArticle->name = 'Copia di '.$article->name;
+        $newArticle->save();
+
+        return to_route('app.price-lists.articles.show', [
+            'tenant' => session()->get('current_tenant_id'),
+            'article' => $newArticle->id,
+        ])
+            ->with('status', 'success');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Article $article)

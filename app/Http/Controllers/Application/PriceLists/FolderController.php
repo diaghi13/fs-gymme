@@ -86,6 +86,22 @@ class FolderController extends Controller
     }
 
     /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(Folder $folder)
+    {
+        $newFolder = $folder->replicate();
+        $newFolder->name = 'Copia di '.$folder->name;
+        $newFolder->save();
+
+        return to_route('app.price-lists.folders.show', [
+            'tenant' => session()->get('current_tenant_id'),
+            'folder' => $newFolder->id,
+        ])
+            ->with('status', 'success');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Folder $folder)

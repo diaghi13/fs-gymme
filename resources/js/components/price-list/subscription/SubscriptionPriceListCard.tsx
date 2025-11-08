@@ -5,11 +5,14 @@ import SaleForm from "@/components/price-list/subscription/SaleForm";
 import MyCard from "@/components/ui/MyCard";
 import React from "react";
 import {
+  PageProps,
   PriceListSubscription,
 } from "@/types";
 import SubscriptionOptionalTab from '@/components/price-list/subscription/tabs/SubscriptionOptionalTab';
 import SubscriptionExtraTab from '@/components/price-list/subscription/tabs/SubscriptionExtraTab';
 import SubscriptionSummaryTab from '@/components/price-list/subscription/tabs/SubscriptionSummaryTab';
+import PriceListCardActions from '@/components/price-list/PriceListCardActions';
+import { usePage } from '@inertiajs/react';
 
 interface SubscriptionPriceListCardProps {
   priceList: PriceListSubscription;
@@ -19,13 +22,25 @@ export default function SubscriptionPriceListCard(
   {priceList}: SubscriptionPriceListCardProps
 ){
   const [value, setValue] = React.useState('1');
+  const { currentTenantId } = usePage<PageProps>().props;
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
 
   return (
-    <MyCard sx={{p: 0}} title={priceList.name ?? 'Nuovo abbonamento'} bgColor={priceList.color}>
+    <MyCard
+      sx={{p: 0}}
+      title={priceList.name ?? 'Nuovo abbonamento'}
+      bgColor={priceList.color}
+      action={
+        <PriceListCardActions
+          priceListId={priceList.id}
+          priceListType={priceList.type}
+          tenantId={currentTenantId}
+        />
+      }
+    >
       <Box sx={{flexGrow: 1, display: 'flex'}}>
         <TabContext value={value}>
           <TabList

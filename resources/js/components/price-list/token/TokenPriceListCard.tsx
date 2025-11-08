@@ -3,6 +3,7 @@ import { TabContext, TabList, TabPanel } from '@mui/lab';
 import MyCard from '@/components/ui/MyCard';
 import React, { useRef } from 'react';
 import {
+  PageProps,
   PriceList,
   PriceListToken,
   PriceListFolderTree,
@@ -13,6 +14,8 @@ import SaleForm from '@/components/price-list/subscription/SaleForm';
 import TokenGeneralForm, { FormikValues } from '@/components/price-list/token/TokenGeneralForm';
 import TokenBookingTab from '@/components/price-list/token/TokenBookingTab';
 import TokenValidityTab from '@/components/price-list/token/TokenValidityTab';
+import PriceListCardActions from '@/components/price-list/PriceListCardActions';
+import { usePage } from '@inertiajs/react';
 
 interface TokenPriceListCardProps {
   priceList: PriceListToken;
@@ -29,6 +32,7 @@ export default function TokenPriceListCard({
 }: TokenPriceListCardProps) {
   const [value, setValue] = React.useState('1');
   const form = useRef<FormikProps<FormikValues>>({} as FormikProps<FormikValues>);
+  const { currentTenantId } = usePage<PageProps>().props;
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     if (form.current?.dirty) {
@@ -39,8 +43,26 @@ export default function TokenPriceListCard({
     setValue(newValue);
   };
 
+  const handleUndo = () => {
+    if (form.current?.resetForm) {
+      form.current.resetForm();
+    }
+  };
+
   return (
-    <MyCard sx={{ p: 0 }} title={priceList.name ?? 'Nuovo Token/Carnet'} bgColor={priceList.color}>
+    <MyCard
+      sx={{ p: 0 }}
+      title={priceList.name ?? 'Nuovo Token/Carnet'}
+      bgColor={priceList.color}
+      action={
+        <PriceListCardActions
+          priceListId={priceList.id}
+          priceListType={priceList.type}
+          tenantId={currentTenantId}
+          onUndo={handleUndo}
+        />
+      }
+    >
       <Box sx={{ flexGrow: 1, display: 'flex' }}>
         <TabContext value={value}>
           <TabList

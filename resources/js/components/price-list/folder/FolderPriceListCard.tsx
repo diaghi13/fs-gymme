@@ -1,17 +1,16 @@
 import React from 'react';
-import { Box, IconButton, Stack, Tab, Tooltip } from '@mui/material';
+import { Box, Tab } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import MyCard from '@/components/ui/MyCard';
-
-import UndoIcon from '@mui/icons-material/Undo';
 import FolderGeneralForm from '@/components/price-list/folder/FolderGeneralForm';
-import DeleteIconButton from '@/components/ui/DeleteIconButton';
 import { usePage } from '@inertiajs/react';
+import { PageProps } from '@/types';
 import { PriceListPageProps } from '@/pages/price-lists/price-lists';
 import SaleForm from '@/components/price-list/subscription/SaleForm';
+import PriceListCardActions from '@/components/price-list/PriceListCardActions';
 
 export default function FolderPriceListCard() {
-  const { priceList } = usePage<PriceListPageProps>().props;
+  const { priceList, currentTenantId } = usePage<PriceListPageProps & PageProps>().props;
   const [value, setValue] = React.useState('1');
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
@@ -19,22 +18,17 @@ export default function FolderPriceListCard() {
   };
 
   return (
-    <MyCard sx={{ p: 0 }} title={priceList?.name ?? 'Nuova Cartella'}>
-      {priceList?.id && (
-        <Stack display={'flex'} flexDirection={'row'} justifyContent={'flex-end'}>
-          <Tooltip title="Indietro">
-            <IconButton>
-              <UndoIcon />
-            </IconButton>
-          </Tooltip>
-          <DeleteIconButton
-            routeName="price-lists.folders.destroy"
-            urlParams={[
-              { key: 'folder', value: priceList.id }
-            ]}
-          />
-        </Stack>
-      )}
+    <MyCard
+      sx={{ p: 0 }}
+      title={priceList?.name ?? 'Nuova Cartella'}
+      action={priceList ? (
+        <PriceListCardActions
+          priceListId={priceList.id}
+          priceListType={priceList.type}
+          tenantId={currentTenantId}
+        />
+      ) : undefined}
+    >
       <Box sx={{ flexGrow: 1, display: 'flex' }}>
         <TabContext value={value}>
           <TabList

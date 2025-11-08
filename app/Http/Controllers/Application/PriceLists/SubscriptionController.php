@@ -246,6 +246,47 @@ class SubscriptionController extends Controller
     }
 
     /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(Subscription $subscription)
+    {
+        $newSubscription = $subscription->replicate();
+        $newSubscription->name = 'Copia di '.$subscription->name;
+        $newSubscription->save();
+
+        // Duplicate subscription contents
+        foreach ($subscription->contents as $content) {
+            $newContent = $content->replicate();
+            $newContent->subscription_id = $newSubscription->id;
+            $newContent->save();
+
+            // Duplicate time restrictions if any
+            if ($content->timeRestrictions) {
+                foreach ($content->timeRestrictions as $restriction) {
+                    $newRestriction = $restriction->replicate();
+                    $newRestriction->subscription_content_id = $newContent->id;
+                    $newRestriction->save();
+                }
+            }
+
+            // Duplicate services if any
+            if ($content->services) {
+                foreach ($content->services as $service) {
+                    $newService = $service->replicate();
+                    $newService->subscription_content_id = $newContent->id;
+                    $newService->save();
+                }
+            }
+        }
+
+        return to_route('app.price-lists.subscriptions.show', [
+            'tenant' => session()->get('current_tenant_id'),
+            'subscription' => $newSubscription->id,
+        ])
+            ->with('status', 'success');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Subscription $subscription)
