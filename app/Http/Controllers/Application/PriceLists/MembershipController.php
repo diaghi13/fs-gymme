@@ -30,7 +30,19 @@ class MembershipController extends Controller
      */
     public function store(Request $request)
     {
-        $membership = Membership::create($request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'duration_months', 'saleable', 'saleable_from', 'saleable_to']));
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable', 'integer', 'exists:price_lists,id'],
+            'color' => ['required', 'string', 'max:7'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'vat_rate_id' => ['required', 'integer', 'exists:vat_rates,id'],
+            'duration_months' => ['required', 'integer', 'min:1', 'max:120'],
+            'saleable' => ['nullable', 'boolean'],
+            'saleable_from' => ['nullable', 'date'],
+            'saleable_to' => ['nullable', 'date', 'after_or_equal:saleable_from'],
+        ]);
+
+        $membership = Membership::create($validated);
 
         return to_route('app.price-lists.memberships.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
@@ -57,7 +69,23 @@ class MembershipController extends Controller
      */
     public function update(Request $request, Membership $membership)
     {
-        $membership->update($request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'duration_months', 'saleable', 'saleable_from', 'saleable_to']));
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable', 'integer', 'exists:price_lists,id', function ($attribute, $value, $fail) use ($membership) {
+                if ($value === $membership->id) {
+                    $fail('Non puoi selezionare se stesso come parent.');
+                }
+            }],
+            'color' => ['required', 'string', 'max:7'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'vat_rate_id' => ['required', 'integer', 'exists:vat_rates,id'],
+            'duration_months' => ['required', 'integer', 'min:1', 'max:120'],
+            'saleable' => ['nullable', 'boolean'],
+            'saleable_from' => ['nullable', 'date'],
+            'saleable_to' => ['nullable', 'date', 'after_or_equal:saleable_from'],
+        ]);
+
+        $membership->update($validated);
 
         return to_route('app.price-lists.memberships.show', [
             'tenant' => $request->session()->get('current_tenant_id'),

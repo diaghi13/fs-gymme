@@ -29,7 +29,18 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
-        $article = Article::create($request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'saleable', 'saleable_from', 'saleable_to']));
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable', 'integer', 'exists:price_lists,id'],
+            'color' => ['required', 'string', 'max:7'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'vat_rate_id' => ['required', 'integer', 'exists:vat_rates,id'],
+            'saleable' => ['nullable', 'boolean'],
+            'saleable_from' => ['nullable', 'date'],
+            'saleable_to' => ['nullable', 'date', 'after_or_equal:saleable_from'],
+        ]);
+
+        $article = Article::create($validated);
 
         return to_route('app.price-lists.articles.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
@@ -56,7 +67,22 @@ class ArticleController extends Controller
      */
     public function update(Request $request, Article $article)
     {
-        $article->update($request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'saleable', 'saleable_from', 'saleable_to']));
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable', 'integer', 'exists:price_lists,id', function ($attribute, $value, $fail) use ($article) {
+                if ($value === $article->id) {
+                    $fail('Non puoi selezionare se stesso come parent.');
+                }
+            }],
+            'color' => ['required', 'string', 'max:7'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'vat_rate_id' => ['required', 'integer', 'exists:vat_rates,id'],
+            'saleable' => ['nullable', 'boolean'],
+            'saleable_from' => ['nullable', 'date'],
+            'saleable_to' => ['nullable', 'date', 'after_or_equal:saleable_from'],
+        ]);
+
+        $article->update($validated);
 
         return to_route('app.price-lists.articles.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
