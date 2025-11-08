@@ -19,20 +19,22 @@ export default function FolderPriceListCard() {
   };
 
   return (
-    <MyCard sx={{ p: 0 }} title={priceList!.name}>
-      <Stack display={'flex'} flexDirection={'row'} justifyContent={'flex-end'}>
-        <Tooltip title="Indietro">
-          <IconButton>
-            <UndoIcon />
-          </IconButton>
-        </Tooltip>
-        <DeleteIconButton
-          routeName="price-lists.folders.destroy"
-          urlParams={[
-            { key: 'folder', value: priceList!.id! }
-          ]}
-        />
-      </Stack>
+    <MyCard sx={{ p: 0 }} title={priceList?.name ?? 'Nuova Cartella'}>
+      {priceList?.id && (
+        <Stack display={'flex'} flexDirection={'row'} justifyContent={'flex-end'}>
+          <Tooltip title="Indietro">
+            <IconButton>
+              <UndoIcon />
+            </IconButton>
+          </Tooltip>
+          <DeleteIconButton
+            routeName="price-lists.folders.destroy"
+            urlParams={[
+              { key: 'folder', value: priceList.id }
+            ]}
+          />
+        </Stack>
+      )}
       <Box sx={{ flexGrow: 1, display: 'flex' }}>
         <TabContext value={value}>
           <TabList

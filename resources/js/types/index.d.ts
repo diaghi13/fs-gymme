@@ -304,6 +304,28 @@ export interface BaseProduct extends Product {
 
 export interface CourseProduct extends Product {
   plannings: ProductPlanning[];
+  settings?: {
+    booking?: {
+      advance_days?: number;
+      min_advance_hours?: number;
+      cancellation_hours?: number;
+      max_per_day?: number | null;
+      buffer_minutes?: number;
+      enrollment_deadline_days?: number;
+      min_students_to_start?: number;
+      max_absences_allowed?: number;
+      makeup_lessons_allowed?: boolean;
+      transfer_to_next_course?: boolean;
+    };
+    course?: {
+      total_lessons?: number;
+      lessons_per_week?: number;
+      lesson_duration_minutes?: number;
+      skill_level?: string;
+      course_type?: string;
+      curriculum?: string;
+    };
+  };
 }
 
 export interface BookableService extends Product {
@@ -393,6 +415,7 @@ export interface PriceList {
 
 export interface PriceListFolder extends PriceList {
   type: 'folder';
+  saleable: boolean;
   children?: Array<PriceListFolder | PriceListArticle | PriceListMembershipFee | PriceListSubscription>;
 }
 
@@ -416,7 +439,59 @@ export interface PriceListMembershipFee extends PriceList {
   price: number;
   vat_rate_id: number | null;
   vat_rate: VatRate | null;
-  months_duration: number;
+  duration_months: number;
+}
+
+export interface PriceListDayPass extends PriceList {
+  color: string;
+  type: 'day_pass';
+  price: number;
+  vat_rate_id: number | null;
+  vat_rate: VatRate | null;
+}
+
+export interface PriceListToken extends PriceList {
+  color: string;
+  type: 'token';
+  price: number;
+  vat_rate_id: number | null;
+  vat_rate: VatRate | null;
+  token_quantity: number;
+  validity_days: number | null;
+  validity_months?: number | null;
+  saleable: boolean;
+  settings?: {
+    usage?: {
+      applicable_to?: number[];
+      all_products?: boolean;
+      requires_booking?: boolean;
+      auto_deduct?: boolean;
+    };
+    booking?: {
+      advance_booking_days?: number | null;
+      cancellation_hours?: number | null;
+      max_bookings_per_day?: number | null;
+    };
+    validity?: {
+      starts_on_purchase?: boolean;
+      starts_on_first_use?: boolean;
+      expires_if_unused?: boolean;
+    };
+    restrictions?: {
+      max_per_day?: number | null;
+      blackout_dates?: string[];
+      transferable?: boolean;
+    };
+  };
+}
+
+export interface PriceListGiftCard extends PriceList {
+  color: string;
+  type: 'gift_card';
+  price: number;
+  vat_rate_id: number | null;
+  vat_rate: VatRate | null;
+  validity_months: number | null;
 }
 
 export interface PriceListSubscription extends PriceList {
@@ -425,6 +500,11 @@ export interface PriceListSubscription extends PriceList {
   price: number;
   standard_content: PriceListSubscriptionContent[];
   optional_content: PriceListSubscriptionContent[];
+
+  // Subscription-level benefits
+  guest_passes_total?: number | null;
+  guest_passes_per_month?: number | null;
+  multi_location_access?: boolean;
 }
 
 export interface PriceListSubscriptionContentService {
@@ -489,9 +569,6 @@ export interface PriceListSubscriptionContent {
   services?: PriceListSubscriptionContentService[];
 
   // Benefits & perks
-  guest_passes_total?: number | null;
-  guest_passes_per_month?: number | null;
-  multi_location_access?: boolean;
   discount_percentage?: number | null;
 
   // Metadata
@@ -505,7 +582,7 @@ export interface PriceListSubscriptionContent {
   daily_reservation_limit?: number | null;
 }
 
-export type AllPriceLists = PriceListFolderTree | PriceListArticle | PriceListMembershipFee | PriceListSubscription
+export type AllPriceLists = PriceListFolderTree | PriceListArticle | PriceListMembershipFee | PriceListSubscription | PriceListDayPass | PriceListToken | PriceListGiftCard
 
 export interface Sale {
   id?: number;

@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models\Traits;
+
+use App\Models\Scopes\TenantScope;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * Trait HasTenantScope
+ *
+ * Apply this trait to models that should only be accessible when tenancy is initialized.
+ * This provides an additional safety layer beyond database separation.
+ *
+ * Example usage:
+ * class Customer extends Model {
+ *     use HasTenantScope;
+ * }
+ */
+trait HasTenantScope
+{
+    /**
+     * Boot the HasTenantScope trait for a model.
+     */
+    protected static function bootHasTenantScope(): void
+    {
+        static::addGlobalScope(new TenantScope);
+    }
+}

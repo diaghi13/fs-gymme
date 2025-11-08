@@ -9,23 +9,41 @@ use App\Support\Color;
 final class BaseProductDto extends BaseDto
 {
     public ?int $id = null;
+
     public ?int $category_id = null;
+
     public string $name = '';
+
     public ?string $slug = null;
+
     public string $color = '#000000';
+
     public ?string $sku = null;
+
     public ?string $type = null;
+
     public ?string $unit_type = null;
+
     public bool $is_active = true;
+
     public ?bool $requires_trainer = null;
+
     public ?bool $saleable_in_subscription = null;
+
     public ?int $vat_rate_id = null;
+
     public ?string $selling_description = null;
+
     public ?string $description = null;
+
     public ?string $short_description = null;
+
     public ?string $image_path = null;
+
     public ?bool $is_bookable = null;
+
     public ?string $prerequisites = null;
+
     public ?array $settings = null;
 
     public ?VatRate $vat_rate = null;
@@ -38,8 +56,8 @@ final class BaseProductDto extends BaseDto
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
             'color' => ['required', 'string', 'max:7', function ($attribute, $value, $fail) {
-                if (!Color::isValidHex($value)) {
-                    $fail('The ' . $attribute . ' must be a valid hex color code.');
+                if (! Color::isValidHex($value)) {
+                    $fail('The '.$attribute.' must be a valid hex color code.');
                 }
             }],
             'sku' => ['nullable', 'string', 'max:255'],
@@ -62,6 +80,13 @@ final class BaseProductDto extends BaseDto
             // Avanzate
             'prerequisites' => ['nullable', 'string', 'max:2000'],
             'settings' => ['nullable', 'array'],
+
+            // Booking settings validation
+            'settings.booking.advance_days' => ['nullable', 'integer', 'min:0', 'max:365'],
+            'settings.booking.min_advance_hours' => ['nullable', 'integer', 'min:0', 'max:168'],
+            'settings.booking.cancellation_hours' => ['nullable', 'integer', 'min:0', 'max:168'],
+            'settings.booking.max_per_day' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'settings.booking.buffer_minutes' => ['nullable', 'integer', 'min:0', 'max:120'],
         ];
     }
 

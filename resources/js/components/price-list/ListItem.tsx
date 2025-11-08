@@ -18,10 +18,13 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import CategoryIcon from '@mui/icons-material/Category';
 import CardMembershipIcon from '@mui/icons-material/CardMembership';
+import StyleIcon from '@mui/icons-material/Style';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import { useTheme } from '@mui/material/styles';
-import { ARTICLE, FOLDER, MEMBERSHIP, PriceListPageProps, SUBSCRIPTION } from '@/pages/price-lists/price-lists';
+import { ARTICLE, FOLDER, MEMBERSHIP, PriceListPageProps, SUBSCRIPTION, TOKEN, DAY_PASS, GIFT_CARD } from '@/pages/price-lists/price-lists';
 
 interface ListItemProps {
   priceList: AllPriceLists;
@@ -75,6 +78,9 @@ export default function ListItem({ priceList, nested = 0, onClick, canCreate }: 
             {priceList.type === SUBSCRIPTION && <CreditCardIcon sx={{ mr: 1, color }} />}
             {priceList.type === ARTICLE && <CategoryIcon sx={{ mr: 1, color }} />}
             {priceList.type === MEMBERSHIP && <CardMembershipIcon sx={{ mr: 1, color }} />}
+            {priceList.type === TOKEN && <StyleIcon sx={{ mr: 1, color }} />}
+            {priceList.type === DAY_PASS && <ConfirmationNumberIcon sx={{ mr: 1, color }} />}
+            {priceList.type === GIFT_CARD && <CardGiftcardIcon sx={{ mr: 1, color }} />}
           </ListItemIcon>
           <ListItemText primary={priceList.name} />
           <IconButton onClick={handleClick}>{expandable && (open ? <ExpandLess /> : <ExpandMore />)}</IconButton>

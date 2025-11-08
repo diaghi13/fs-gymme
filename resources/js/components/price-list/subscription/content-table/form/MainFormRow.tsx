@@ -30,8 +30,18 @@ const MainFormRow: React.FC<FormMainRowProps> = (
     onExpandClick
   }) => {
   const { vatRateOptions } = usePage<PriceListPageProps>().props;
-  const { values } = useFormikContext<SubscriptionGeneralFormValues>();
+  const { values, setFieldValue } = useFormikContext<SubscriptionGeneralFormValues>();
   const content =  contentType === 'standard_content' ? values.standard_content[index] : values.optional_content[index];
+
+  // Sync entrances with unlimited_entries
+  React.useEffect(() => {
+    const entrances = content.entrances;
+    if (!entrances || entrances === 0) {
+      setFieldValue(`${contentType}[${index}].unlimited_entries`, true);
+    } else {
+      setFieldValue(`${contentType}[${index}].unlimited_entries`, false);
+    }
+  }, [content.entrances]);
 
   return (
     <TableRow sx={{ backgroundColor: 'rgba(209,209,209,0.11)' }}>

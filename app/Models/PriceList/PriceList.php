@@ -9,6 +9,7 @@ use App\Models\Traits\HasStructure;
 use App\Models\VatRate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Parental\HasChildren;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -31,11 +32,11 @@ use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
  */
 class PriceList extends Model implements PriceListContract, VatRateable
 {
-    use HasRecursiveRelationships,
-        HasChildren,
-        SoftDeletes,
+    use HasChildren,
+        HasRecursiveRelationships,
         HasStructure,
-        LogsActivity;
+        LogsActivity,
+        SoftDeletes;
 
     protected $childTypes = [
         PriceListType::FOLDER->value => Folder::class,
@@ -83,6 +84,12 @@ class PriceList extends Model implements PriceListContract, VatRateable
         'icon',
         'is_active',
         'visible_online',
+        'saleable',
+        'saleable_from',
+        'saleable_to',
+        'guest_passes_total',
+        'guest_passes_per_month',
+        'multi_location_access',
     ];
 
     protected $casts = [
@@ -106,13 +113,36 @@ class PriceList extends Model implements PriceListContract, VatRateable
         'auto_calculate_subscriptions' => 'boolean',
         'is_active' => 'boolean',
         'visible_online' => 'boolean',
+        'saleable' => 'boolean',
         'settings' => 'array',
         'valid_from' => 'date',
         'valid_to' => 'date',
+        'saleable_from' => 'date',
+        'saleable_to' => 'date',
         'default_tax_rate' => 'float',
         'base_discount_percentage' => 'float',
         'round_prices_to' => 'float',
+        'guest_passes_total' => 'integer',
+        'guest_passes_per_month' => 'integer',
+        'multi_location_access' => 'boolean',
     ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function ($priceList) {
+            if (empty($priceList->slug) && ! empty($priceList->name)) {
+                $priceList->slug = Str::slug($priceList->name);
+            }
+        });
+
+        static::updating(function ($priceList) {
+            if ($priceList->isDirty('name') && ! $priceList->isDirty('slug')) {
+                $priceList->slug = Str::slug($priceList->name);
+            }
+        });
+    }
 
     public function toTree(): \Staudenmeir\LaravelAdjacencyList\Eloquent\Collection
     {
@@ -134,7 +164,7 @@ class PriceList extends Model implements PriceListContract, VatRateable
                 'name',
                 'type',
                 'depth',
-                'path'
+                'path',
             ])
             ->toTree();
     }

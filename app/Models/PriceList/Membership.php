@@ -5,7 +5,6 @@ namespace App\Models\PriceList;
 use App\Casts\MoneyCast;
 use App\Contracts\VatRateable;
 use App\Enums\PriceListItemTypeEnum;
-use App\Models\VatRate;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Parental\HasParent;
 
@@ -14,21 +13,21 @@ class Membership extends PriceList implements VatRateable
     use HasParent;
 
     protected $fillable = [
-        "structure_id",
-        "name",
-        "color",
-        "saleable",
-        "parent_id",
-        "saleable_from",
-        "saleable_to",
+        'structure_id',
+        'name',
+        'color',
+        'saleable',
+        'parent_id',
+        'saleable_from',
+        'saleable_to',
         'price',
         'vat_rate_id',
-        'months_duration',
+        'duration_months',
     ];
 
     protected $casts = [
         'price' => MoneyCast::class,
-        'months_duration' => 'integer',
+        'duration_months' => 'integer',
         'saleable' => 'boolean',
         'saleable_from' => 'date',
         'saleable_to' => 'date',

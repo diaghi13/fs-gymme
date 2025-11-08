@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -9,19 +8,29 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
-Route::middleware(['verified'])->group(function () {
-    Route::get('profile', function () {
-        return Inertia::render('Profile', [
-            'user' => auth()->user(),
-        ]);
-    })->name('central.profile');
+// Stripe Webhooks (must be outside middleware to avoid CSRF protection)
+Route::post('stripe/webhook', [\App\Http\Controllers\Central\WebhookController::class, 'handleWebhook']);
+
+// Tenant Registration (public)
+Route::middleware('guest')->group(function () {
+    Route::get('register-tenant', [\App\Http\Controllers\Central\TenantRegistrationController::class, 'create'])
+        ->name('tenant.register');
+
+    Route::post('register-tenant', [\App\Http\Controllers\Central\TenantRegistrationController::class, 'store'])
+        ->name('tenant.register.store');
+
+    Route::get('check-tenant-email/{email}', [\App\Http\Controllers\Central\TenantRegistrationController::class, 'checkEmail'])
+        ->name('tenant.check-email');
+
+    Route::get('check-tenant-slug/{slug}', [\App\Http\Controllers\Central\TenantRegistrationController::class, 'checkSlug'])
+        ->name('tenant.check-slug');
 });
 
 Route::middleware([
-    'verified',
     'auth',
+    'verified',
     'role:super-admin',
-    \App\Http\Middleware\ForgetTenantMiddleware::class
+    \App\Http\Middleware\ForgetTenantMiddleware::class,
 ])->group(function () {
     Route::get('dashboard', \App\Http\Controllers\Central\Dashboard::class)
         ->name('central.dashboard');
@@ -44,4 +53,15 @@ Route::middleware([
         ->name('central.redirectToCentral');
 });
 
-require __DIR__ . '/auth.php';
+Route::middleware(['verified'])->group(function () {
+    Route::get('profile', function () {
+        $user = auth()->user();
+
+        // Passa solo i dati essenziali per evitare memory leak
+        return Inertia::render('Profile', [
+            'user' => $user?->only(['id', 'name', 'email']),
+        ]);
+    })->name('central.profile');
+});
+
+require __DIR__.'/auth.php';

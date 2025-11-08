@@ -70,6 +70,14 @@ class BaseProduct extends Product
     public function getExtraSettingsDefaults(): array
     {
         return [
+            'booking' => [
+                // Standard booking rules (for subscription integration)
+                'advance_days' => 7,
+                'min_advance_hours' => 24,
+                'cancellation_hours' => 48,
+                'max_per_day' => null,
+                'buffer_minutes' => 0,
+            ],
             'facility' => [
                 'facility_type' => 'gym|pool|spa|court|studio|outdoor',
                 'access_level' => 'full|limited|supervised',

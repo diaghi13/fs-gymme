@@ -9,28 +9,8 @@ class Subscription extends PriceList
 {
     use HasParent;
 
-    protected $fillable = [
-        "structure_id",
-        "name",
-        "color",
-        "saleable",
-        "parent_id",
-        "saleable_from",
-        "saleable_to",
-        "guest_passes_total",
-        "guest_passes_per_month",
-        "multi_location_access",
-    ];
-
-    protected $casts = [
-        'saleable' => 'boolean',
-        'parent_id' => 'integer',
-        'saleable_from' => 'date',
-        'saleable_to' => 'date',
-        'guest_passes_total' => 'integer',
-        'guest_passes_per_month' => 'integer',
-        'multi_location_access' => 'boolean',
-    ];
+    // All fields are inherited from parent PriceList model via STI
+    // No need to redefine $fillable and $casts
 
     protected $attributes = [
         'type' => PriceListItemTypeEnum::SUBSCRIPTION->value,

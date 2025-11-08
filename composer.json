@@ -17,7 +17,9 @@
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "predis/predis": "^3.2",
         "spatie/laravel-activitylog": "^4.10",
+        "spatie/laravel-backup": "^9.3",
         "spatie/laravel-permission": "^6.20",
         "stancl/tenancy": "^3.9",
         "staudenmeir/laravel-adjacency-list": "^1.0",
@@ -54,7 +56,8 @@
             "@php artisan package:discover --ansi"
         ],
         "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+            "@php artisan boost:update --ansi"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

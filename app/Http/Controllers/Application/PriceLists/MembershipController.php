@@ -20,7 +20,7 @@ class MembershipController extends Controller
             ...PriceListService::getViewAttributes(),
             'priceList' => new Membership([
                 'color' => Color::randomHex(),
-                'months_duration' => 12,
+                'duration_months' => 12,
             ]),
         ]);
     }
@@ -30,11 +30,11 @@ class MembershipController extends Controller
      */
     public function store(Request $request)
     {
-        $membership = Membership::create($request->only(['name', 'parent_id', 'color', 'vat_rate_id', 'saleable']));
+        $membership = Membership::create($request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'duration_months', 'saleable', 'saleable_from', 'saleable_to']));
 
         return to_route('app.price-lists.memberships.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'membership' => $membership->id
+            'membership' => $membership->id,
         ])
             ->with('status', 'success');
     }
@@ -57,11 +57,11 @@ class MembershipController extends Controller
      */
     public function update(Request $request, Membership $membership)
     {
-        $membership->update($request->only(['name', 'parent_id', 'color', 'vat_rate_id', 'saleable']));
+        $membership->update($request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'duration_months', 'saleable', 'saleable_from', 'saleable_to']));
 
         return to_route('app.price-lists.memberships.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'membership' => $membership->id
+            'membership' => $membership->id,
         ])
             ->with('status', 'success');
     }

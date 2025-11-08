@@ -20,6 +20,7 @@ export default function TextField(props: TextFieldProps & FieldHookConfig<string
             error={meta.touched && !!meta.error}
             helperText={meta.touched && meta.error}
             {...field}
+            value={field.value ?? ''}
             {...props}
         />
     )

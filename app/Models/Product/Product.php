@@ -66,7 +66,7 @@ class Product extends Model
         ProductType::BOOKABLE_SERVICE->value => BookableService::class,
     ];
 
-    protected function getCommonSettingsDefaults(): array
+    public function getCommonSettingsDefaults(): array
     {
         return [
             'ui' => [

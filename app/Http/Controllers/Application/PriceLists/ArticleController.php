@@ -29,11 +29,11 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
-        $article = Article::create($request->only(['name', 'parent_id', 'color', 'vat_rate_id', 'saleable']));
+        $article = Article::create($request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'saleable', 'saleable_from', 'saleable_to']));
 
         return to_route('app.price-lists.articles.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'article' => $article->id
+            'article' => $article->id,
         ])
             ->with('status', 'success');
     }
@@ -56,11 +56,11 @@ class ArticleController extends Controller
      */
     public function update(Request $request, Article $article)
     {
-        $article->update($request->only(['name', 'parent_id', 'color', 'vat_rate_id', 'saleable']));
+        $article->update($request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'saleable', 'saleable_from', 'saleable_to']));
 
         return to_route('app.price-lists.articles.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'article' => $article->id
+            'article' => $article->id,
         ])
             ->with('status', 'success');
     }

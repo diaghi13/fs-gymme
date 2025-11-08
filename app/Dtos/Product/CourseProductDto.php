@@ -89,7 +89,14 @@ final class CourseProductDto extends BaseDto
             'settings.course.course_type' => ['nullable', 'string', 'in:group,semi_private'],
             'settings.course.curriculum' => ['nullable', 'url'],
 
-            // Booking settings validation
+            // Booking settings validation - Standard rules (for subscription integration)
+            'settings.booking.advance_days' => ['nullable', 'integer', 'min:0', 'max:365'],
+            'settings.booking.min_advance_hours' => ['nullable', 'integer', 'min:0', 'max:168'],
+            'settings.booking.cancellation_hours' => ['nullable', 'integer', 'min:0', 'max:168'],
+            'settings.booking.max_per_day' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'settings.booking.buffer_minutes' => ['nullable', 'integer', 'min:0', 'max:120'],
+
+            // Booking settings validation - Course-specific rules
             'settings.booking.enrollment_deadline_days' => ['nullable', 'integer', 'min:0', 'max:90'],
             'settings.booking.min_students_to_start' => ['nullable', 'integer', 'min:1', 'max:100'],
             'settings.booking.max_absences_allowed' => ['nullable', 'integer', 'min:0'],

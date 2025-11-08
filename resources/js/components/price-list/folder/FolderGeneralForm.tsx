@@ -1,5 +1,6 @@
 import { Form, Formik, FormikConfig } from 'formik';
-import { Button, Grid } from '@mui/material';
+import * as Yup from 'yup';
+import { Button, Grid, Alert, Typography, Divider } from '@mui/material';
 import TextField from '@/components/ui/TextField';
 import FolderIcon from '@mui/icons-material/Folder';
 import Select from '@/components/ui/Select';
@@ -18,25 +19,40 @@ export default function FolderGeneralForm() {
     return null;
   }
 
+  const folder = priceList as PriceListFolder;
+
   const formik: FormikConfig<{
     name: string;
     saleable: boolean;
     parent_id: string | number;
   }> = {
     initialValues: {
-      name: priceList.name ?? '',
-      saleable: priceList.saleable ?? true,
-      parent_id: priceList.parent_id ?? ''
+      name: folder.name ?? '',
+      saleable: folder.saleable ?? true,
+      parent_id: folder.parent_id ?? ''
     },
+    validationSchema: Yup.object({
+      name: Yup.string()
+        .required('Il nome è obbligatorio')
+        .max(255, 'Massimo 255 caratteri'),
+      parent_id: Yup.mixed()
+        .nullable()
+        .notRequired()
+        .test('not-self', 'Una cartella non può essere genitore di se stessa', function(value) {
+          // Allow empty/null values
+          if (!value || value === '') return true;
+          return value !== folder.id;
+        }),
+    }),
     onSubmit: (values) => {
-      if (!priceList.id) {
+      if (!folder.id) {
         router.post(
           route('app.price-lists.folders.store', { tenant: currentTenantId }),
           values,
           { preserveState: false });
       } else {
         router.put(
-          route('app.price-lists.folders.update', { folder: priceList.id, tenant: currentTenantId }),
+          route('app.price-lists.folders.update', { folder: folder.id, tenant: currentTenantId }),
           values,
           { preserveState: false }
         );
@@ -62,17 +78,33 @@ export default function FolderGeneralForm() {
           <Form>
             <Grid container spacing={4}>
               <Grid size={12}>
+                <Alert severity="info">
+                  <Typography variant="body2">
+                    Le cartelle servono ad organizzare i listini in modo gerarchico.
+                    Puoi creare sottocartelle selezionando una cartella genitore.
+                  </Typography>
+                </Alert>
+              </Grid>
+              <Grid size={12}>
                 <TextField label={'Nome'} name={'name'} />
               </Grid>
-              <Grid size={6} display={'flex'} alignItems={'center'} justifyContent={'center'}>
+              <Grid size={12}>
+                <Divider />
+              </Grid>
+              <Grid size={12}>
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                  Cartella genitore (opzionale)
+                </Typography>
+              </Grid>
+              <Grid size={6} display={'flex'} alignItems={'center'}>
                 <FolderIcon sx={{ mr: 1 }} fontSize={'medium'} />
-                <Select name={'parent_id'} label={'Listino'} options={priceListOptions} disabled />
+                <Select name={'parent_id'} label={'Cartella genitore'} options={priceListOptions} />
                 <Button
                   sx={{ ml: 2, px: 3 }}
                   variant={'contained'}
                   onClick={toggleFolderDialogOpen}
                 >
-                  Seleziona
+                  Sfoglia
                 </Button>
                 <FolderPriceListDialog
                   priceListOptionsTree={priceListOptionsTree}
@@ -81,18 +113,32 @@ export default function FolderGeneralForm() {
                   onClose={toggleFolderDialogOpen}
                 />
               </Grid>
+              <Grid size={6} />
               <Grid size={12}>
-                <Button onClick={() => {
-                  setFieldValue('saleable', !values.saleable);
-                }}>
+                <Divider />
+              </Grid>
+              <Grid size={12}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Configurazione vendita
+                </Typography>
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+                  Le cartelle possono essere marcate come "vendibili" per permettere la vendita dei listini contenuti
+                </Typography>
+                <Button
+                  variant={values.saleable ? 'contained' : 'outlined'}
+                  onClick={() => {
+                    setFieldValue('saleable', !values.saleable);
+                  }}
+                >
                   {values.saleable
-                    ? 'Disabilita la vendita'
-                    : 'Abilita la vendita'}
+                    ? '✓ Vendita abilitata'
+                    : 'Vendita disabilitata'}
                 </Button>
               </Grid>
+              <Grid size={12}>
+                <Divider />
+              </Grid>
               <Grid size={12} sx={{ textAlign: 'end' }}>
-                <Button size="small" sx={{ marginRight: 2 }} onClick={() => {
-                }}>Annulla</Button>
                 <FormikSaveButton />
               </Grid>
             </Grid>

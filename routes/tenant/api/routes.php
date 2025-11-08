@@ -1,16 +1,13 @@
 <?php
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
-use Laravel\Cashier\Exceptions\IncompletePayment;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware([])->group(function () {
 
     Route::get('/', function () {
         return response()->json([
-            'message' => 'This is your multi-tenant API. The id of the current tenant is ' . tenant('id'),
+            'message' => 'This is your multi-tenant API. The id of the current tenant is '.tenant('id'),
         ]);
     });
 
@@ -36,7 +33,7 @@ Route::middleware([])->group(function () {
                     'price_listable' => [
                         'vat_rate',
                     ],
-                ],]);
+                ], ]);
         }
 
         return new \App\Http\Resources\PriceListResource($priceList);
@@ -57,9 +54,9 @@ Route::middleware([])->group(function () {
     Route::get('customers', function (\Illuminate\Http\Request $request) {
         return \App\Models\Customer\Customer::query()
             ->when($request->has('term'), function ($query) use ($request) {
-                $query->where('first_name', 'like', '%' . $request->term . '%')
-                    ->orWhere('last_name', 'like', '%' . $request->term . '%')
-                    ->orWhere('email', 'like', '%' . $request->term . '%');
+                $query->where('first_name', 'like', '%'.$request->term.'%')
+                    ->orWhere('last_name', 'like', '%'.$request->term.'%')
+                    ->orWhere('email', 'like', '%'.$request->term.'%');
             })
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -69,5 +66,11 @@ Route::middleware([])->group(function () {
         ->name('api.v1.customers.index');
 
     Route::post('/subscribe', [\App\Http\Controllers\Central\SubscriptionPlan\SubscribeController::class, 'subscribe'])->name('subscription-plan.subscribe');
+
+    // Subscription Management
+    Route::post('/subscription/change-plan', [\App\Http\Controllers\Central\SubscriptionPlan\ManageSubscriptionController::class, 'changePlan'])->name('subscription.change-plan');
+    Route::post('/subscription/cancel', [\App\Http\Controllers\Central\SubscriptionPlan\ManageSubscriptionController::class, 'cancel'])->name('subscription.cancel');
+    Route::post('/subscription/cancel-now', [\App\Http\Controllers\Central\SubscriptionPlan\ManageSubscriptionController::class, 'cancelNow'])->name('subscription.cancel-now');
+    Route::post('/subscription/resume', [\App\Http\Controllers\Central\SubscriptionPlan\ManageSubscriptionController::class, 'resume'])->name('subscription.resume');
 
 });

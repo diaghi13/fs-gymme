@@ -3,10 +3,8 @@
 namespace App\Models\Customer;
 
 use App\Enums\GenderEnum;
-use App\Models\Sale\SaleRow;
-use App\Models\Scopes\StructureScope;
 use App\Models\Traits\HasStructure;
-use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+// use App\Models\Traits\HasTenantScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Customer extends Model
 {
     /** @use HasFactory<\Database\Factories\Customer\CustomerFactory> */
-    use HasFactory, HasStructure, SoftDeletes;
+    use HasFactory, HasStructure, /* HasTenantScope, */ SoftDeletes;
 
     protected $fillable = [
         'structure_id',
@@ -61,12 +59,12 @@ class Customer extends Model
 
     public function getOptionLabelAttribute()
     {
-        return $this->first_name . ' ' . $this->last_name . ' (' . $this->birth_date->format('d/m/Y') . ')';
+        return $this->first_name.' '.$this->last_name.' ('.$this->birth_date->format('d/m/Y').')';
     }
 
     public function getFullNameAttribute()
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return $this->first_name.' '.$this->last_name;
     }
 
     public function user()
@@ -154,12 +152,12 @@ class Customer extends Model
         }
 
         return [
-            'sale_count'           => $sale_count,
-            'total_amount'         => $total_amount,
-            'payed'                => $payed,
-            'not_payed'            => $not_payed,
-            'expired'              => $expired,
-            'total_sale_products'  => $total_sale_products,
+            'sale_count' => $sale_count,
+            'total_amount' => $total_amount,
+            'payed' => $payed,
+            'not_payed' => $not_payed,
+            'expired' => $expired,
+            'total_sale_products' => $total_sale_products,
         ];
     }
 

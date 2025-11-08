@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { Form, useFormikContext } from 'formik';
-import { Button, Divider, Grid } from '@mui/material';
+import { Button, Divider, Grid, FormControlLabel, Checkbox, Typography } from '@mui/material';
 import TextField from '@/components/ui/TextField';
 import FolderIcon from '@mui/icons-material/Folder';
 import Select from '@/components/ui/Select';
@@ -74,13 +74,10 @@ const GeneralForm: React.FC<SubscriptionGeneralFormProps> = ({ onDismiss }) => {
           <Grid size={12}>
             <ColorInput label={'Colore'} name={'color'} />
           </Grid>
-          <Grid size={12}>
-            <Divider />
-          </Grid>
           {priceList?.type !== FOLDER && (
             <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              Totale: € {values.standard_content.reduce(
-                (acc, item) => !item.isDirty ? (item.price ? parseFloat(String(item.price)) : 0) + acc : 0,
+              Totale: € {(values.standard_content || []).reduce(
+                (acc, item) => (item && !item.isDirty) ? (item.price ? parseFloat(String(item.price)) : 0) + acc : acc,
                 0
             ).toFixed(2).replace('.', ',')}
             </Grid>

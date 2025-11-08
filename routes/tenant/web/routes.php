@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +17,10 @@ use Inertia\Inertia;
 */
 
 Route::middleware([])->group(function () {
+
+    // Onboarding
+    Route::post('onboarding/complete', [\App\Http\Controllers\Tenant\OnboardingController::class, 'complete'])
+        ->name('app.onboarding.complete');
 
     Route::get('dashboard', \App\Http\Controllers\Application\DashboardController::class)
         ->name('app.dashboard');
@@ -43,10 +46,17 @@ Route::middleware([])->group(function () {
     Route::get('subscription-plan-payment/{subscriptionPlan}', \App\Http\Controllers\Application\SubscriptionPlanPaymentController::class)
         ->withoutMiddleware(\App\Http\Middleware\HasActiveSubscriptionPlan::class)
         ->name('app.subscription-plans.payment');
+
+    Route::get('subscription/status', \App\Http\Controllers\Application\SubscriptionStatusController::class)
+        ->name('app.subscription.status');
+
+    // Structure Management
+    Route::get('structures/switch/{structure}', [\App\Http\Controllers\Tenant\StructureController::class, 'switch'])
+        ->name('app.structures.switch');
 });
 
-require __DIR__ . '/products.php';
-require __DIR__ . '/price-lists.php';
-require __DIR__ . '/configurations.php';
-require __DIR__ . '/settings.php';
-require __DIR__ . '/customers.php';
+require __DIR__.'/products.php';
+require __DIR__.'/price-lists.php';
+require __DIR__.'/configurations.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/customers.php';

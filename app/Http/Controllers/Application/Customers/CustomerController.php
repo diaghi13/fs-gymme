@@ -68,7 +68,7 @@ class CustomerController extends Controller
             'sales' => function (HasMany $query) {
                 $query->with(['payment_condition', 'financial_resource', 'promotion', 'rows' => function (HasMany $query) {
                     $query->with(['entity', 'price_list']);
-                }])->orderBy('date', 'desc')
+                }])->orderBy('sale_date', 'desc')
                     ->limit(5);
             },
             'sales.payments' => ['payment_method'],
@@ -117,7 +117,7 @@ class CustomerController extends Controller
 
         return redirect()->route('app.customers.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'customer' => $customer->id
+            'customer' => $customer->id,
         ])
             ->with('status', 'success')
             ->with('message', __('Customer updated successfully.'));
@@ -126,8 +126,7 @@ class CustomerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public
-    function destroy(Customer $customer)
+    public function destroy(Customer $customer)
     {
         if ($customer->active_subscriptions()->exists()) {
             return redirect()->back()

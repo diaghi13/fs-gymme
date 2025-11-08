@@ -4,7 +4,6 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Customer\Customer;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -15,7 +14,8 @@ use Stancl\Tenancy\Database\Concerns\ResourceSyncing;
 class User extends Authenticatable implements Syncable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, ResourceSyncing, HasRoles;
+    // HasRoles temporarily disabled - causes memory exhaustion during serialization
+    use HasFactory, Notifiable, ResourceSyncing; // , HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -55,9 +55,10 @@ class User extends Authenticatable implements Syncable
         'remember_token',
     ];
 
-    protected $appends = [
-        'name',
-    ];
+    // Temporarily disabled - may cause serialization issues
+    // protected $appends = [
+    //     'name',
+    // ];
 
     /**
      * Get the attributes that should be cast.
@@ -74,9 +75,7 @@ class User extends Authenticatable implements Syncable
 
     public function getNameAttribute()
     {
-        return Attribute::make(
-            get: fn () => $this->first_name . ' ' . $this->last_name,
-        );
+        return $this->first_name.' '.$this->last_name;
     }
 
     public function getGlobalIdentifierKey()

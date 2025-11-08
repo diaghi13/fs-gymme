@@ -25,14 +25,14 @@ return new class extends Migration
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
 
-            $table->string("uuid", 50)
+            $table->string('uuid', 50)
                 ->unique()
                 ->index();
 
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
             $table->date('birth_date')->nullable();
-            $table->enum('gender', ['female', 'male', 'other'])->nullable();
+            $table->enum('gender', ['F', 'M', 'other', 'A'])->nullable();
             $table->string('birthplace')->nullable();
             $table->string('tax_id_code')->nullable();
             $table->string('email')->unique();

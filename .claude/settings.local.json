@@ -1,6 +1,19 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(php artisan make:test:*)",
+      "Bash(php artisan route:list:*)",
+      "mcp__laravel-boost__database-schema",
+      "mcp__laravel-boost__tinker",
+      "Bash(xargs basename:*)",
+      "Bash(vendor/bin/pint:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nRemove obsolete category_id and unit_type from Product models\n\nThese fields were removed from the products table in the cleanup migration\n(cleanup_products_table_remove_pricelist_fields.php) but were still present\nin the $fillable and $casts arrays of BaseProduct and CourseProduct models.\n\nThis was causing SQL errors when trying to update products:\n\"Column not found: 1054 Unknown column 'category_id' in 'field list'\"\n\nChanges:\n- BaseProduct: Removed category_id and unit_type from $fillable and $casts\n- CourseProduct: Removed category_id and unit_type from $fillable and $casts\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(php artisan:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "laravel-boost"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

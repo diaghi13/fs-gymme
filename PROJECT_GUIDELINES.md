@@ -51,6 +51,63 @@ Tutti ereditano da `Product` e usano:
 
 ## Convenzioni Tecniche
 
+### DTO Pattern (Data Transfer Objects)
+
+Il progetto usa DTO per validazione e type-safety dei dati.
+
+**Struttura Standard DTO**:
+```php
+namespace App\Dtos\Product;
+
+class BookableServiceDto extends BaseDto
+{
+    public ?int $id = null;
+    public string $name = '';
+    public ?string $description = null;
+    public string $color = '#000000';
+    public ?array $settings = null;
+
+    protected static function validationRules(): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'color' => 'required|string|max:7',
+            'settings' => 'nullable|array',
+            // Nested settings validation
+            'settings.booking.advance_days' => 'nullable|integer|min:1|max:365',
+            'settings.booking.cancellation_hours' => 'nullable|integer|min:0|max:168',
+        ];
+    }
+
+    public static function casts(): array
+    {
+        return [
+            'id' => 'integer',
+            'name' => 'string',
+            'settings' => 'array',
+        ];
+    }
+}
+```
+
+**Best Practices DTO**:
+- Proprietà pubbliche con type hints espliciti
+- Separare visivamente le proprietà (una riga vuota tra ciascuna)
+- Validazioni nested per settings JSON
+- Metodo `casts()` per type casting automatico
+- Ereditare da `BaseDto` per funzionalità comuni
+
+**Uso nei Controller**:
+```php
+public function store(Request $request)
+{
+    $validated = $request->validate(BookableServiceDto::validationRules());
+    $dto = BookableServiceDto::fromArray($validated);
+
+    $product = BookableService::create($dto->toArray());
+}
+```
+
 ### Laravel 12 Specifics
 ```
 bootstrap/app.php          -> Middleware, exceptions, routing config
@@ -308,6 +365,318 @@ validationSchema: Yup.object({
 }
 ```
 
+## PriceLists Architecture
+
+### Struttura PriceLists
+Il sistema gestisce diversi tipi di listini prezzi per vendita:
+
+1. **Folder** - Cartelle organizzative gerarchiche
+2. **Subscription** - Abbonamenti con contenuti standard/opzionali (supporta Products, Articles, Memberships)
+3. **Article** - Articoli generici (magliette, integratori, etc.)
+4. **Membership** - Quote associative/tesseramento
+5. **DayPass** - Ingressi giornalieri
+6. **Token** - Carnet di ingressi/crediti
+7. **GiftCard** - Buoni regalo
+
+### Subscription PriceList
+Gli abbonamenti possono includere:
+- **BaseProduct**: Accesso sala pesi, area cardio, etc.
+- **CourseProduct**: Corsi inclusi nell'abbonamento
+- **BookableService**: Servizi prenotabili inclusi (PT, visite, consulenze)
+- **Article**: Articoli inclusi (es. t-shirt benvenuto)
+- **Membership**: Quote associative incluse
+
+**Pattern di inclusione BookableService in Subscription**:
+```json
+{
+  "standard_content": [
+    {
+      "price_listable_type": "App\\Models\\Product\\Product",
+      "price_listable_id": 123,  // BookableService ID
+      "unlimited_entries": false,
+      "total_entries": 10,        // Es: 10 sessioni PT
+      "validity_months": 3,
+      "advance_booking_days": 30,
+      "cancellation_hours": 24
+    }
+  ]
+}
+```
+
+**Use Cases BookableService in Subscriptions**:
+1. **Pacchetto PT**: 10 sessioni Personal Training incluse nell'abbonamento Gold
+2. **Wellness Package**: 3 massaggi inclusi nell'abbonamento Premium
+3. **Health Check**: 1 visita medica inclusa nell'abbonamento annuale
+4. **Nutrition Plan**: 2 consulenze nutrizionista incluse
+
+### Modal Selezione Prodotti (SubscriptionAddContentDialog)
+Il modal presenta **8 tab organizzati** per facilitare la selezione:
+- Tab 1: Prodotti Base (sala pesi, cardio, etc.)
+- Tab 2: Corsi (yoga, pilates, spinning, etc.)
+- Tab 3: **Servizi Prenotabili** (PT, massaggi, visite, consulenze)
+- Tab 4: Quote Associative
+- Tab 5: Articoli
+- Tab 6: Day Pass
+- Tab 7: Token/Carnet
+- Tab 8: Gift Card
+
+**Filosofia UX**: Ogni tipo di prodotto/servizio ha il suo tab dedicato per chiarezza.
+
+### BookableService: Token vs Subscription - Decisione Architettonica
+
+**Domanda**: Come vendere pacchetti di servizi prenotabili (es: 10 PT, 3 massaggi)?
+
+**Opzione 1: Nuovo PriceList dedicato "Service Package"**
+- ❌ Complessità: Nuovo controller, routes, migrations, UI
+- ❌ Confusione utente: Dove vendere servizi? Service Package o Subscription?
+- ❌ Duplicazione logica: Stesso concetto di "bundle con limiti"
+- ❌ Manutenzione: Più codice da mantenere
+
+**Opzione 2: Estendere Token (SCELTA RACCOMANDATA)**
+- ✅ **Già esistente**: Token gestisce "carnet di crediti"
+- ✅ **Semantica corretta**: "10 ingressi PT" è concettualmente un token
+- ✅ **UX familiare**: Utente già conosce Token per carnet ingressi
+- ✅ **Riuso logica**: Stessa struttura expiration/validity già implementata
+- ✅ **Flessibilità**: Token può puntare a qualsiasi Product (include BookableService)
+
+**Opzione 3: Solo Subscription**
+- ✅ Funziona per bundle complessi (abbonamento + servizi)
+- ❌ Troppo pesante per vendita semplice "10 PT standalone"
+- ❌ Non adatto a vendita spot servizio singolo
+
+**DECISIONE: Approccio Ibrido Token + Subscription**
+
+```
+Use Case 1: Vendita standalone "10 sessioni PT"
+→ Token PriceList collegato a BookableService PT
+→ Cliente compra token, può prenotare 10 volte
+
+Use Case 2: Abbonamento Gold + 10 PT inclusi
+→ Subscription con BookableService nel standard_content
+→ total_entries = 10
+
+Use Case 3: Vendita spot "1 visita medica"
+→ Token con 1 credito collegato a BookableService "Visita Medica"
+```
+
+**Implementazione Token per BookableService**:
+1. Token ha già `price_listable_type` e `price_listable_id` (polymorphic)
+2. Token può già puntare a Product (BaseProduct, CourseProduct, **BookableService**)
+3. Token ha già `entrances` (numero crediti disponibili)
+4. Token ha già `validity_days`/`validity_months`
+5. **NESSUNA modifica strutturale necessaria** ✅
+
+**Frontend Changes Necessari**:
+1. Token form: Aggiungere BookableService alla selezione prodotto
+2. Token display: Mostrare icona/badge distintivo per servizi prenotabili
+3. Documentazione: Chiarire che Token può vendere anche servizi
+
+### DayPass vs Token - Differenze Chiave
+
+**DayPass (Ingresso Giornaliero)**:
+- **Uso**: Singolo ingresso valido per un'intera giornata
+- **Accesso**: Tutte le aree della palestra (sala pesi, cardio, corsi)
+- **Target**: Clienti occasionali, visitatori, "prova giorno"
+- **Validità**: Utilizzabile solo il giorno di acquisto o giorno specificato
+- **Quantità**: 1 ingresso = 1 giornata completa
+
+**Token (Carnet)**:
+- **Uso**: Pacchetto di N ingressi/crediti utilizzabili nel tempo
+- **Accesso**: Configurabile per prodotti specifici o tutti
+- **Target**: Clienti regolari che vogliono flessibilità senza abbonamento
+- **Validità**: Periodo configurabile (es: 10 ingressi validi 60 giorni)
+- **Quantità**: N ingressi = N accessi separati
+
+**Quando Usare Cosa**:
+```
+Cliente: "Voglio provare la palestra un giorno"
+→ DayPass
+
+Cliente: "Vengo 2 volte a settimana ma non voglio abbonamento"
+→ Token con 10 ingressi validi 60 giorni
+
+Cliente: "Voglio fare 10 sessioni di Personal Training"
+→ Token collegato a BookableService PT
+```
+
+### GiftCard - Caratteristiche
+
+**Scopo**: Buoni regalo prepagati riscattabili per qualsiasi servizio/prodotto.
+
+**Caratteristiche Principali**:
+- `price`: Valore monetario della card (es: 50€, 100€)
+- `validity_months`: Validità in mesi (1-120), nullable per nessuna scadenza
+- Settings avanzati nel model per redemption rules
+
+**Use Cases**:
+1. Regalo compleanno: Gift Card 100€ valida 12 mesi
+2. Regalo aziendale: Gift Card 50€ valida 6 mesi
+3. Promozione: Gift Card 150€ senza scadenza
+
+**Settings Avanzati (Future)**:
+```php
+'redemption' => [
+  'redeemable_for' => 'anything',  // O limitato a products/subscriptions/services
+  'partial_redemption' => true,    // Può usare parte del valore
+  'combine_with_other_payments' => true,
+]
+```
+
+**Backend Logic (Da Implementare)**:
+- Generazione codice univoco (GIFT-XXXX-XXXX)
+- Tracking saldo residuo se partial redemption
+- Sistema di riscatto durante checkout
+- Email delivery con codice
+
+### Implementazione Token per BookableService - Roadmap
+
+**✅ Già Funzionante (Database)**:
+```php
+// Token Model structure (NO CHANGES NEEDED)
+'token_quantity'   // Numero crediti (es: 10 PT sessions)
+'validity_days'    // Validità in giorni
+'validity_months'  // Validità in mesi
+'settings' => [
+  'usage' => [
+    'applicable_to' => [123, 456],  // Array di Product IDs (può includere BookableService)
+    'all_products' => false,
+    'requires_booking' => true
+  ]
+]
+```
+
+**✅ Frontend Implementato**:
+
+1. **TokenPriceListCard Component** ✅
+   - ✅ Tab "Generale" - Configurazione base token + selezione prodotti
+   - ✅ Tab "Prenotazioni" - Regole booking specifiche per BookableService
+   - ✅ Tab "Validità" - Configurazione avanzata validità e restrizioni
+   - ✅ Tab "Vendita" - Configurazione vendita
+   - ✅ Form supporta selezione prodotto generico
+   - ✅ Badge/icon per servizi prenotabili
+   - ✅ Label dinamica: "Numero sessioni/crediti"
+
+2. **TokenProductSelector Component** ✅
+   - ✅ Modal con 3 tab: Prodotti Base, Corsi, Servizi Prenotabili
+   - ✅ Selezione multipla con toggle "Tutti i prodotti"
+   - ✅ Badge distintivo per BookableService
+   - ✅ Chip visivi per prodotti selezionati
+
+3. **TokenBookingTab Component** ✅
+   - ✅ **Auto-copy regole nel DB alla creazione** (non più live inheritance!)
+   - ✅ Valori definitivi salvati in `settings.booking.*`
+   - ✅ Alert success mostra regole copiate dal servizio
+   - ✅ Modifica indipendente dal servizio originale
+   - ✅ Campi: advance_booking_days, cancellation_hours, max_bookings_per_day
+   - ✅ Switch requires_booking
+   - ✅ Riepilogo regole attive
+   - ✅ Alert quando nessun servizio prenotabile selezionato
+
+4. **TokenValidityTab Component** ✅ (NUOVO)
+   - ✅ Configurazione validità in giorni o mesi
+   - ✅ Radio buttons per inizio validità: acquisto vs primo utilizzo
+   - ✅ Switch "Scade se non utilizzato"
+   - ✅ Utilizzi massimi al giorno
+   - ✅ Switch trasferibilità token
+   - ✅ Riepilogo configurazione live
+   - ✅ Validation completa (1-3650 giorni, 1-120 mesi)
+
+3. **UX Guidelines Token**
+   ```
+   Caso 1: Token per Ingressi Generici
+   Nome: "Carnet 10 Ingressi"
+   Applicabile a: [Tutti i prodotti]
+   Crediti: 10
+   
+   Caso 2: Token per PT Specifico
+   Nome: "Pacchetto 10 PT"
+   Applicabile a: [Personal Training 1h]
+   Crediti: 10
+   Badge: "Servizio Prenotabile"
+   
+   Caso 3: Token Multi-Service
+   Nome: "Wellness Pack"
+   Applicabile a: [Massaggio, Sauna, Idromassaggio]
+   Crediti: 5
+   ```
+
+**🎨 UI Enhancements**:
+- Icon distintiva per BookableService (EventAvailable)
+- Badge colorato "Prenotazione Richiesta"
+- Tooltip esplicativo: "Questo token permette di prenotare N sessioni di [servizio]"
+
+**📋 Validazioni da Aggiungere**:
+```php
+// TokenController validation
+'applicable_products' => 'nullable|array',
+'applicable_products.*' => 'exists:products,id',
+'all_products' => 'boolean',
+'requires_booking' => 'boolean',  // Auto-true se BookableService selezionato
+```
+
+**🔄 Backend Logic (Vendita/Utilizzo)**:
+- Vendita Token → Crea CustomerToken con crediti disponibili
+- Prenotazione BookableService → Verifica CustomerToken validi
+- Conferma prenotazione → Decrementa token_quantity
+- Cancellazione → Ripristina credito (se entro termini)
+
+### Auto-Copy Valori Ereditati (PATTERN CRITICO)
+
+**Problema Originale**: 
+I valori di default erano solo placeholder nel form, non salvati nel database. Questo complicava le query future per verificare permessi e regole di accesso.
+
+**Soluzione Implementata**: ✅
+Alla creazione del Token, i valori di default vengono **copiati definitivamente** nel database come snapshot immutabile.
+
+**Implementazione Backend**:
+```php
+// TokenController::store()
+private function extractBookingDefaultsFromProducts(array $productIds): array
+{
+    $bookableService = BookableService::whereIn('id', $productIds)->first();
+    
+    if (!$bookableService) {
+        return ['advance_booking_days' => null, ...];
+    }
+    
+    // COPY (not reference) - definitive values in DB
+    return [
+        'advance_booking_days' => $bookingSettings['advance_days'] ?? null,
+        'cancellation_hours' => $bookingSettings['cancellation_hours'] ?? null,
+        'max_bookings_per_day' => $bookingSettings['max_per_day'] ?? null,
+    ];
+}
+
+// Values are stored in Token settings.booking
+$settings = [
+    'booking' => $this->extractBookingDefaultsFromProducts($productIds), // Definitive copy
+    // ...
+];
+```
+
+**Vantaggi**:
+1. ✅ **Query Performance**: SELECT diretto su token.settings invece di JOIN con products
+2. ✅ **Immutabilità**: Cambi al BookableService non influenzano token già venduti
+3. ✅ **Audit Trail**: Regole applicate al momento della vendita sono tracciate
+4. ✅ **Backwards Compatibility**: Vecchi token senza settings funzionano con fallback
+5. ✅ **Business Logic Semplice**: Access control query usa solo tabella tokens
+
+**Esempio Pratico**:
+```
+Giorno 1: Creo Token "Pacchetto PT"
+  - BookableService ha: 30 giorni anticipo, 24h cancellazione
+  - Token viene creato con settings.booking copiato: {advance_booking_days: 30, cancellation_hours: 24}
+  - Valori SALVATI nel database ✅
+
+Giorno 30: Cambio BookableService → 60 giorni anticipo
+  - Token già venduti: mantengono 30 giorni (immutabile) ✅
+  - Nuovi token: verranno creati con 60 giorni ✅
+
+Query per validare prenotazione:
+  SELECT settings->booking->advance_booking_days FROM tokens WHERE id = 123
+  → NO JOIN con products necessario! ✅
+```
+
 ## Tab Structure per Prodotti
 
 ### BaseProduct
@@ -326,6 +695,177 @@ validationSchema: Yup.object({
 2. **Bookings** - Regole prenotazione e requisiti servizio
 3. **Availability** - Giorni disponibili, orari default, slot personalizzati
 4. **Sale** - Configurazione vendita
+
+## Tab Structure per PriceLists
+
+### Token (Carnet/Crediti)
+1. **Generale** - Nome, folder, colore, prezzo, IVA, crediti, validità, selezione prodotti applicabili
+2. **Prenotazioni** - Regole booking per BookableService (auto-copiate nel DB alla creazione)
+3. **Validità** - Configurazione avanzata validità e restrizioni d'uso
+4. **Vendita** - Periodo vendibilità con riepilogo dinamico
+
+### Folder (Contenitore)
+1. **Generale** - Nome, selezione parent folder, toggle vendibilità
+2. **Vendita** - Periodo vendibilità
+
+### Subscription
+1. **Generale** - Nome, folder, colore, prezzo, IVA
+2. **Contenuti Standard** - Prodotti sempre inclusi (BaseProduct, CourseProduct, BookableService, Article, Membership)
+3. **Contenuti Opzionali** - Prodotti selezionabili dal cliente
+4. **Vendita** - Periodo vendibilità
+
+### Article / Membership
+1. **Generale** - Nome, folder, colore, prezzo, IVA, (duration_months per Membership)
+2. **Vendita** - Periodo vendibilità
+
+### DayPass (Ingresso Giornaliero)
+1. **Generale** - Nome, folder, colore, prezzo, IVA
+2. **Vendita** - Periodo vendibilità
+
+### GiftCard (Buono Regalo)
+1. **Generale** - Nome, folder, colore, valore, IVA, validità (mesi)
+2. **Vendita** - Periodo vendibilità
+
+## UI/UX Pattern Consolidati
+
+### Layout Standard per Tab Form
+```typescript
+<Box>
+  <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+    <IconComponent />
+    Titolo Sezione
+  </Typography>
+  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+    Descrizione breve della sezione
+  </Typography>
+
+  <Grid container spacing={3}>
+    <Grid size={12}>
+      <Alert severity="info">
+        Note informative per l'utente
+      </Alert>
+    </Grid>
+
+    <Grid size={12}>
+      <Divider />
+    </Grid>
+
+    {/* Form fields */}
+
+    {/* Riepilogo opzionale */}
+    <Grid size={12}>
+      <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+        <Typography variant="subtitle2">Riepilogo</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Dettagli configurazione corrente
+        </Typography>
+      </Box>
+    </Grid>
+
+    <Grid size={12}>
+      <Divider />
+    </Grid>
+
+    <Grid size={12} sx={{ textAlign: 'end', mt: 2 }}>
+      <FormikSaveButton />
+    </Grid>
+  </Grid>
+</Box>
+```
+
+### Modal Dialog Pattern
+```typescript
+<Dialog open={open} fullWidth maxWidth="md" onClose={onClose}>
+  <DialogTitle sx={{ pb: 1 }}>
+    <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Icon />
+      Titolo Modal
+    </Typography>
+    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+      Descrizione funzionalità
+    </Typography>
+  </DialogTitle>
+  <Divider />
+  <DialogContent sx={{ p: 0 }}>
+    {/* Content con scroll */}
+  </DialogContent>
+  <Divider />
+  <DialogActions sx={{ px: 3, py: 2 }}>
+    <Button onClick={onClose} variant="outlined">Annulla</Button>
+  </DialogActions>
+</Dialog>
+```
+
+### Icone per PriceLists (Lista)
+- **Folder**: FolderIcon / FolderOpenIcon
+- **Subscription**: CreditCardIcon
+- **Article**: CategoryIcon
+- **Membership**: CardMembershipIcon
+- **Token**: StyleIcon
+- **DayPass**: ConfirmationNumberIcon
+- **GiftCard**: CardGiftcardIcon
+
+### Validation Pattern Frontend
+```typescript
+validationSchema: Yup.object({
+  name: Yup.string()
+    .required('Il nome è obbligatorio')
+    .max(255, 'Massimo 255 caratteri'),
+  parent_id: Yup.mixed()
+    .nullable()
+    .notRequired()
+    .test('not-self', 'Errore circular reference', (value) => {
+      if (!value) return true;
+      return value !== currentId;
+    }),
+  // Date validation con cross-field reference
+  saleable_to: Yup.date()
+    .nullable()
+    .min(Yup.ref('saleable_from'), 'La data "al" deve essere successiva alla data "dal"'),
+})
+```
+
+### SaleForm Pattern (Vendibilità)
+
+Tutte le entità vendibili (Products, PriceLists) hanno un **SaleForm** standardizzato:
+
+```typescript
+interface SaleFormValues {
+  saleable_from: Date | null;
+  saleable_to: Date | null;
+}
+
+// Validation con cross-field reference
+validationSchema: Yup.object({
+  saleable_from: Yup.date().nullable(),
+  saleable_to: Yup.date()
+    .nullable()
+    .min(Yup.ref('saleable_from'), 'La data "al" deve essere successiva'),
+})
+```
+
+**Layout Standard**:
+- Alert informativo con regole business (sempre/dal/al/periodo)
+- Divider separatore sezioni
+- DatePicker per saleable_from e saleable_to
+- Box riepilogo dinamico con le date selezionate
+- FormikSaveButton a destra in fondo
+
+**Riepilogo Dinamico**:
+```typescript
+{!values.saleable_from && !values.saleable_to && (
+  <Typography>Prodotto <strong>sempre vendibile</strong></Typography>
+)}
+{values.saleable_from && !values.saleable_to && (
+  <Typography>Vendibile <strong>dal {format(values.saleable_from, 'dd/MM/yyyy')}</strong></Typography>
+)}
+{!values.saleable_from && values.saleable_to && (
+  <Typography>Vendibile <strong>fino al {format(values.saleable_to, 'dd/MM/yyyy')}</strong></Typography>
+)}
+{values.saleable_from && values.saleable_to && (
+  <Typography>Vendibile <strong>dal {format(values.saleable_from, 'dd/MM/yyyy')} al {format(values.saleable_to, 'dd/MM/yyyy')}</strong></Typography>
+)}
+```
 
 ## Validazioni Standard
 
@@ -502,34 +1042,286 @@ SubscriptionContent hasMany SubscriptionContentTimeRestrictions
 ## Work In Progress
 
 ### Completato ✅
-1. BookableService tabs (Bookings, Availability, Sale)
-2. CourseProduct tabs (Timetable con auto-naming, Bookings)
-3. Validazioni frontend e backend complete
-4. Time slots personalizzati per BookableService
-5. UX improvements (loading states, feedback, error handling)
-6. PriceList DB structure completa con comprehensive rules
-7. SubscriptionContent model con access/booking/validity/benefits
-8. Time restrictions e service access tables
+
+**Products**:
+1. ✅ BookableService tabs complete (Bookings, Availability, Sale)
+2. ✅ CourseProduct tabs complete (Timetable con auto-naming, Bookings, Sale)
+3. ✅ BaseProduct tabs complete (General, Schedule, Sale)
+4. ✅ Time slots personalizzati per BookableService
+5. ✅ Validazioni frontend (Yup) e backend (Laravel) complete
+
+**PriceLists**:
+6. ✅ **Token PriceList 100% completo**:
+   - Tab Generale con product selector (Base, Corsi, BookableService)
+   - Tab Prenotazioni con auto-copy valori da BookableService
+   - Tab Validità con configurazione avanzata
+   - Tab Vendita ridisegnata con layout moderno
+7. ✅ **Folder PriceList 100% completo**:
+   - Tab Generale con selezione parent gerarchico
+   - Tab Vendita ridisegnata
+   - Modal selezione cartella completamente ridisegnato
+8. ✅ **DayPass PriceList 100% completo**:
+   - Tab Generale con layout moderno, validazioni Yup
+   - Tab Vendita con SaleForm standardizzato
+   - Controller con validazioni complete
+   - Riepilogo dinamico con info principali
+9. ✅ **GiftCard PriceList 100% completo**:
+   - Tab Generale con validità in mesi, layout moderno
+   - Tab Vendita con SaleForm standardizzato
+   - Controller con validazioni complete (validity_months 1-120)
+   - Riepilogo dinamico con valore e validità
+10. ✅ Subscription con modal selezione contenuti (8 tab organizzati)
+11. ✅ Article e Membership con tab Generale e Vendita
+
+**UI/UX**:
+10. ✅ Layout pattern consolidati e documentati
+11. ✅ Modal dialogs con design coerente
+12. ✅ Icone distintive per tutti i PriceList types
+13. ✅ Alert informativi e riepilogo dinamici
+14. ✅ Validation messages in italiano
+
+**Backend**:
+15. ✅ Auto-copy pattern per valori ereditati (Token + BookableService)
+16. ✅ Settings preservation pattern applicato ovunque
+17. ✅ Circular reference protection (Folder parent)
+18. ✅ Validation completa con error messages
 
 ### Da Fare 📋
-1. **PriceLists Frontend**: UI completa per gestione subscriptions
-2. **SubscriptionComposer**: Componente per gestire contents fissi/opzionabili
-1. Applicare TabContainer agli altri tab (CourseProduct, BaseProduct)
-2. Implementare gestione istruttori/sale per time slots
-3. Blackout dates per BookableService availability
-4. Testing: Feature tests per controller e validations
-5. Testing: Unit tests per auto-generation logic
-6. Fine-tuning funzionalità esistenti (feedback utente)
-7. Equipment list management per CourseProduct materials
-8. Next level course selection per CourseProduct progression
-9. Prerequisites management per corsi
 
-### Considerazioni Future
+**PriceLists**:
+1. SubscriptionComposer - UI per gestire contents standard/opzionali
+
+**Products**:
+4. Gestione istruttori/sale per time slots BookableService
+5. Blackout dates per BookableService availability
+6. Equipment list management per CourseProduct materials
+7. Next level course selection per CourseProduct progression
+8. Prerequisites management per corsi
+
+**Testing**:
+9. Feature tests per tutti i controller PriceList
+10. Unit tests per auto-generation logic
+11. E2E tests per flussi vendita
+
+**Future Enhancements**:
 - Calendar view per planning visualization
 - Booking conflict detection logic
 - Capacity management per time slots
 - Reporting per utilizzo servizi/corsi
-- Integration con payment system per materials_fee
+- Integration con payment system
+- Gestione CustomerToken (vendita/utilizzo Token)
+- Booking system per BookableService
+- **PriceListRules System** (vedi sezione dedicata)
+
+## PriceListRules - Future Feature (FASE 2)
+
+### Stato Attuale
+La tabella `price_list_rules` esiste nel database ma **NON è implementata**. È una feature di Fase 2.
+
+### Scopo
+Sistema di **regole condizionali avanzate** per applicare logiche business complesse sui PriceLists:
+- Sconti/promozioni condizionali per gruppi clienti
+- Prezzi dinamici per fasce orarie
+- Limitazioni acquisto basate su membership
+- Sconti quantità/fedeltà
+- Regole combinate con priorità
+
+### Struttura Tabella
+```php
+price_list_rules:
+  - price_list_id (FK)
+  - rule_type (string: 'discount', 'restriction', 'time_based', etc.)
+
+  // Condizioni
+  - customer_group_ids (json array)
+  - facility_ids (json array)
+  - valid_from_date / valid_to_date
+  - valid_days_of_week (json)
+  - valid_time_slots (json)
+  - min_quantity / max_quantity
+  - min_total_amount / max_total_amount (Money)
+  - min_membership_months
+  - customer_registration_after
+  - custom_conditions (json)
+
+  // Priorità
+  - priority (integer)
+  - can_combine_with_other_rules (boolean)
+  - is_active (boolean)
+```
+
+### Casi d'Uso
+
+**1. Sconto Studenti**
+```php
+rule_type: 'customer_group_discount'
+customer_group_ids: [gruppo_studenti_id]
+discount_percentage: 20  // ⚠️ Campo mancante da aggiungere
+```
+
+**2. Abbonamento Solo Mattino Scontato**
+```php
+rule_type: 'time_based_pricing'
+valid_time_slots: ['06:00-13:00']
+valid_days_of_week: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+discount_percentage: 30
+```
+
+**3. Limitazione Acquisto PT**
+```php
+rule_type: 'purchase_restriction'
+customer_group_ids: [gruppo_premium_id]
+min_membership_months: 3
+// Solo membri premium con almeno 3 mesi possono comprare
+```
+
+**4. Sconto Quantità Token**
+```php
+rule_type: 'quantity_discount'
+min_quantity: 5
+discount_percentage: 10
+// 10% sconto se compri 5+ token
+```
+
+**5. Fedeltà Long-term**
+```php
+rule_type: 'loyalty_discount'
+customer_registration_after: '2023-01-01'
+discount_percentage: 15
+// 15% sconto se cliente dal 2023 o prima
+```
+
+### Problemi da Risolvere Prima dell'Implementazione
+
+**1. Campi Mancanti**
+La tabella ha condizioni ma non azioni:
+```php
+// DA AGGIUNGERE:
+discount_percentage: integer nullable
+discount_fixed_amount: integer nullable (Money)
+override_price: integer nullable (Money)
+action_type: enum ('discount', 'override', 'restrict')
+```
+
+**2. Enum rule_type da Definire**
+```php
+enum RuleType: string {
+    case CUSTOMER_GROUP_DISCOUNT = 'customer_group_discount';
+    case TIME_BASED_PRICING = 'time_based_pricing';
+    case QUANTITY_DISCOUNT = 'quantity_discount';
+    case LOYALTY_DISCOUNT = 'loyalty_discount';
+    case PURCHASE_RESTRICTION = 'purchase_restriction';
+    case MEMBERSHIP_REQUIREMENT = 'membership_requirement';
+}
+```
+
+**3. Logica Applicazione Rules**
+```php
+// Service da creare: PriceListRuleEngine
+class PriceListRuleEngine
+{
+    public function getApplicableRules(PriceList $priceList, Customer $customer): Collection
+    {
+        // Filter rules by conditions
+        // Sort by priority
+        // Handle can_combine_with_other_rules
+        // Return applicable rules
+    }
+
+    public function calculateFinalPrice(PriceList $priceList, Customer $customer, int $quantity = 1): int
+    {
+        // Apply all applicable rules
+        // Respect priority and combination logic
+        // Return final price in cents
+    }
+}
+```
+
+**4. Decisioni Business**
+- Come si combinano più rules applicabili?
+- Quale ha precedenza se priority uguale?
+- Come mostrare al cliente quale sconto si sta applicando?
+- Come gestire conflitti tra rules?
+
+### Quando Implementare
+
+**✅ Prerequisiti**:
+1. Sistema vendita base completo (Sales, CustomerSales, Payments)
+2. Customer groups/segmentation implementato
+3. Almeno 1 mese di operatività con dati reali
+4. Feedback utenti che richiede questa complessità
+
+**🚨 Segnali che Servono**:
+- Richieste ripetute per sconti condizionali
+- Necessità di prezzi diversi per gruppi clienti
+- Limitazioni acquisto complesse
+- Pricing dinamico per fasce orarie
+
+**❌ NON Implementare Se**:
+- Il 90% casi si risolve con `saleable_from/to`
+- Sconti gestibili con codici coupon
+- Gruppi clienti bastano per segmentazione
+- Nessun business case reale
+
+### Alternative Semplici (Fase 1)
+
+**Per Sconti/Promozioni Immediate**:
+```php
+// Aggiungi a price_lists:
+promotional_price: integer nullable (Money)
+promotion_valid_from: date nullable
+promotion_valid_to: date nullable
+```
+
+**Per Limitazioni Base**:
+```php
+// Controller validation:
+if (!$customer->canPurchase($priceList)) {
+    throw ValidationException::withMessages([
+        'customer' => 'Non hai i requisiti per acquistare questo listino'
+    ]);
+}
+```
+
+**Per Gruppi Clienti**:
+```php
+// customers table:
+customer_group_id: FK nullable
+
+// Logica pricing:
+if ($customer->customer_group_id === CustomerGroup::STUDENT) {
+    $price = $priceList->student_price ?? $priceList->price;
+}
+```
+
+### Roadmap Implementazione (Quando Necessario)
+
+**Fase 1: Database**
+1. Migration per aggiungere campi azione (discount_percentage, etc.)
+2. Creare RuleTypeEnum
+3. Factory e Seeder per testing
+
+**Fase 2: Backend**
+1. PriceListRuleService per logica applicazione
+2. Controller per CRUD rules
+3. Validation rules complete
+4. Feature tests
+
+**Fase 3: Frontend**
+1. UI per gestione rules in PriceList detail
+2. Preview pricing con rules applicate
+3. Badge/alert per mostrare regole attive
+4. Modal per creare/modificare rules
+
+**Fase 4: Integrazione**
+1. Applicare rules nel processo vendita
+2. Mostrare sconti applicati in checkout
+3. Reporting su utilizzo rules
+4. Audit log per tracking applicazioni
+
+### Conclusione
+
+Le `price_list_rules` sono una **feature di ottimizzazione avanzata** da rimandare a Fase 2. La tabella rimane vuota fino a business case concreto. Focus Fase 1: completare sistema vendita base e raccogliere feedback reale.
 
 ## Commands Utili
 

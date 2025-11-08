@@ -8,7 +8,8 @@ import {
   PriceListSubscription,
 } from "@/types";
 import SubscriptionOptionalTab from '@/components/price-list/subscription/tabs/SubscriptionOptionalTab';
-//import SubscriptionSummaryTab from '@/components/price-list/subscription/tabs/SubscriptionSummaryTab';
+import SubscriptionExtraTab from '@/components/price-list/subscription/tabs/SubscriptionExtraTab';
+import SubscriptionSummaryTab from '@/components/price-list/subscription/tabs/SubscriptionSummaryTab';
 
 interface SubscriptionPriceListCardProps {
   priceList: PriceListSubscription;
@@ -36,7 +37,8 @@ export default function SubscriptionPriceListCard(
             {priceList && <Tab label="Generale" value="1"/>}
             {priceList?.id && <Tab label="Opzioni" value="2"/>}
             {priceList?.id && <Tab label="Vendita" value="3"/>}
-            {priceList?.id && <Tab label="Riepilogo" value="4"/>}
+            {priceList?.id && <Tab label="Extra" value="4"/>}
+            {priceList?.id && <Tab label="Riepilogo" value="5"/>}
           </TabList>
           <TabPanel value="1" sx={{width: "100%"}}>
             <SubscriptionGeneralTab priceList={priceList} />
@@ -48,9 +50,10 @@ export default function SubscriptionPriceListCard(
             <SaleForm priceList={priceList} />
           </TabPanel>
           <TabPanel value="4" sx={{width: "100%"}}>
-            <Typography variant={"body1"}>
-              Coming soon...
-            </Typography>
+            <SubscriptionExtraTab priceList={priceList} />
+          </TabPanel>
+          <TabPanel value="5" sx={{width: "100%"}}>
+            <SubscriptionSummaryTab priceList={priceList} />
           </TabPanel>
         </TabContext>
       </Box>

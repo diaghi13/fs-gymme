@@ -6,11 +6,12 @@ import {
   PageProps,
   BaseProduct,
   CourseProduct,
+  BookableService,
   PriceList,
   AllPriceLists,
   PriceListFolder,
   PriceListArticle,
-  PriceListMembershipFee, PriceListSubscription, PriceListFolderTree, VatRate
+  PriceListMembershipFee, PriceListSubscription, PriceListDayPass, PriceListToken, PriceListGiftCard, PriceListFolderTree, VatRate
 } from '@/types';
 import AppLayout from '@/layouts/AppLayout';
 import { Box, Grid, Typography } from '@mui/material';
@@ -19,6 +20,9 @@ import FolderPriceListCard from '@/components/price-list/folder/FolderPriceListC
 import ArticlePriceListCard from '@/components/price-list/article/ArticlePriceListCard';
 import MembershipFeePriceListCard from '@/components/price-list/membership/MembershipPriceListCard';
 import SubscriptionPriceListCard from '@/components/price-list/subscription/SubscriptionPriceListCard';
+import DayPassPriceListCard from '@/components/price-list/day-pass/DayPassPriceListCard';
+import TokenPriceListCard from '@/components/price-list/token/TokenPriceListCard';
+import GiftCardPriceListCard from '@/components/price-list/gift-card/GiftCardPriceListCard';
 
 import LoyaltyOutlinedIcon from '@mui/icons-material/LoyaltyOutlined';
 import { useQueryParam } from '@/hooks/useQueryParam';
@@ -27,17 +31,24 @@ export const FOLDER = 'folder';
 export const SUBSCRIPTION = 'subscription';
 export const ARTICLE = 'article';
 export const MEMBERSHIP = 'membership';
+export const DAY_PASS = 'day_pass';
+export const TOKEN = 'token';
+export const GIFT_CARD = 'gift_card';
 
 export interface PriceListPageProps extends PageProps {
   priceLists: Array<AllPriceLists>;
   priceListOptions?: PriceList[];
   priceListOptionsTree?: Array<PriceListFolderTree>;
-  priceList?: PriceListFolder | PriceListArticle | PriceListMembershipFee | PriceListSubscription;
+  priceList?: PriceListFolder | PriceListArticle | PriceListMembershipFee | PriceListSubscription | PriceListDayPass | PriceListToken | PriceListGiftCard;
   vatRateOptions?: VatRate[];
   articles?: Array<PriceListArticle>;
   baseProducts?: Array<BaseProduct>;
   courseProducts?: Array<CourseProduct>;
+  bookableServices?: Array<BookableService>;
   membershipFees?: Array<PriceListMembershipFee>;
+  dayPasses?: Array<PriceListDayPass>;
+  tokens?: Array<PriceListToken>;
+  giftCards?: Array<PriceListGiftCard>;
 }
 
 export default function PriceListPage(
@@ -66,6 +77,13 @@ export default function PriceListPage(
           { preserveState: true }
         );
         break;
+      case DAY_PASS:
+        router.get(
+          route('app.price-lists.day-passes.show', { day_pass: priceList.id!, tenant: props.currentTenantId }),
+          undefined,
+          { preserveState: true }
+        );
+        break;
       case ARTICLE:
         router.get(
           route('app.price-lists.articles.show', { article: priceList.id!, tenant: props.currentTenantId }),
@@ -76,6 +94,20 @@ export default function PriceListPage(
       case SUBSCRIPTION:
         router.get(
           route('app.price-lists.subscriptions.show', { subscription: priceList.id!, tenant: props.currentTenantId }),
+          undefined,
+          { preserveState: true }
+        );
+        break;
+      case TOKEN:
+        router.get(
+          route('app.price-lists.tokens.show', { token: priceList.id!, tenant: props.currentTenantId }),
+          undefined,
+          { preserveState: true }
+        );
+        break;
+      case GIFT_CARD:
+        router.get(
+          route('app.price-lists.gift-cards.show', { gift_card: priceList.id!, tenant: props.currentTenantId }),
           undefined,
           { preserveState: true }
         );
@@ -108,6 +140,30 @@ export default function PriceListPage(
           )}
           {priceList?.type === MEMBERSHIP && (
             <MembershipFeePriceListCard
+              priceList={priceList}
+              priceListOptions={priceListOptions!}
+              priceListOptionsTree={priceListOptionsTree!}
+              vatRateOptions={vatRateOptions!}
+            />
+          )}
+          {priceList?.type === DAY_PASS && (
+            <DayPassPriceListCard
+              priceList={priceList}
+              priceListOptions={priceListOptions!}
+              priceListOptionsTree={priceListOptionsTree!}
+              vatRateOptions={vatRateOptions!}
+            />
+          )}
+          {priceList?.type === TOKEN && (
+            <TokenPriceListCard
+              priceList={priceList}
+              priceListOptions={priceListOptions!}
+              priceListOptionsTree={priceListOptionsTree!}
+              vatRateOptions={vatRateOptions!}
+            />
+          )}
+          {priceList?.type === GIFT_CARD && (
+            <GiftCardPriceListCard
               priceList={priceList}
               priceListOptions={priceListOptions!}
               priceListOptionsTree={priceListOptionsTree!}

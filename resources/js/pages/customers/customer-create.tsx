@@ -20,7 +20,7 @@ export const customerValidationSchema = Yup.object().shape({
     .typeError('La data di nascita deve essere una data valida')
     .nullable(),
   gender: Yup.string()
-    .oneOf(['male', 'female', 'other'], 'Seleziona un genere valido')
+    .oneOf(['M', 'F', 'other'], 'Seleziona un genere valido')
     .nullable(),
   birthplace: Yup.string()
     .nullable(),

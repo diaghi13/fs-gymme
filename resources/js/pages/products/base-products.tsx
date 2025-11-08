@@ -11,6 +11,7 @@ import ScheduleTab from '@/components/products/base-product/ScheduleTab';
 import { useQueryParam } from '@/hooks/useQueryParam';
 import OnlineTab from '@/components/products/base-product/OnlineTab';
 import SaleTab from '@/components/products/base-product/SaleTab';
+import BookingsTab from '@/components/products/base-product/BookingsTab';
 
 import DeleteIconButton from '@/components/ui/DeleteIconButton';
 
@@ -19,7 +20,8 @@ const tabs = {
     { label: 'Generale', value: '1', name: 'general' },
     { label: 'Orari', value: '2', name: 'schedule' },
     { label: 'Vendita', value: '3', name: 'sale' },
-    { label: 'Online', value: '4', name: 'online' }
+    { label: 'Online', value: '4', name: 'online' },
+    { label: 'Prenotazioni', value: '5', name: 'bookings' }
   ]
 };
 
@@ -126,6 +128,9 @@ export default function BaseProductPage({ auth, products, product, currentTenant
                       </TabPanel>
                       <TabPanel value="4" sx={{ width: '100%' }}>
                         <OnlineTab product={product} onDismiss={handleDismiss} tab="4" />
+                      </TabPanel>
+                      <TabPanel value="5" sx={{ width: '100%' }}>
+                        <BookingsTab product={product} onDismiss={handleDismiss} />
                       </TabPanel>
                     </>
                   )}

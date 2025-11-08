@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\Products;
 
+use App\Dtos\Product\BookableServiceDto;
 use App\Http\Controllers\Controller;
 use App\Models\Product\BookableService;
 use Illuminate\Http\Request;
@@ -69,7 +70,7 @@ class BookableServiceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, BookableServiceDto $dto)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',

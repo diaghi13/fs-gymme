@@ -17,12 +17,12 @@ class FolderController extends Controller
     public function create()
     {
         return Inertia::render('price-lists/price-lists', [
-            'priceLists' => (new PriceList())->toTree(),
+            'priceLists' => (new PriceList)->toTree(),
             'priceListOptions' => PriceList::where('type', PriceListItemTypeEnum::FOLDER->value)->get(['id', 'name'])->map(function ($option) {
                 return ['value' => $option->id, 'label' => $option->name];
             }),
-            'priceListOptionsTree' => (new PriceList())->folderTree(),
-            'priceList' => new Folder(),
+            'priceListOptionsTree' => (new PriceList)->folderTree(),
+            'priceList' => new Folder,
         ]);
     }
 
@@ -31,11 +31,17 @@ class FolderController extends Controller
      */
     public function store(Request $request)
     {
-        $folder = Folder::create($request->only(['name', 'parent_id', 'saleable']));
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'parent_id' => 'nullable|exists:price_lists,id',
+            'saleable' => 'nullable|boolean',
+        ]);
+
+        $folder = Folder::create($data);
 
         return to_route('app.price-lists.folders.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'folder' => $folder->id
+            'folder' => $folder->id,
         ])
             ->with('status', 'success');
     }
@@ -46,11 +52,11 @@ class FolderController extends Controller
     public function show(Folder $folder)
     {
         return Inertia::render('price-lists/price-lists', [
-            'priceLists' => (new PriceList())->toTree(),
+            'priceLists' => (new PriceList)->toTree(),
             'priceListOptions' => PriceList::where('type', PriceListItemTypeEnum::FOLDER->value)->get(['id', 'name'])->map(function ($option) {
                 return ['value' => $option->id, 'label' => $option->name];
             }),
-            'priceListOptionsTree' => (new PriceList())->folderTree(),
+            'priceListOptionsTree' => (new PriceList)->folderTree(),
             'priceList' => $folder,
         ]);
     }
@@ -60,11 +66,24 @@ class FolderController extends Controller
      */
     public function update(Request $request, Folder $folder)
     {
-        $folder->update($request->only(['name', 'parent_id', 'saleable']));
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'parent_id' => 'nullable|exists:price_lists,id',
+            'saleable' => 'nullable|boolean',
+        ]);
+
+        // Prevent circular reference (folder can't be parent of itself)
+        if ($data['parent_id'] == $folder->id) {
+            return back()->withErrors([
+                'parent_id' => 'Una cartella non può essere genitore di se stessa',
+            ]);
+        }
+
+        $folder->update($data);
 
         return to_route('app.price-lists.folders.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'folder' => $folder->id
+            'folder' => $folder->id,
         ])
             ->with('status', 'success');
     }

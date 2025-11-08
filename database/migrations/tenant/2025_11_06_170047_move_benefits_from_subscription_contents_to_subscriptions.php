@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Add benefits fields to subscriptions table (if table exists)
-        if (Schema::hasTable('subscriptions')) {
-            Schema::table('subscriptions', function (Blueprint $table) {
-                if (! Schema::hasColumn('subscriptions', 'guest_passes_total')) {
-                    $table->integer('guest_passes_total')->nullable()->after('saleable');
+        // Add benefits fields to price_lists table for subscription type (using STI)
+        if (Schema::hasTable('price_lists')) {
+            Schema::table('price_lists', function (Blueprint $table) {
+                if (! Schema::hasColumn('price_lists', 'guest_passes_total')) {
+                    $table->integer('guest_passes_total')->nullable()->after('saleable_to');
                 }
-                if (! Schema::hasColumn('subscriptions', 'guest_passes_per_month')) {
+                if (! Schema::hasColumn('price_lists', 'guest_passes_per_month')) {
                     $table->integer('guest_passes_per_month')->nullable()->after('guest_passes_total');
                 }
-                if (! Schema::hasColumn('subscriptions', 'multi_location_access')) {
+                if (! Schema::hasColumn('price_lists', 'multi_location_access')) {
                     $table->boolean('multi_location_access')->default(false)->after('guest_passes_per_month');
                 }
             });
@@ -48,19 +48,33 @@ return new class extends Migration
     public function down(): void
     {
         // Restore benefits fields to subscription_contents table
-        Schema::table('subscription_contents', function (Blueprint $table) {
-            $table->integer('guest_passes_total')->nullable();
-            $table->integer('guest_passes_per_month')->nullable();
-            $table->boolean('multi_location_access')->default(false);
-        });
+        if (Schema::hasTable('subscription_contents')) {
+            Schema::table('subscription_contents', function (Blueprint $table) {
+                if (! Schema::hasColumn('subscription_contents', 'guest_passes_total')) {
+                    $table->integer('guest_passes_total')->nullable();
+                }
+                if (! Schema::hasColumn('subscription_contents', 'guest_passes_per_month')) {
+                    $table->integer('guest_passes_per_month')->nullable();
+                }
+                if (! Schema::hasColumn('subscription_contents', 'multi_location_access')) {
+                    $table->boolean('multi_location_access')->default(false);
+                }
+            });
+        }
 
-        // Remove benefits fields from subscriptions table
-        Schema::table('subscriptions', function (Blueprint $table) {
-            $table->dropColumn([
-                'guest_passes_total',
-                'guest_passes_per_month',
-                'multi_location_access',
-            ]);
-        });
+        // Remove benefits fields from price_lists table
+        if (Schema::hasTable('price_lists')) {
+            Schema::table('price_lists', function (Blueprint $table) {
+                if (Schema::hasColumn('price_lists', 'guest_passes_total')) {
+                    $table->dropColumn('guest_passes_total');
+                }
+                if (Schema::hasColumn('price_lists', 'guest_passes_per_month')) {
+                    $table->dropColumn('guest_passes_per_month');
+                }
+                if (Schema::hasColumn('price_lists', 'multi_location_access')) {
+                    $table->dropColumn('multi_location_access');
+                }
+            });
+        }
     }
 };

@@ -19,6 +19,11 @@ export type SubscriptionGeneralFormValues = {
   parent_id: string | number | null;
   standard_content: Array<SubscriptionGeneralFormValuesWithContent>;
   optional_content: Array<SubscriptionGeneralFormValuesWithContent>;
+
+  // Subscription-level benefits
+  guest_passes_total?: number | null;
+  guest_passes_per_month?: number | null;
+  multi_location_access?: boolean;
 }
 
 export type SubscriptionGeneralFormValuesWithContent = {
@@ -77,10 +82,6 @@ export type SubscriptionGeneralFormValuesWithContent = {
   }>;
 
   // Benefits & perks
-  guest_passes_total?: number | null;
-  guest_passes_per_month?: number | null;
-  multi_location_access?: boolean;
-  discount_percentage?: number | null;
 
   // Metadata
   sort_order?: number;
@@ -109,6 +110,9 @@ export default function SubscriptionGeneralTab({ priceList }: SubscriptionGenera
       color: priceList.color ?? '',
       saleable: priceList.saleable ?? true,
       parent_id: priceList.parent_id ?? '',
+      guest_passes_total: priceList.guest_passes_total ?? null,
+      guest_passes_per_month: priceList.guest_passes_per_month ?? null,
+      multi_location_access: priceList.multi_location_access ?? false,
       standard_content: priceList.standard_content.map((content) => ({
         ...content,
         isDirty: false,
@@ -148,10 +152,6 @@ export default function SubscriptionGeneralTab({ priceList }: SubscriptionGenera
             time_restrictions: content.time_restrictions ?? [],
             service_access_type: content.service_access_type ?? 'all',
             services: content.services ?? [],
-            guest_passes_total: content.guest_passes_total ?? null,
-            guest_passes_per_month: content.guest_passes_per_month ?? null,
-            multi_location_access: content.multi_location_access ?? false,
-            discount_percentage: content.discount_percentage ?? null,
             sort_order: content.sort_order ?? 0,
             settings: content.settings ?? null,
           };

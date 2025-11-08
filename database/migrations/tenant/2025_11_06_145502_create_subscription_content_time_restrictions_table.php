@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('subscription_content_time_restrictions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('subscription_content_id')
+                ->constrained('subscription_contents')
+                ->cascadeOnDelete()
+                ->name('sub_content_time_restrictions_fk');
+            $table->json('days')->nullable(); // ['monday', 'tuesday', ...]
+            $table->time('start_time')->nullable();
+            $table->time('end_time')->nullable();
+            $table->string('restriction_type')->default('allowed'); // 'allowed' or 'blocked'
+            $table->string('description')->nullable();
             $table->timestamps();
         });
     }

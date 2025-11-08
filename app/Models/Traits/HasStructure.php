@@ -2,33 +2,39 @@
 
 namespace App\Models\Traits;
 
+use App\Models\Scopes\StructureScope;
 use App\Models\Structure;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use function Pest\Laravel\put;
 
 trait HasStructure
 {
-    public static function booted()
+    /**
+     * Boot the HasStructure trait for a model.
+     */
+    public static function bootHasStructure(): void
     {
+        // Add global scope to filter by structure
+        static::addGlobalScope(new StructureScope);
+
+        // Auto-set structure_id on creation if not set
         static::creating(function (Model $model) {
-            if (!isset($model->structure_id) || empty($model->structure_id)) {
-                if (auth()->check()) {
-                    $model->structure_id = 1;
-                } elseif (isset($model->structure_id)) {
-                    $model->structure_id = 1; // Default structure ID
+            if (! isset($model->structure_id) || empty($model->structure_id)) {
+                // Use structure from session if available
+                if (session()->has('current_structure_id')) {
+                    $model->structure_id = session()->get('current_structure_id');
+                } else {
+                    // Fallback to first structure
+                    $model->structure_id = Structure::first()?->id ?? 1;
                 }
             }
         });
+    }
 
-        static::addGlobalScope(function (Builder $builder) {
-            // Ensure the structure_id is set in the session
-
-            if (auth()->check()) {
-                $builder->where('structure_id', 1);
-            } else {
-                $builder->where('structure_id', 1); // Default structure ID
-            }
-        });
+    /**
+     * Get the structure that owns the model.
+     */
+    public function structure()
+    {
+        return $this->belongsTo(Structure::class);
     }
 }

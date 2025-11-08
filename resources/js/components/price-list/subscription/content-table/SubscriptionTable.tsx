@@ -1,7 +1,7 @@
 import React from "react";
 import {Button, Table, TableBody, TableCell, TableHead, TableRow} from "@mui/material";
 import {FieldArray, useFormikContext} from "formik";
-import { AutocompleteOptions, PriceListArticle, PriceListMembershipFee, Product } from '@/types';
+import { AutocompleteOptions, BookableService, PriceListArticle, PriceListMembershipFee, Product, VatRate } from '@/types';
 import SubscriptionTableRow from "@/components/price-list/subscription/content-table/SubscriptionTableRow";
 import SubscriptionAddContentDialog from "@/components/price-list/subscription/SubscriptionAddContentDialog";
 import SubscriptionTableFormRow from "@/components/price-list/subscription/content-table/form/SubscriptionTableFormRow";
@@ -12,28 +12,82 @@ import {
   SubscriptionGeneralFormValuesWithContent
 } from '@/components/price-list/subscription/tabs/SubscriptionGeneralTab';
 
-const createRow = (entity: Product | PriceListMembershipFee | PriceListArticle, vatRateOptions: AutocompleteOptions<number>, isOptional: boolean = false): SubscriptionGeneralFormValuesWithContent | undefined => {
+const createRow = (entity: Product | BookableService | PriceListMembershipFee | PriceListArticle | any, vatRateOptions: any, isOptional: boolean = false): SubscriptionGeneralFormValuesWithContent | undefined => {
   if (!entity.id) {
     return;
   }
 
-  if ( entity.type === "App\\Models\\Product\\BaseProduct" || entity.type === "App\\Models\\Product\\CourseProduct") {
+  // Check if it's a Product (BaseProduct, CourseProduct, or BookableService)
+  // Types can be: "base", "course", "bookable_service", or full class names
+  const isProduct = entity.type === "base" ||
+                    entity.type === "course" ||
+                    entity.type === "bookable_service" ||
+                    entity.type === "base_product" ||
+                    entity.type === "course_product" ||
+                    entity.type === "App\\Models\\Product\\BaseProduct" ||
+                    entity.type === "App\\Models\\Product\\CourseProduct" ||
+                    entity.type === "App\\Models\\Product\\BookableService";
+
+  if (isProduct) {
+    // Extract booking rules from product settings if available (for bookable services)
+    const bookingSettings = entity.settings?.booking;
+
     return {
       id: undefined,
       days_duration: null,
       months_duration: null,
       price: null,
-      vat_rate_id: entity.vat_rate_id,
-      vat_rate: vatRateOptions.find(option => option.value === entity.vat_rate_id) ?? null,
+      vat_rate_id: entity.vat_rate_id ?? null,
+      vat_rate: vatRateOptions.find((option: any) => option.value === entity.vat_rate_id) ?? null,
       entrances: null,
-      daily_access: null,
-      weekly_access: null,
-      reservation_limit: null,
-      daily_reservation_limit: null,
       is_optional: isOptional,
       price_listable_id: entity.id,
       price_listable_type: 'App\\Models\\Product\\Product',
       price_listable: entity,
+
+      // Access rules
+      unlimited_entries: true, // Default to unlimited if entrances not specified
+      total_entries: null,
+      daily_entries: null,
+      weekly_entries: null,
+      monthly_entries: null,
+
+      // Booking rules - Load from product as template if available
+      max_concurrent_bookings: null,
+      daily_bookings: bookingSettings?.max_per_day ?? null,
+      weekly_bookings: null,
+      advance_booking_days: bookingSettings?.advance_days ?? null,
+      cancellation_hours: bookingSettings?.cancellation_hours ?? null,
+
+      // Validity rules
+      validity_type: 'duration',
+      validity_days: null,
+      validity_months: null,
+      valid_from: null,
+      valid_to: null,
+      freeze_days_allowed: null,
+      freeze_cost_cents: null,
+
+      // Time restrictions
+      has_time_restrictions: false,
+      time_restrictions: [],
+
+      // Service access
+      service_access_type: 'all',
+      services: [],
+
+      // Benefits
+
+      // Metadata
+      sort_order: 0,
+      settings: null,
+
+      // Legacy fields
+      daily_access: null,
+      weekly_access: null,
+      reservation_limit: null,
+      daily_reservation_limit: null,
+
       isDirty: true
     }
   }
@@ -42,22 +96,65 @@ const createRow = (entity: Product | PriceListMembershipFee | PriceListArticle, 
     return {
       id: undefined,
       days_duration: null,
-      months_duration: entity.type === MEMBERSHIP ? entity.months_duration : null,
-      price: entity.price,
-      vat_rate_id: entity.vat_rate_id,
-      vat_rate: vatRateOptions.find(option => option.value === entity.vat_rate_id) ?? null,
+      months_duration: entity.type === MEMBERSHIP ? (entity as any).months_duration : null,
+      price: (entity as any).price,
+      vat_rate_id: entity.vat_rate_id ?? null,
+      vat_rate: vatRateOptions.find((option: any) => option.value === entity.vat_rate_id) ?? null,
       entrances: null,
+      is_optional: isOptional,
+      price_listable_id: entity.id as number,
+      price_listable_type: 'App\\Models\\PriceList\\PriceList',
+      price_listable: entity,
+
+      // Access rules
+      unlimited_entries: true, // Default to unlimited if entrances not specified
+      total_entries: null,
+      daily_entries: null,
+      weekly_entries: null,
+      monthly_entries: null,
+
+      // Booking rules
+      max_concurrent_bookings: null,
+      daily_bookings: null,
+      weekly_bookings: null,
+      advance_booking_days: null,
+      cancellation_hours: null,
+
+      // Validity rules
+      validity_type: 'duration',
+      validity_days: null,
+      validity_months: null,
+      valid_from: null,
+      valid_to: null,
+      freeze_days_allowed: null,
+      freeze_cost_cents: null,
+
+      // Time restrictions
+      has_time_restrictions: false,
+      time_restrictions: [],
+
+      // Service access
+      service_access_type: 'all',
+      services: [],
+
+      // Benefits
+
+      // Metadata
+      sort_order: 0,
+      settings: null,
+
+      // Legacy fields
       daily_access: null,
       weekly_access: null,
       reservation_limit: null,
       daily_reservation_limit: null,
-      is_optional: isOptional,
-      price_listable_id: entity.id,
-      price_listable_type: 'App\\Models\\PriceList\\PriceList',
-      price_listable: entity,
+
       isDirty: true
     }
   }
+
+  // If we get here, the entity type is not recognized
+  return undefined;
 }
 
 interface SubscriptionTableProps {
@@ -68,6 +165,7 @@ export default function ({contentType}: SubscriptionTableProps) {
   const {
     baseProducts,
     courseProducts,
+    bookableServices,
     articles,
     membershipFees,
     vatRateOptions
@@ -99,19 +197,20 @@ export default function ({contentType}: SubscriptionTableProps) {
           render={({remove, push, replace}) => (
             <>
               {content.length > 0
-                ? content.map((content, index) => {
+                ? content.map((item, index) => {
+                  if (!item) return null;
                   return (
                     <React.Fragment key={index}>
-                      {!content.isDirty && (
+                      {!item.isDirty && (
                         <SubscriptionTableRow
                           key={index}
-                          content={content}
-                          onUpdate={() => replace(index, {...content, isDirty: true})}
+                          content={item}
+                          onUpdate={() => replace(index, {...item, isDirty: true})}
                           onRemove={() => remove(index)}/>
                       )}
-                      {content.isDirty && (
+                      {item.isDirty && (
                         <SubscriptionTableFormRow
-                          content={content}
+                          content={item}
                           contentType={contentType}
                           index={index}
                         />
@@ -133,10 +232,19 @@ export default function ({contentType}: SubscriptionTableProps) {
               <SubscriptionAddContentDialog
                 courseProducts={courseProducts!}
                 baseProducts={baseProducts!}
+                bookableServices={bookableServices!}
                 articles={articles!}
                 membershipFees={membershipFees!}
+                dayPasses={[]}
+                tokens={[]}
+                giftCards={[]}
                 onClose={toggleOpenContentDialog}
-                onSelect={(entity) => push(createRow(entity, vatRateOptions!, contentType === "optional"))}
+                onSelect={(entity) => {
+                  const newRow = createRow(entity, vatRateOptions!, contentType === "optional");
+                  if (newRow) {
+                    push(newRow);
+                  }
+                }}
                 open={openContentDialog}
               />
             </>

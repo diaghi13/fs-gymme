@@ -1,8 +1,8 @@
 import * as React from 'react';
 import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
 import AppLayout from '@/layouts/AppLayout';
 import { PageProps } from '@/types';
-import { Grid } from '@mui/material';
 import StyledCard from '@/components/ui/StyledCard';
 import { Str } from '@/support/Str';
 

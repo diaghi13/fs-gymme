@@ -33,6 +33,8 @@ class TenancyServiceProvider extends ServiceProvider
                     // Provision API keys, create S3 buckets, anything you want!
 
                 ])->send(function (Events\TenantCreated $event) {
+                    info('TenantCreated event fired for tenant ID: '.$event->tenant->id);
+
                     return $event->tenant;
                 })->shouldBeQueued(true), // `false` by default, but you probably want to make this `true` for production.
             ],
@@ -102,7 +104,7 @@ class TenancyServiceProvider extends ServiceProvider
         // \Stancl\Tenancy\Listeners\UpdateSyncedResource::$shouldQueue = true;
 
         $this->bootEvents();
-        //$this->mapRoutes();
+        // $this->mapRoutes();
 
         $this->makeTenancyMiddlewareHighestPriority();
     }

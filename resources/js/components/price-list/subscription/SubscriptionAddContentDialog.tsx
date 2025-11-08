@@ -15,21 +15,37 @@ import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import ShutterSpeedIcon from "@mui/icons-material/ShutterSpeed";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import CategoryIcon from "@mui/icons-material/Category";
-import {PriceListArticle, PriceListMembershipFee, Product} from "@/types";
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
+import StyleIcon from "@mui/icons-material/Style";
+import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import {
+  PriceListArticle,
+  PriceListMembershipFee,
+  PriceListDayPass,
+  PriceListToken,
+  PriceListGiftCard,
+  Product,
+  BookableService
+} from "@/types";
 
 interface SimpleDialogProps {
   open: boolean;
   onClose: () => void;
   baseProducts: Product[];
   courseProducts: Product[];
+  bookableServices: BookableService[];
   membershipFees: PriceListMembershipFee[];
   articles: PriceListArticle[];
-  onSelect: (entity: Product | PriceListMembershipFee | PriceListArticle) => void;
+  dayPasses: PriceListDayPass[];
+  tokens: PriceListToken[];
+  giftCards: PriceListGiftCard[];
+  onSelect: (entity: Product | BookableService | PriceListMembershipFee | PriceListArticle | PriceListDayPass | PriceListToken | PriceListGiftCard) => void;
 }
 
 export default function (props: SimpleDialogProps) {
   const [tabValue, setTabValue] = React.useState('1');
-  const {onClose, open, baseProducts, courseProducts, membershipFees, articles, onSelect} = props;
+  const {onClose, open, baseProducts, courseProducts, bookableServices, membershipFees, articles, dayPasses, tokens, giftCards, onSelect} = props;
 
   const handleClose = () => {
     onClose();
@@ -39,7 +55,7 @@ export default function (props: SimpleDialogProps) {
     setTabValue(newValue);
   };
 
-  const handleClick = (entity: Product | PriceListMembershipFee | PriceListArticle) => {
+  const handleClick = (entity: Product | BookableService | PriceListMembershipFee | PriceListArticle | PriceListDayPass | PriceListToken | PriceListGiftCard) => {
     onSelect(entity);
     onClose();
   }
@@ -51,11 +67,15 @@ export default function (props: SimpleDialogProps) {
         <Box sx={{width: '100%', typography: 'body1'}}>
           <TabContext value={tabValue}>
             <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
-              <TabList onChange={handleChange} aria-label="lab API tabs example" variant={"fullWidth"}>
+              <TabList onChange={handleChange} aria-label="lab API tabs example" variant={"scrollable"} scrollButtons="auto">
                 <Tab icon={<FitnessCenterIcon/>} label="PRODOTTI BASE" value="1"/>
                 <Tab icon={<ShutterSpeedIcon/>} label="CORSI" value="2"/>
-                <Tab icon={<CardMembershipIcon/>} label="QUOTE ASSOCIATIVE" value="3"/>
-                <Tab icon={<CategoryIcon/>} label="ARTICOLI" value="4"/>
+                <Tab icon={<EventAvailableIcon/>} label="SERVIZI PRENOTABILI" value="3"/>
+                <Tab icon={<CardMembershipIcon/>} label="QUOTE ASSOCIATIVE" value="4"/>
+                <Tab icon={<CategoryIcon/>} label="ARTICOLI" value="5"/>
+                <Tab icon={<ConfirmationNumberIcon/>} label="DAY PASS" value="6"/>
+                <Tab icon={<StyleIcon/>} label="TOKEN/CARNET" value="7"/>
+                <Tab icon={<CardGiftcardIcon/>} label="GIFT CARD" value="8"/>
               </TabList>
             </Box>
             <Box sx={{border: "1px solid rgba(0,0,0,0.2)"}}>
@@ -97,7 +117,7 @@ export default function (props: SimpleDialogProps) {
                 <Box sx={{position: "relative", height: "50vh"}}>
                   <Box sx={{maxHeight: "100%", overflow: "auto"}}>
                     <List disablePadding>
-                      {membershipFees.map((item, index) => (
+                      {bookableServices.map((item, index) => (
                         <ListItemButton
                           key={index}
                           autoFocus
@@ -114,7 +134,75 @@ export default function (props: SimpleDialogProps) {
                 <Box sx={{position: "relative", height: "50vh"}}>
                   <Box sx={{maxHeight: "100%", overflow: "auto"}}>
                     <List disablePadding>
+                      {membershipFees.map((item, index) => (
+                        <ListItemButton
+                          key={index}
+                          autoFocus
+                          onClick={() => handleClick(item)}
+                        >
+                          <ListItemText primary={item.name}/>
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Box>
+                </Box>
+              </TabPanel>
+              <TabPanel value="5" sx={{p: 0}}>
+                <Box sx={{position: "relative", height: "50vh"}}>
+                  <Box sx={{maxHeight: "100%", overflow: "auto"}}>
+                    <List disablePadding>
                       {articles.map((item, index) => (
+                        <ListItemButton
+                          key={index}
+                          autoFocus
+                          onClick={() => handleClick(item)}
+                        >
+                          <ListItemText primary={item.name}/>
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Box>
+                </Box>
+              </TabPanel>
+              <TabPanel value="6" sx={{p: 0}}>
+                <Box sx={{position: "relative", height: "50vh"}}>
+                  <Box sx={{maxHeight: "100%", overflow: "auto"}}>
+                    <List disablePadding>
+                      {dayPasses.map((item, index) => (
+                        <ListItemButton
+                          key={index}
+                          autoFocus
+                          onClick={() => handleClick(item)}
+                        >
+                          <ListItemText primary={item.name}/>
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Box>
+                </Box>
+              </TabPanel>
+              <TabPanel value="7" sx={{p: 0}}>
+                <Box sx={{position: "relative", height: "50vh"}}>
+                  <Box sx={{maxHeight: "100%", overflow: "auto"}}>
+                    <List disablePadding>
+                      {tokens.map((item, index) => (
+                        <ListItemButton
+                          key={index}
+                          autoFocus
+                          onClick={() => handleClick(item)}
+                        >
+                          <ListItemText primary={item.name}/>
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Box>
+                </Box>
+              </TabPanel>
+              <TabPanel value="8" sx={{p: 0}}>
+                <Box sx={{position: "relative", height: "50vh"}}>
+                  <Box sx={{maxHeight: "100%", overflow: "auto"}}>
+                    <List disablePadding>
+                      {giftCards.map((item, index) => (
                         <ListItemButton
                           key={index}
                           autoFocus

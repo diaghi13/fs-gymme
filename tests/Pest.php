@@ -13,6 +13,15 @@
 
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+    ->beforeEach(function () {
+        // Create required roles for tests if they don't exist
+        $roles = ['admin', 'manager', 'user', 'customer', 'staff', 'instructor'];
+        foreach ($roles as $role) {
+            if (! \Spatie\Permission\Models\Role::where('name', $role)->exists()) {
+                \Spatie\Permission\Models\Role::create(['name' => $role, 'guard_name' => 'web']);
+            }
+        }
+    })
     ->in('Feature');
 
 /*

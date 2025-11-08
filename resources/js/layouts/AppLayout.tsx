@@ -19,6 +19,7 @@ import axios from 'axios';
 import { menuList } from '@/layouts/index';
 import { echo } from '@laravel/echo-react';
 import { OnlineUsersProvider } from '@/Contexts/OnlineUserContext';
+import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
 
 export const drawerWidth = 240;
 
@@ -92,6 +93,8 @@ export default function AppLayout({ title, children }: PropsWithChildren<{ user:
     setOpenAlert(false);
   };
 
+  const showOnboarding = page.props.tenant && !page.props.tenant.onboarding_completed_at;
+
   return (
     <OnlineUsersProvider>
       <Box sx={{ display: 'flex' }}>
@@ -100,6 +103,13 @@ export default function AppLayout({ title, children }: PropsWithChildren<{ user:
         <AppBar open={open} setOpen={handleDrawerToggle} toggleSettingDrawerOpen={() => {
         }} />
         <Drawer open={open} setOpen={setOpen} menuList={menuList} />
+        {showOnboarding && page.props.tenant && (
+          <OnboardingWizard
+            open={true}
+            tenantName={page.props.tenant.name}
+            trialEndsAt={page.props.tenant.trial_ends_at || ''}
+          />
+        )}
         <Box
           component="main"
           sx={{

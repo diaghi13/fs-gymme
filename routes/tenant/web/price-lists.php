@@ -28,7 +28,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.price-lists.folders.destroy',
         ])
         ->parameters([
-            //'folders' => 'folder',
+            // 'folders' => 'folder',
         ]);
 
     Route::resource('/price-lists/articles', \App\Http\Controllers\Application\PriceLists\ArticleController::class)
@@ -41,7 +41,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.price-lists.articles.destroy',
         ])
         ->parameters([
-            //'articles' => 'article',
+            // 'articles' => 'article',
         ]);
 
     Route::resource('/price-lists/memberships', \App\Http\Controllers\Application\PriceLists\MembershipController::class)
@@ -65,5 +65,35 @@ Route::middleware(['web', 'auth'])->group(function () {
         ]);
 
     Route::match(['put', 'patch'], '/price-lists/subscriptions/{subscription}/optional-content', \App\Http\Controllers\Application\PriceLists\OptionalContentSubscriptionUpdateController::class)
-        ->name('price-lists.subscriptions.optional-content.update');
+        ->name('app.price-lists.subscriptions.optional-content.update');
+
+    Route::resource('/price-lists/day-passes', \App\Http\Controllers\Application\PriceLists\DayPassController::class)
+        ->except(['index', 'edit'])
+        ->names([
+            'create' => 'app.price-lists.day-passes.create',
+            'store' => 'app.price-lists.day-passes.store',
+            'show' => 'app.price-lists.day-passes.show',
+            'update' => 'app.price-lists.day-passes.update',
+            'destroy' => 'app.price-lists.day-passes.destroy',
+        ]);
+
+    Route::resource('/price-lists/tokens', \App\Http\Controllers\Application\PriceLists\TokenController::class)
+        ->except(['index', 'edit'])
+        ->names([
+            'create' => 'app.price-lists.tokens.create',
+            'store' => 'app.price-lists.tokens.store',
+            'show' => 'app.price-lists.tokens.show',
+            'update' => 'app.price-lists.tokens.update',
+            'destroy' => 'app.price-lists.tokens.destroy',
+        ]);
+
+    Route::resource('/price-lists/gift-cards', \App\Http\Controllers\Application\PriceLists\GiftCardController::class)
+        ->except(['index', 'edit'])
+        ->names([
+            'create' => 'app.price-lists.gift-cards.create',
+            'store' => 'app.price-lists.gift-cards.store',
+            'show' => 'app.price-lists.gift-cards.show',
+            'update' => 'app.price-lists.gift-cards.update',
+            'destroy' => 'app.price-lists.gift-cards.destroy',
+        ]);
 });

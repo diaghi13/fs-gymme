@@ -86,7 +86,6 @@ class SubscriptionController extends Controller
             'standard_content.*.service_access_type' => 'nullable|string|in:all,included,excluded',
 
             // Benefits & perks
-            'standard_content.*.discount_percentage' => 'nullable|integer|min:0|max:100',
 
             // Metadata
             'standard_content.*.sort_order' => 'nullable|integer|min:0',
@@ -210,7 +209,6 @@ class SubscriptionController extends Controller
             'standard_content.*.service_access_type' => 'nullable|string|in:all,included,excluded',
 
             // Benefits & perks
-            'standard_content.*.discount_percentage' => 'nullable|integer|min:0|max:100',
 
             // Metadata
             'standard_content.*.sort_order' => 'nullable|integer|min:0',

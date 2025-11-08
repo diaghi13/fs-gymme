@@ -1,26 +1,38 @@
 import {Form, Formik, FormikConfig} from "formik";
-import {Box, Grid, Typography} from "@mui/material";
+import * as Yup from 'yup';
+import {Box, Grid, Typography, Alert, Divider} from "@mui/material";
 import DatePicker from "@/components/ui/DatePicker";
 import FormikSaveButton from "@/components/ui/FormikSaveButton";
 import React from "react";
-import {useTheme} from "@mui/material/styles";
-import { PageProps, PriceList, PriceListSubscription } from '@/types';
+import { PageProps, PriceList } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { format } from "date-fns/format";
+import StorefrontIcon from '@mui/icons-material/Storefront';
 
 interface SaleFormProps {
   priceList: PriceList;
 }
 
+interface SaleFormValues {
+  saleable_from: Date | null;
+  saleable_to: Date | null;
+}
+
 export default function SaleForm({priceList}: SaleFormProps) {
-  const theme = useTheme();
   const { currentTenantId } = usePage<PageProps>().props;
 
-  const formik: FormikConfig<Partial<PriceListSubscription>> = {
+  const formik: FormikConfig<SaleFormValues> = {
     initialValues: {
-      saleable_from: priceList.saleable_from ? new Date(priceList.saleable_from) : null,
-      saleable_to: priceList.saleable_to ? new Date(priceList.saleable_to) : null,
+      saleable_from: (priceList as any).saleable_from ? new Date((priceList as any).saleable_from) : null,
+      saleable_to: (priceList as any).saleable_to ? new Date((priceList as any).saleable_to) : null,
     },
+    validationSchema: Yup.object({
+      saleable_from: Yup.date()
+        .nullable(),
+      saleable_to: Yup.date()
+        .nullable()
+        .min(Yup.ref('saleable_from'), 'La data "al" deve essere successiva alla data "dal"'),
+    }),
     onSubmit: (values) => {
       const data = {
         saleable_from: values.saleable_from ? format(new Date(values.saleable_from!), 'yyyy/MM/dd') : null,
@@ -38,32 +50,84 @@ export default function SaleForm({priceList}: SaleFormProps) {
 
   return (
     <Formik {...formik}>
+      {({ values }) => (
         <Form>
-          <Grid container spacing={4}>
-            <Grid size={12}>
-              <Box sx={{border: "3px solid " + theme.palette.primary.main, p: 2}}>
-                <Grid container spacing={4}>
-                  <Grid size={12}>
-                    <Typography variant={"body1"}>
-                      <strong>N.B.:</strong><br/>
-                      se non vengono specificate le date, il prodotto sarà sempre vendibile a meno che non si disabiliti completamente.<br/>
-                      Se viene inserita solo la data "dal" o "al", il prodotto verrà mostrato nelle vendite da quella data o fino a quella data.
+          <Box>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <StorefrontIcon />
+              Configurazione vendita
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Definisci il periodo di vendibilità del listino
+            </Typography>
+
+            <Grid container spacing={3}>
+              <Grid size={12}>
+                <Alert severity="info">
+                  <Typography variant="body2" gutterBottom>
+                    <strong>Nota bene:</strong>
+                  </Typography>
+                  <Typography variant="body2" component="ul" sx={{ m: 0, pl: 2 }}>
+                    <li>Se non specifichi date, il prodotto è <strong>sempre vendibile</strong></li>
+                    <li>Se specifichi solo "dal", il prodotto sarà vendibile <strong>da quella data in poi</strong></li>
+                    <li>Se specifichi solo "al", il prodotto sarà vendibile <strong>fino a quella data</strong></li>
+                    <li>Specifica entrambe per definire un <strong>periodo preciso</strong></li>
+                  </Typography>
+                </Alert>
+              </Grid>
+
+              <Grid size={12}>
+                <Divider />
+              </Grid>
+
+              <Grid size={12}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Periodo di vendibilità
+                </Typography>
+              </Grid>
+
+              <Grid size={6}>
+                <DatePicker label={"Vendibile dal"} name={"saleable_from"} />
+              </Grid>
+
+              <Grid size={6}>
+                <DatePicker label={"Vendibile al"} name={"saleable_to"} />
+              </Grid>
+
+              {(values.saleable_from || values.saleable_to) && (
+                <Grid size={12}>
+                  <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Riepilogo periodo
                     </Typography>
-                  </Grid>
-                  <Grid size={6}>
-                    <DatePicker label={"Vendibile dal"} name={"saleable_from"} />
-                  </Grid>
-                  <Grid size={6}>
-                    <DatePicker label={"Vendibile al"} name={"saleable_to"} />
-                  </Grid>
+                    {values.saleable_from && values.saleable_to ? (
+                      <Typography variant="body2" color="text.secondary">
+                        Vendibile dal <strong>{format(new Date(values.saleable_from), 'dd/MM/yyyy')}</strong> al <strong>{format(new Date(values.saleable_to), 'dd/MM/yyyy')}</strong>
+                      </Typography>
+                    ) : values.saleable_from ? (
+                      <Typography variant="body2" color="text.secondary">
+                        Vendibile dal <strong>{format(new Date(values.saleable_from), 'dd/MM/yyyy')}</strong> in poi
+                      </Typography>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Vendibile fino al <strong>{format(new Date(values.saleable_to!), 'dd/MM/yyyy')}</strong>
+                      </Typography>
+                    )}
+                  </Box>
                 </Grid>
-              </Box>
+              )}
+
+              <Grid size={12}>
+                <Divider />
+              </Grid>
+
+              <Grid size={12} sx={{textAlign: "end", mt: 2}}>
+                <FormikSaveButton/>
+              </Grid>
             </Grid>
-            <Grid size={12} sx={{textAlign: "end"}}>
-              <FormikSaveButton/>
-            </Grid>
-          </Grid>
+          </Box>
         </Form>
+      )}
     </Formik>
   )
 };

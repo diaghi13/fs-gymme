@@ -9,7 +9,7 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        channels: __DIR__ . '/../routes/channels.php',
+        channels: __DIR__.'/../routes/channels.php',
         then: function (Application $app) {
 
             $centralDomains = config('tenancy.central_domains');
@@ -27,7 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             Route::middleware([
                 'web',
-                //\Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
+                // \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
                 'auth',
                 'tenant',
                 'log',
@@ -39,15 +39,19 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->prefix('/api/v1')
                 ->group(base_path('routes/tenant/api/routes.php'));
 
-//        web: __DIR__.'/../routes/web.php',
-//        api: __DIR__.'/../routes/api.php',
-//        commands: __DIR__.'/../routes/console.php',
-//        health: '/up',
-//        apiPrefix: '/api/v1',
+            //        web: __DIR__.'/../routes/web.php',
+            //        api: __DIR__.'/../routes/api.php',
+            //        commands: __DIR__.'/../routes/console.php',
+            //        health: '/up',
+            //        apiPrefix: '/api/v1',
         })
 //    )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'current_structure_id']);
+
+        $middleware->validateCsrfTokens(except: [
+            'stripe/webhook',
+        ]);
 
         $middleware->web(append: [
             HandleAppearance::class,
@@ -70,6 +74,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
             \App\Http\Middleware\EnsureUserIsInTenantMiddleware::class,
             \App\Http\Middleware\HasActiveSubscriptionPlan::class,
+            \App\Http\Middleware\SetCurrentStructure::class,
         ]);
 
         $middleware->group('log', [

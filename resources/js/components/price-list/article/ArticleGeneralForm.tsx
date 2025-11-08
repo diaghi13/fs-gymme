@@ -28,7 +28,7 @@ export type FormikValues = {
   parent_id: number | string | null;
   vat_rate: number | AutocompleteOption<number> | null;
   price: string | number;
-  months_duration?: number;
+  duration_months?: number;
 }
 
 interface ArticleGeneralFormProps {
@@ -63,7 +63,7 @@ export default function ArticleGeneralForm(
   const formik: FormikConfig<FormikValues> = {
     initialValues: priceList.type === ARTICLE
       ? initialValues
-      : { ...initialValues, months_duration: priceList.months_duration ?? 0 },
+      : { ...initialValues, duration_months: priceList.duration_months ?? 0 },
     onSubmit: (values) => {
       let vat_rate_id = null;
 
@@ -155,7 +155,7 @@ export default function ArticleGeneralForm(
                     <Grid size={6}>
                       <TextField
                         label={'Durata in mesi'}
-                        name={'months_duration'}
+                        name={'duration_months'}
                         type={'number'}
                       />
                     </Grid>

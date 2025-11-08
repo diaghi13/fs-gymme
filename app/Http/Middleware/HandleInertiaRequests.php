@@ -40,13 +40,13 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        if (Auth::check()) {
-            $request->user()->load([
-                'tenants',
-                'roles.permissions',
-                'permissions',
-            ]);
-        }
+        //        if (Auth::check()) {
+        //            $request->user()->load([
+        //                'tenants',
+        //                'roles.permissions',
+        //                'permissions',
+        //            ]);
+        //        }
 
         return [
             ...parent::share($request),
@@ -61,11 +61,50 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'flash' => [
-                'status' => fn() => $request->session()->get('status'),
-                'message' => fn() => $request->session()->get('message'),
+                'status' => fn () => $request->session()->get('status'),
+                'message' => fn () => $request->session()->get('message'),
             ],
-            //'currentTenantId' => $request->session()->get('current_tenant_id'),
             'currentTenantId' => $request->route()->originalParameter('tenant') ?: $request->session()->get('current_tenant_id'),
+            'csrf_token' => fn () => csrf_token(),
+            'tenant' => function () {
+                // Only load tenant if tenancy is initialized
+                if (! tenancy()->initialized) {
+                    return null;
+                }
+
+                return tenancy()->tenant ? [
+                    'id' => tenancy()->tenant->id,
+                    'name' => tenancy()->tenant->name,
+                    'onboarding_completed_at' => tenancy()->tenant->onboarding_completed_at?->toISOString(),
+                    'trial_ends_at' => tenancy()->tenant->trial_ends_at?->toISOString(),
+                ] : null;
+            },
+            'structures' => function () use ($request) {
+                // Only load structures if we're in a tenant context
+                if (! tenancy()->initialized || ! Auth::check()) {
+                    return null;
+                }
+
+                $structures = \App\Models\Structure::withoutGlobalScopes()
+                    ->select(['id', 'name', 'street', 'number', 'city', 'zip_code', 'province', 'country'])
+                    ->orderBy('name')
+                    ->get()
+                    ->map(function ($structure) {
+                        $addressParts = array_filter([
+                            $structure->street,
+                            $structure->number,
+                            $structure->city,
+                        ]);
+                        $structure->address = implode(', ', $addressParts);
+
+                        return $structure->only(['id', 'name', 'address']);
+                    });
+
+                return [
+                    'list' => $structures,
+                    'current_id' => $request->cookie('current_structure_id') ? (int) $request->cookie('current_structure_id') : null,
+                ];
+            },
         ];
     }
 }

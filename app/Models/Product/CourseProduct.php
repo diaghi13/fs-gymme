@@ -76,6 +76,14 @@ class CourseProduct extends Product
                 'curriculum' => 'url_to_curriculum.pdf',
             ],
             'booking' => [
+                // Standard booking rules (for subscription integration)
+                'advance_days' => 7,
+                'min_advance_hours' => 24,
+                'cancellation_hours' => 48,
+                'max_per_day' => null,
+                'buffer_minutes' => 0,
+
+                // Course-specific booking rules
                 'enrollment_deadline_days' => 0,
                 'min_students_to_start' => 1,
                 'max_absences_allowed' => 0,

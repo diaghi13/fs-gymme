@@ -2,6 +2,10 @@
 
 namespace App\Models\PriceList;
 
+use App\Casts\MoneyCast;
+use App\Contracts\VatRateable;
+use App\Enums\PriceListItemTypeEnum;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Parental\HasParent;
 
 /**
@@ -15,9 +19,47 @@ use Parental\HasParent;
  * - 20-class package
  * - Credit package for various services
  */
-class Token extends PriceList
+class Token extends PriceList implements VatRateable
 {
     use HasParent;
+
+    protected $fillable = [
+        'structure_id',
+        'name',
+        'color',
+        'saleable',
+        'parent_id',
+        'saleable_from',
+        'saleable_to',
+        'price',
+        'vat_rate_id',
+        'token_quantity',
+        'validity_days',
+        'validity_months',
+        'settings',
+    ];
+
+    protected $casts = [
+        'price' => MoneyCast::class,
+        'saleable' => 'boolean',
+        'saleable_from' => 'date',
+        'saleable_to' => 'date',
+        'vat_rate_id' => 'integer',
+        'parent_id' => 'integer',
+        'token_quantity' => 'integer',
+        'validity_days' => 'integer',
+        'validity_months' => 'integer',
+        'settings' => 'array',
+    ];
+
+    protected $attributes = [
+        'type' => PriceListItemTypeEnum::TOKEN->value,
+    ];
+
+    public function subscription_content(): MorphOne
+    {
+        return $this->morphOne(SubscriptionContent::class, 'price_listable');
+    }
 
     /**
      * Default settings for tokens/carnets

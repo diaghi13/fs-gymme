@@ -7,6 +7,7 @@ use App\Models\PriceList\Membership;
 use App\Models\PriceList\PriceList;
 use App\Models\PriceList\Subscription;
 use App\Models\Product\BaseProduct;
+use App\Models\Product\BookableService;
 use App\Models\Product\CourseProduct;
 use Illuminate\Support\Facades\DB;
 
@@ -17,9 +18,10 @@ class SubscriptionPriceListService
         return DB::transaction(function () use ($data) {
             $subscription = Subscription::create([
                 'name' => $data['name'],
+                'slug' => \Illuminate\Support\Str::slug($data['name']),
                 'parent_id' => $data['parent_id'],
                 'color' => $data['color'],
-                'saleable' => $data['saleable'],
+                'saleable' => $data['saleable'] ?? true,
                 'guest_passes_total' => $data['guest_passes_total'] ?? null,
                 'guest_passes_per_month' => $data['guest_passes_per_month'] ?? null,
                 'multi_location_access' => $data['multi_location_access'] ?? false,
@@ -66,7 +68,6 @@ class SubscriptionPriceListService
                     'service_access_type' => $contentData['service_access_type'] ?? 'all',
 
                     // Benefits & perks
-                    'discount_percentage' => $contentData['discount_percentage'] ?? null,
 
                     // Metadata
                     'sort_order' => $contentData['sort_order'] ?? 0,
@@ -99,9 +100,10 @@ class SubscriptionPriceListService
         return DB::transaction(function () use ($data, $subscription) {
             $subscription->update([
                 'name' => $data['name'],
+                'slug' => \Illuminate\Support\Str::slug($data['name']),
                 'parent_id' => $data['parent_id'],
                 'color' => $data['color'],
-                'saleable' => $data['saleable'],
+                'saleable' => $data['saleable'] ?? true,
                 'guest_passes_total' => $data['guest_passes_total'] ?? null,
                 'guest_passes_per_month' => $data['guest_passes_per_month'] ?? null,
                 'multi_location_access' => $data['multi_location_access'] ?? false,
@@ -156,7 +158,6 @@ class SubscriptionPriceListService
                         'service_access_type' => $contentData['service_access_type'] ?? 'all',
 
                         // Benefits & perks
-                        'discount_percentage' => $contentData['discount_percentage'] ?? null,
 
                         // Metadata
                         'sort_order' => $contentData['sort_order'] ?? 0,
@@ -220,7 +221,6 @@ class SubscriptionPriceListService
                         'service_access_type' => $contentData['service_access_type'] ?? 'all',
 
                         // Benefits & perks
-                        'discount_percentage' => $contentData['discount_percentage'] ?? null,
 
                         // Metadata
                         'sort_order' => $contentData['sort_order'] ?? 0,
@@ -305,7 +305,6 @@ class SubscriptionPriceListService
                         'service_access_type' => $contentData['service_access_type'] ?? 'all',
 
                         // Benefits & perks
-                        'discount_percentage' => $contentData['discount_percentage'] ?? null,
 
                         // Metadata
                         'sort_order' => $contentData['sort_order'] ?? 0,
@@ -363,7 +362,6 @@ class SubscriptionPriceListService
                         'service_access_type' => $contentData['service_access_type'] ?? 'all',
 
                         // Benefits & perks
-                        'discount_percentage' => $contentData['discount_percentage'] ?? null,
 
                         // Metadata
                         'sort_order' => $contentData['sort_order'] ?? 0,
@@ -401,6 +399,7 @@ class SubscriptionPriceListService
             ...PriceListService::getViewAttributes(),
             'baseProducts' => BaseProduct::with('vat_rate')->get(),
             'courseProducts' => CourseProduct::with('vat_rate')->get(),
+            'bookableServices' => BookableService::with('vat_rate')->get(),
             'articles' => Article::with('vat_rate')->get(),
             'membershipFees' => Membership::with('vat_rate')->get(),
         ];
