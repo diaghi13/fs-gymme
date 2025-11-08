@@ -21,7 +21,6 @@ import {
 import Autocomplete from '@/components/ui/Autocomplete';
 import FolderPriceListDialog from '@/components/price-list/FolderPriceListDialog';
 import MoneyTextField from '@/components/ui/MoneyTextField';
-import PriceListActions from '@/components/price-list/PriceListActions';
 
 export type FormikValues = {
   name: string;
@@ -135,12 +134,6 @@ export default function GiftCardGeneralForm({
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Crea buoni regalo riscattabili per servizi e prodotti
               </Typography>
-
-              <PriceListActions
-                priceListId={priceList.id}
-                priceListType={priceList.type}
-                tenantId={page.currentTenantId}
-              />
 
               <Grid container spacing={3}>
                 <Grid size={12}>

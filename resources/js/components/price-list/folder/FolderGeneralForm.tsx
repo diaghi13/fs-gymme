@@ -10,7 +10,6 @@ import { router, usePage } from '@inertiajs/react';
 import { PriceListFolder } from '@/types';
 import FolderPriceListDialog from '@/components/price-list/FolderPriceListDialog';
 import { PriceListPageProps } from '@/pages/price-lists/price-lists';
-import PriceListActions from '@/components/price-list/PriceListActions';
 
 export default function FolderGeneralForm() {
   const {props: {priceList, priceListOptions, priceListOptionsTree, currentTenantId}} = usePage<PriceListPageProps>()
@@ -90,12 +89,6 @@ export default function FolderGeneralForm() {
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                   Organizza i listini in modo gerarchico creando cartelle e sottocartelle
                 </Typography>
-
-                <PriceListActions
-                  priceListId={folder.id}
-                  priceListType={folder.type}
-                  tenantId={currentTenantId}
-                />
               </Grid>
 
               <Grid size={12}>

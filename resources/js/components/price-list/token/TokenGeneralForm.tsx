@@ -20,7 +20,6 @@ import FolderPriceListDialog from '@/components/price-list/FolderPriceListDialog
 import MoneyTextField from '@/components/ui/MoneyTextField';
 import TokenProductSelector from '@/components/price-list/token/TokenProductSelector';
 import { PriceListPageProps } from '@/pages/price-lists/price-lists';
-import PriceListActions from '@/components/price-list/PriceListActions';
 
 export type FormikValues = {
   name: string;
@@ -109,12 +108,6 @@ export default function TokenGeneralForm({
 
         return (
           <Form>
-            <PriceListActions
-              priceListId={priceList.id}
-              priceListType={priceList.type}
-              tenantId={page.currentTenantId}
-            />
-
             <Grid container spacing={4}>
               <Grid size={12}>
                 <TextField label={'Nome'} name={'name'} />

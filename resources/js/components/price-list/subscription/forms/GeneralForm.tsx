@@ -13,7 +13,6 @@ import { usePage } from '@inertiajs/react';
 import { FOLDER, PriceListPageProps } from '@/pages/price-lists/price-lists';
 import { SubscriptionGeneralFormValues } from '@/components/price-list/subscription/tabs/SubscriptionGeneralTab';
 import { PriceListFolder } from '@/types';
-import PriceListActions from '@/components/price-list/PriceListActions';
 
 interface SubscriptionGeneralFormProps {
   onDismiss: () => void;
@@ -51,12 +50,6 @@ const GeneralForm: React.FC<SubscriptionGeneralFormProps> = ({ onDismiss }) => {
   return (
     <Form>
       <>
-        <PriceListActions
-          priceListId={priceList?.id}
-          priceListType={priceList?.type ?? 'subscription'}
-          tenantId={currentTenantId}
-        />
-
         <Grid container spacing={4}>
           <Grid size={12}>
             <TextField label={'Nome'} name={'name'} />
