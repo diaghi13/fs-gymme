@@ -25,7 +25,7 @@ class PriceListService
         return [
             'priceLists' => PriceListService::toTree(),
             'priceListOptions' => PriceListService::foldersToTreeOptions(),
-            'priceListOptionsTree' => (new PriceList())->folderTree(),
+            'priceListOptionsTree' => (new PriceList)->folderTree(),
             'vatRateOptions' => VatRateService::toOptions(),
         ];
     }

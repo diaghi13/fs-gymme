@@ -399,9 +399,9 @@ class SubscriptionPriceListService
             ...PriceListService::getViewAttributes(),
             'baseProducts' => BaseProduct::with('vat_rate')->get(),
             'courseProducts' => CourseProduct::with('vat_rate')->get(),
-            'bookableServices' => BookableService::with('vat_rate')->get(),
             'articles' => Article::with('vat_rate')->get(),
             'membershipFees' => Membership::with('vat_rate')->get(),
+            'bookableServices' => BookableService::with('vat_rate')->get(),
         ];
     }
 

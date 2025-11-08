@@ -4,7 +4,6 @@ namespace App\Models\PriceList;
 
 use App\Casts\MoneyCast;
 use App\Contracts\VatRateable;
-use App\Enums\PriceListItemTypeEnum;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Parental\HasParent;
 
@@ -50,10 +49,6 @@ class Token extends PriceList implements VatRateable
         'validity_days' => 'integer',
         'validity_months' => 'integer',
         'settings' => 'array',
-    ];
-
-    protected $attributes = [
-        'type' => PriceListItemTypeEnum::TOKEN->value,
     ];
 
     public function subscription_content(): MorphOne

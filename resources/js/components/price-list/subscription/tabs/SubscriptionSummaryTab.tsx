@@ -18,6 +18,11 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import SummarizeIcon from '@mui/icons-material/Summarize';
+import InfoIcon from '@mui/icons-material/Info';
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
+import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 
 interface SubscriptionSummaryTabProps {
   priceList: PriceListSubscription;
@@ -32,12 +37,18 @@ const SubscriptionSummaryTab: React.FC<SubscriptionSummaryTabProps> = ({ priceLi
 
   return (
     <Box>
+      <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+        <SummarizeIcon />
+        Riepilogo Abbonamento
+      </Typography>
+
       <Grid container spacing={3}>
         {/* General Information */}
         <Grid size={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <InfoIcon />
                 Informazioni Generali
               </Typography>
               <Divider sx={{ mb: 2 }} />
@@ -87,7 +98,8 @@ const SubscriptionSummaryTab: React.FC<SubscriptionSummaryTabProps> = ({ priceLi
           <Grid size={12}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CardGiftcardIcon />
                   Benefici Abbonamento
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
@@ -124,7 +136,8 @@ const SubscriptionSummaryTab: React.FC<SubscriptionSummaryTabProps> = ({ priceLi
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6">
+                <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PlaylistAddCheckIcon />
                   Contenuto Standard
                 </Typography>
                 <Chip
@@ -178,7 +191,8 @@ const SubscriptionSummaryTab: React.FC<SubscriptionSummaryTabProps> = ({ priceLi
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">
+                  <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PlaylistAddIcon />
                     Contenuto Opzionale
                   </Typography>
                   <Chip

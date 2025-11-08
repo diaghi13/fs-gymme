@@ -72,9 +72,9 @@ export default function SubscriptionOptionalTab({ priceList }: SubscriptionGener
 
   const handleDismiss = () => {
     router.get(
-      route('app.price-lists.index', ),
+      route('app.price-lists.index', { tenant: currentTenantId }),
       undefined,
-      { preserveState: true }
+      { preserveState: false }
     );
   };
 

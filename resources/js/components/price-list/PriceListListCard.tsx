@@ -28,7 +28,7 @@ interface PriceListListCardProps {
 
 export default function PriceListListCard({onSelect, canCreate}: PriceListListCardProps) {
   const {priceLists} = usePage<PriceListPageProps>().props;
-  const [filteredPriceLists, setFilteredPrPriceLists] = useState<AllPriceLists[]>(priceLists);
+  const [filteredPriceLists, setFilteredPrPriceLists] = useState<AllPriceLists[]>(priceLists || []);
   const [filter, setFilter] = useState<string>("");
 
   const handleFilter = (event: ChangeEvent<HTMLInputElement>) => {
@@ -36,6 +36,11 @@ export default function PriceListListCard({onSelect, canCreate}: PriceListListCa
   }
 
   useEffect(() => {
+    if (!priceLists) {
+      setFilteredPrPriceLists([]);
+      return;
+    }
+
     if (filter !== "") {
       const filtered = priceLists.filter((item) =>
         item.name.toLowerCase().includes(filter.toLowerCase())
