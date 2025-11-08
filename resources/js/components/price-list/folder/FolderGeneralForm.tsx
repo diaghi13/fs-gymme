@@ -203,7 +203,14 @@ export default function FolderGeneralForm() {
                 <Divider />
               </Grid>
 
-              <Grid size={12} sx={{ textAlign: 'end', mt: 2 }}>
+              <Grid size={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => router.get(route('app.price-lists.index', { tenant: currentTenantId }))}
+                >
+                  Annulla
+                </Button>
                 <FormikSaveButton />
               </Grid>
             </Grid>
