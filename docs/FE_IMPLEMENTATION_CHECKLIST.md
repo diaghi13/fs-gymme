@@ -253,8 +253,9 @@ exit
 - [x] Riepilogo IVA con calcoli corretti
 - [x] Totali documento con stamp duty
 - [x] Dati cedente/committente completi
-- [ ] Package `barryvdh/laravel-dompdf` da installare (richiede fix OpenSSL)
-- [ ] Test generazione PDF (dopo install package)
+- [x] Package `barryvdh/laravel-dompdf` v3.1 installato ✅
+- [x] Fix OpenSSL symlink applicato ✅
+- [ ] Test generazione PDF (ready to test)
 - [ ] Logo azienda nel PDF (opzionale)
 
 #### 7. Email Notifiche (1-2 ore)

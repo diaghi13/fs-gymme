@@ -7,10 +7,12 @@
 - Controller `DownloadPdfController`
 - Route `/sales/{sale}/electronic-invoice/download-pdf`
 - Bottone "Scarica PDF" nel frontend
+- Package `barryvdh/laravel-dompdf` v3.1 installato ✅
+- Fix OpenSSL symlink applicato ✅
 
-⏳ **Da Completare**:
-- Installazione package `barryvdh/laravel-dompdf`
-- Test generazione PDF
+⏳ **Da Testare**:
+- Test generazione PDF end-to-end
+- Verifica layout e formattazione
 
 ## Problema OpenSSL (Homebrew)
 
@@ -22,9 +24,25 @@ dyld: Library not loaded: /opt/homebrew/opt/openssl@3/lib/libssl.3.dylib
 
 Questo è un problema di configurazione del sistema macOS con Homebrew.
 
-## Soluzione: Fix OpenSSL
+## Soluzione Applicata: Fix OpenSSL Symlink ✅
 
-### Opzione 1: Reinstalla OpenSSL e PHP (Consigliato)
+Il problema è stato risolto creando il symlink mancante:
+
+```bash
+# Crea symlink per openssl@3
+ln -sfn /opt/homebrew/Cellar/openssl@3/3.6.0 /opt/homebrew/opt/openssl@3
+
+# Verifica
+php -v
+# PHP 8.3.27 (cli) ✅
+
+composer require barryvdh/laravel-dompdf
+# Successfully installed! ✅
+```
+
+### Altre Opzioni (se il symlink non funziona)
+
+### Opzione 1: Reinstalla OpenSSL e PHP
 
 ```bash
 # Reinstalla OpenSSL
