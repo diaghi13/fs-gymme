@@ -8,19 +8,25 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 ## Foundational Context
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
-- php - 8.3.3
+- php - 8.3.27
 - inertiajs/inertia-laravel (INERTIA) - v2
+- laravel/cashier (CASHIER) - v15
 - laravel/framework (LARAVEL) - v12
 - laravel/prompts (PROMPTS) - v0
 - laravel/reverb (REVERB) - v1
+- laravel/sanctum (SANCTUM) - v4
 - tightenco/ziggy (ZIGGY) - v2
+- laravel/mcp (MCP) - v0
 - laravel/pint (PINT) - v1
+- laravel/sail (SAIL) - v1
 - pestphp/pest (PEST) - v3
+- phpunit/phpunit (PHPUNIT) - v11
 - @inertiajs/react (INERTIA) - v2
 - react (REACT) - v19
 - tailwindcss (TAILWINDCSS) - v4
+- eslint (ESLINT) - v9
 - laravel-echo (ECHO) - v2
-
+- prettier (PRETTIER) - v3
 
 ## Conventions
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, naming.
@@ -33,43 +39,6 @@ This application is a Laravel application and its main Laravel ecosystems packag
 ## Application Structure & Architecture
 - Stick to existing directory structure - don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
-
-## Multi-Tenancy Database Architecture (CRITICALLY IMPORTANT!)
-**This application uses Stancl Tenancy with SEPARATE databases for central and tenant data.**
-
-### Database Structure:
-- **CENTRAL DATABASE** (`mysql` connection): Contains `tenants`, `domains`, `users`, `subscription_plans`, `permissions`, etc.
-- **TENANT DATABASES** (`gymme-tenant_*`): Each tenant has its own database containing `products`, `price_lists`, `customers`, `sales`, `structures`, etc.
-
-### Migration Commands (NEVER CONFUSE THESE!):
-- `php artisan migrate` → Runs migrations on CENTRAL database only
-- `php artisan migrate:fresh` → Drops ALL tables in CENTRAL database (DANGER!)
-- `php artisan tenants:migrate` → Runs tenant migrations on ALL tenant databases
-- `php artisan tenants:migrate-fresh` → Drops and recreates ALL tenant databases (DANGER!)
-
-### Migration File Locations:
-- `database/migrations/` → Central database migrations
-- `database/migrations/tenant/` → Tenant database migrations
-
-### CRITICAL RULES:
-1. ⚠️ **NEVER** run `php artisan migrate --path=database/migrations/tenant` - This runs TENANT migrations on CENTRAL database!
-2. ✅ **ALWAYS** use `php artisan tenants:migrate` for tenant migrations
-3. ⚠️ **NEVER** run `migrate:fresh` without understanding it will destroy the central DB including the `tenants` table
-4. ✅ **ALWAYS** verify which database you're targeting before running destructive commands
-5. ✅ When creating migrations, place them in the correct folder based on which database they belong to
-
-### What Goes Where:
-**CENTRAL DB:**
-- Tenants, Domains, Users (global)
-- Subscription Plans (SaaS plans)
-- Permissions, Roles (global)
-
-**TENANT DB:**
-- Products, Price Lists
-- Customers, Sales, Payments
-- Structures (gym locations)
-- Documents, Invoices
-- Activity logs (tenant-specific)
 
 ## Frontend Bundling
 - If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
@@ -156,6 +125,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 - Inertia.js components should be placed in the `resources/js/Pages` directory unless specified differently in the JS bundler (vite.config.js).
 - Use `Inertia::render()` for server-side routing instead of traditional Blade views.
+- Use `search-docs` for accurate guidance on all things Inertia.
 
 <code-snippet lang="php" name="Inertia::render Example">
 // routes/web.php example
@@ -182,6 +152,9 @@ Route::get('/users', function () {
 
 ### Deferred Props & Empty States
 - When using deferred props on the frontend, you should add a nice empty state with pulsing / animated skeleton.
+
+### Inertia Form General Guidance
+- Build forms using the `useForm` helper. Use the code examples and `search-docs` tool with a query of `useForm helper` for guidance.
 
 
 === laravel/core rules ===
@@ -320,157 +293,45 @@ it('has emails', function (string $email) {
 
 - Use `router.visit()` or `<Link>` for navigation instead of traditional links.
 
-<code-snippet lang="react" name="Inertia Client Navigation">
-    import { Link } from '@inertiajs/react'
+<code-snippet name="Inertia Client Navigation" lang="react">
 
-    <Link href="/">Home</Link>
+import { Link } from '@inertiajs/react'
+<Link href="/">Home</Link>
+
 </code-snippet>
 
-- For form handling, use `router.post` and related methods. Do not use regular forms.
 
-### HTTP Requests (CRITICAL)
-- **ALWAYS use Inertia's `router` methods** (`router.get()`, `router.post()`, `router.put()`, `router.delete()`) for making HTTP requests in React components
-- **NEVER use `axios` directly** for requests that modify data - this causes CSRF token issues (419 errors)
-- `router` methods automatically handle CSRF tokens, preserve state, and integrate with Inertia's page system
-- Only use `axios` for non-Inertia endpoints or when you need raw XHR responses (e.g., downloading files, external APIs)
+=== inertia-react/v2/forms rules ===
 
-<code-snippet lang="react" name="Correct: Using Inertia Router">
-import { router } from '@inertiajs/react'
+## Inertia + React Forms
 
-// Correct - Use router.post for form submissions and data mutations
-router.post(
-  route('app.structures.switch', { tenant: tenantId }),
-  { structure_id: newStructureId },
-  {
-    preserveScroll: true,
-    onSuccess: () => console.log('Success!'),
-    onError: (errors) => console.error('Error:', errors),
-  }
-)
-</code-snippet>
+<code-snippet name="Inertia React useForm Example" lang="react">
 
-<code-snippet lang="react" name="Wrong: Using axios directly">
-// WRONG - This will cause CSRF 419 errors
-axios.post(route('app.structures.switch'), { structure_id: id })
-</code-snippet>
+import { useForm } from '@inertiajs/react'
 
-<code-snippet lang="react" name="Inertia React Form Example">
-import { useState } from 'react'
-import { router } from '@inertiajs/react'
+const { data, setData, post, processing, errors } = useForm({
+    email: '',
+    password: '',
+    remember: false,
+})
 
-export default function Edit() {
-    const [values, setValues] = useState({
-        first_name: "",
-        last_name: "",
-        email: "",
-    })
-
-    function handleChange(e) {
-        const key = e.target.id;
-        const value = e.target.value
-
-        setValues(values => ({
-            ...values,
-            [key]: value,
-        }))
-    }
-
-    function handleSubmit(e) {
-        e.preventDefault()
-
-        router.post('/users', values)
-    }
-
-    return (
-    <form onSubmit={handleSubmit}>
-        <label htmlFor="first_name">First name:</label>
-        <input id="first_name" value={values.first_name} onChange={handleChange} />
-        <label htmlFor="last_name">Last name:</label>
-        <input id="last_name" value={values.last_name} onChange={handleChange} />
-        <label htmlFor="email">Email:</label>
-        <input id="email" value={values.email} onChange={handleChange} />
-        <button type="submit">Submit</button>
-    </form>
-    )
+function submit(e) {
+    e.preventDefault()
+    post('/login')
 }
+
+return (
+<form onSubmit={submit}>
+    <input type="text" value={data.email} onChange={e => setData('email', e.target.value)} />
+    {errors.email && <div>{errors.email}</div>}
+    <input type="password" value={data.password} onChange={e => setData('password', e.target.value)} />
+    {errors.password && <div>{errors.password}</div>}
+    <input type="checkbox" checked={data.remember} onChange={e => setData('remember', e.target.checked)} /> Remember Me
+    <button type="submit" disabled={processing}>Login</button>
+</form>
+)
+
 </code-snippet>
-
-
-=== mui/v6 rules ===
-
-## Material UI v6
-
-- This project uses Material UI (MUI) v6, which has significant breaking changes from v5
-- **CRITICAL**: Always check existing MUI components in the project before creating new ones to follow the correct v6 patterns
-
-### Grid Component Changes
-
-**The Grid component API has completely changed in v6:**
-
-- **REMOVED**: Individual breakpoint props (`xs`, `sm`, `md`, `lg`, `xl`)
-- **NEW**: Unified `size` prop with object syntax
-- **REMOVED**: `item` prop (no longer needed)
-- **CHANGED**: `container` prop remains the same
-
-<code-snippet name="MUI v6 Grid - Multiple Breakpoints" lang="tsx">
-// ❌ WRONG (v5 syntax)
-<Grid container spacing={3}>
-  <Grid item xs={12} md={6}>
-    <Card>Content</Card>
-  </Grid>
-</Grid>
-
-// ✅ CORRECT (v6 syntax)
-<Grid container spacing={3}>
-  <Grid size={{ xs: 12, md: 6 }}>
-    <Card>Content</Card>
-  </Grid>
-</Grid>
-</code-snippet>
-
-<code-snippet name="MUI v6 Grid - Single Breakpoint" lang="tsx">
-// If size is same for all breakpoints, use single value
-<Grid size={6}>
-  <Card>Content</Card>
-</Grid>
-</code-snippet>
-
-<code-snippet name="MUI v6 Grid - Auto Grow" lang="tsx">
-// ❌ WRONG (v5 syntax)
-<Grid item xs>
-
-// ✅ CORRECT (v6 syntax)
-<Grid size="grow">
-</code-snippet>
-
-### Other Important v6 Changes
-
-**ListItem Component:**
-- Use `ListItemButton` for clickable items instead of `ListItem` with button prop
-- Check existing list components in the project for correct patterns
-
-**Package Structure:**
-- ESM code is now at the root of the package
-- CommonJS code moved to `node/` build
-- UMD bundle removed (aligns with React 19)
-
-**Browser Support:**
-- Updated to modern browsers: `> 0.5%, last 2 versions, Firefox ESR, not dead, safari >= 15.4, iOS >= 15.4`
-
-### Migration Tools Available
-
-If migrating old v5 code, these codemods can help:
-```bash
-npx @mui/codemod@latest v6.0.0/grid-v2-props <path>
-npx @mui/codemod@latest v6.0.0/list-item-button-prop <path>
-```
-
-### Best Practices
-
-1. **Always check sibling components** in the same directory for MUI v6 patterns
-2. **Never use v5 syntax** - it will cause runtime errors
-3. **Grid spacing** uses CSS gap property (more modern approach)
-4. **Import from @mui/material** remains the same
 
 
 === tailwindcss/core rules ===
@@ -504,9 +365,16 @@ npx @mui/codemod@latest v6.0.0/list-item-button-prop <path>
 
 - Always use Tailwind CSS v4 - do not use the deprecated utilities.
 - `corePlugins` is not supported in Tailwind v4.
+- In Tailwind v4, configuration is CSS-first using the `@theme` directive — no separate `tailwind.config.js` file is needed.
+<code-snippet name="Extending Theme in CSS" lang="css">
+@theme {
+  --color-brand: oklch(0.72 0.11 178);
+}
+</code-snippet>
+
 - In Tailwind v4, you import Tailwind using a regular CSS `@import` statement, not using the `@tailwind` directives used in v3:
 
-<code-snippet name="Tailwind v4 Import Tailwind Diff" lang="diff"
+<code-snippet name="Tailwind v4 Import Tailwind Diff" lang="diff">
    - @tailwind base;
    - @tailwind components;
    - @tailwind utilities;
@@ -531,217 +399,6 @@ npx @mui/codemod@latest v6.0.0/list-item-button-prop <path>
 | overflow-ellipsis | text-ellipsis |
 | decoration-slice | box-decoration-slice |
 | decoration-clone | box-decoration-clone |
-
-
-=== react/custom-components rules ===
-
-## Custom Components & Project Patterns
-
-This project has many custom reusable components, hooks, and utilities. **ALWAYS check for existing components before creating new ones.**
-
-### Layouts
-
-**AppLayout** (`resources/js/layouts/AppLayout.tsx`):
-- Main application layout with sidebar, header, breadcrumbs, and footer
-- **Required props**: `user: User`, `title?: string`
-- Features: automatic breadcrumbs, flash messages via Snackbar, onboarding wizard, online users context
-- Automatically handles tenant headers in axios
-
-<code-snippet name="AppLayout Usage" lang="tsx">
-import AppLayout from '@/layouts/AppLayout';
-
-export default function MyPage({ auth, data }: PageProps & { data: MyData }) {
-  return (
-    <AppLayout user={auth.user} title="My Page Title">
-      {/* Your content here */}
-    </AppLayout>
-  );
-}
-</code-snippet>
-
-**Other Layouts**:
-- `AuthLayout.tsx` - For authentication pages
-- `CentralLayout.tsx` - For central/admin pages
-- Settings and configuration layouts available in `resources/js/layouts/`
-
-### Custom Hooks
-
-**useRolesPermissions** (`resources/js/hooks/useRolesPermissions.ts`):
-- Check user roles and permissions
-- Returns `{ role, can }` functions
-
-<code-snippet name="useRolesPermissions Example" lang="tsx">
-import { useRolesPermissions } from '@/hooks/useRolesPermissions';
-
-function MyComponent({ auth }: PageProps) {
-  const { role, can } = useRolesPermissions(auth.user);
-
-  if (role('admin')) {
-    // Admin only content
-  }
-
-  if (can('edit-users')) {
-    // User has permission
-  }
-}
-</code-snippet>
-
-**useLocalStorage** (`resources/js/hooks/useLocalStorage.ts`):
-- Persist state in localStorage with React state sync
-- Usage: `const [value, setValue] = useLocalStorage('key', defaultValue);`
-
-**Other Hooks Available**:
-- `useLocalStorageObject.ts` - For objects in localStorage
-- `useSearchParams.ts` - URL search params management
-- `useQueryParam.ts` - Single query param management
-- `useExitPromt.ts` - Warn before leaving page with unsaved changes
-- `use-mobile-navigation.ts` - Mobile nav state
-
-### Formik-Integrated Components
-
-All form components in `resources/js/components/ui/` are **Formik-integrated** - they use `useField` internally.
-
-**Autocomplete** (`resources/js/components/ui/Autocomplete.tsx`):
-<code-snippet name="Formik Autocomplete" lang="tsx">
-import Autocomplete from '@/components/ui/Autocomplete';
-import { Formik, Form } from 'formik';
-
-<Formik initialValues={{ country: null }}>
-  <Form>
-    <Autocomplete
-      name="country"
-      label="Select Country"
-      options={countries}
-      getOptionLabel={(option) => option.name}
-    />
-  </Form>
-</Formik>
-</code-snippet>
-
-**DatePicker** (`resources/js/components/ui/DatePicker.tsx`):
-<code-snippet name="Formik DatePicker" lang="tsx">
-import DatePicker from '@/components/ui/DatePicker';
-
-<DatePicker
-  name="birthDate"
-  label="Data di nascita"
-/>
-// Automatically integrated with Formik field state
-</code-snippet>
-
-**Other Formik Components Available**:
-- `TextField.tsx` - Formik-integrated text field
-- `MoneyTextField.tsx` - Money input with formatting
-- `ColorInput.tsx` - Color picker
-- `Checkbox.tsx` - Formik checkbox
-- `DateTimePicker.tsx` - Date and time picker
-- `RadioButtonsGroup.tsx` - Radio group
-
-### Utility Functions
-
-**cn() function** (`resources/js/lib/utils.ts`):
-- Merge Tailwind classes with clsx
-- Usage: `cn('base-class', condition && 'conditional-class', props.className)`
-
-### Third-Party Library Integration
-
-**Ziggy (Laravel Routes in JS)**:
-<code-snippet name="Ziggy route() Function" lang="tsx">
-import { router } from '@inertiajs/react';
-
-// Generate URL with route name
-route('app.customers.show', { customer: 123, tenant: tenantId })
-
-// Navigate using Inertia router
-router.get(route('dashboard'))
-router.post(route('api.save'), formData)
-</code-snippet>
-
-**Formik (Form Management)**:
-- All forms use Formik for state management and validation
-- Custom components are pre-integrated with Formik's `useField`
-- Always use Formik's `<Form>` component
-
-**MUI X Date Pickers**:
-- `@mui/x-date-pickers` used for all date/time inputs
-- Wrapped in custom components with Formik integration
-
-**Axios Configuration**:
-- Automatically includes tenant header: `X-Tenant` header set in AppLayout
-- Base URL configured for API calls
-- Use directly: `axios.post(route('api.endpoint'), data)`
-
-**Lucide React (Icons)**:
-- Icon library: `lucide-react`
-- Import specific icons: `import { User, Settings } from 'lucide-react'`
-
-**Laravel Echo**:
-- Real-time events with `@laravel/echo-react`
-- OnlineUsersProvider context available in AppLayout
-
-### PageProps Pattern
-
-**All pages receive PageProps** from Inertia with these properties:
-<code-snippet name="PageProps Interface" lang="tsx">
-interface PageProps {
-  auth: {
-    user: User;  // Current authenticated user
-  };
-  success: boolean;
-  app_config: {
-    [key: string]: string | number;
-  };
-  flash: {
-    status: 'success' | 'info' | 'warning' | 'error' | undefined;
-    message: string;
-  };
-  currentTenantId: string;  // Active tenant ID
-  tenant?: {  // Tenant info (if in tenant context)
-    id: string;
-    name: string;
-    onboarding_completed_at: string | null;
-    trial_ends_at: string | null;
-  };
-}
-</code-snippet>
-
-**Extending PageProps**:
-<code-snippet name="Custom Page Props" lang="tsx">
-interface MyPageProps extends PageProps {
-  // Use different prop name if conflicts with PageProps.tenant
-  customData: MyDataType;
-}
-
-export default function MyPage({ auth, customData }: MyPageProps) {
-  // ...
-}
-</code-snippet>
-
-### Component Organization
-
-**Tailwind Components** (`resources/js/components/tailwind/`):
-- shadcn/ui components adapted for this project
-- Use these for Tailwind-styled UI primitives
-
-**MUI Components** (`resources/js/components/ui/` with capitalized names):
-- Custom MUI-based components
-- Formik-integrated form controls
-
-**Domain Components**:
-- `resources/js/components/customers/` - Customer-related
-- `resources/js/components/products/` - Product-related
-- `resources/js/components/sales/` - Sales-related
-- `resources/js/components/price-list/` - Price list components
-
-### Best Practices
-
-1. **Always check existing components** before creating new ones
-2. **Use Formik-integrated components** for all form fields
-3. **Use route() helper** instead of hardcoded URLs
-4. **Extend PageProps correctly** - avoid conflicts with built-in properties
-5. **Use AppLayout** for authenticated pages with sidebar
-6. **Check hooks directory** before implementing custom state logic
-7. **Use cn() utility** for conditional class merging with Tailwind
 
 
 === tests rules ===

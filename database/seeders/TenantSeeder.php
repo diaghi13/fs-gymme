@@ -17,6 +17,7 @@ class TenantSeeder extends Seeder
         }
 
         $this->call([
+            TenantSettingsSeeder::class,
             UserSeeder::class,
             StructureSeeder::class,
             // BaseProductSeeder::class,

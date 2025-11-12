@@ -2,477 +2,482 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Fattura Elettronica {{ $sale->progressive_number }}</title>
+    <title>Fattura n. {{ $sale->progressive_number }}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        @page {
+            margin: 30px 40px;
         }
 
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 10pt;
-            line-height: 1.4;
+            font-size: 9pt;
             color: #000;
         }
 
-        .container {
-            padding: 20px;
+        .page-wrapper {
+            width: 100%;
         }
 
-        h1 {
-            font-size: 18pt;
-            margin-bottom: 10px;
-            text-align: center;
-            border-bottom: 2px solid #000;
+        .main {
+            width: 100%;
+        }
+
+        .content-wrapper {
+            padding-bottom: 20px;
+        }
+
+        .header {
+            width: 100%;
+            border-bottom: 2px solid #1976d2;
             padding-bottom: 10px;
+            margin-bottom: 20px;
         }
 
-        .header-info {
-            margin-bottom: 20px;
-            text-align: center;
+        .header table {
+            width: 100%;
+            border: none;
+            margin: 0;
+        }
+
+        .header td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
+        }
+
+        .header-left img {
+            max-height: 60px;
+        }
+
+        .header-left h2 {
+            font-size: 14pt;
+            color: #1976d2;
+            margin: 0;
+        }
+
+        .header-right {
+            text-align: right;
             font-size: 9pt;
         }
 
-        .section {
-            margin-bottom: 15px;
-            border: 1px solid #000;
+        .header-right h2 {
+            font-size: 12pt;
+            color: #1976d2;
+            margin: 0;
+        }
+
+        .two-columns {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .two-columns table {
+            width: 100%;
+            border: none;
+            margin: 0;
+        }
+
+        .two-columns td {
+            width: 50%;
+            vertical-align: top;
             padding: 10px;
+            border: none;
         }
 
         .section-title {
             font-weight: bold;
-            font-size: 12pt;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #666;
-            padding-bottom: 4px;
-        }
-
-        .grid {
-            display: table;
+            color: #1976d2;
+            margin-bottom: 5px;
+            font-size: 10pt;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 2px;
             width: 100%;
-        }
-
-        .grid-row {
-            display: table-row;
-        }
-
-        .grid-col {
-            display: table-cell;
-            padding: 4px;
-            vertical-align: top;
-        }
-
-        .grid-col.label {
-            font-weight: bold;
-            width: 35%;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            font-size: 8.5pt;
         }
 
-        table thead {
-            background-color: #f0f0f0;
+        th, td {
+            padding: 5px;
+            border-bottom: 1px solid #e0e0e0;
+            border-left: none;
+            border-right: none;
         }
 
-        table th,
-        table td {
-            border: 1px solid #000;
-            padding: 6px;
+        th {
             text-align: left;
+            color: #1976d2;
+            border-left: none;
+            border-right: none;
+        }
+
+        td.number, th.number { text-align: right; }
+        td.center { text-align: center; }
+
+        .summary-wrapper {
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .summary-wrapper > table {
+            width: 100%;
+            border: none;
+            margin: 0;
+        }
+
+        .summary-wrapper > table > tbody > tr > td {
+            width: 50%;
+            vertical-align: top;
+            padding: 10px;
+            border: none;
+        }
+
+        .payments-wrapper {
+            width: 100%;
+            margin-top: 15px;
+            padding: 0 10px;
+        }
+
+        .payments-wrapper .section-title {
+            font-size: 9pt;
+            margin-bottom: 8px;
+        }
+
+        .payments-wrapper p {
+            margin: 3px 0;
+        }
+
+        .summary-box {
+            padding: 0;
+        }
+
+        .summary-box .section-title {
+            font-size: 9pt;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .summary-box table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7.5pt;
+            margin-top: 5px;
+        }
+
+        .summary-box table th,
+        .summary-box table td {
+            padding: 4px 5px;
+            border: none;
+        }
+
+        .summary-box table th {
+            font-size: 7pt;
+        }
+
+        .summary-box.totals-box table {
             font-size: 9pt;
         }
 
-        table th {
-            font-weight: bold;
-        }
-
-        table td.number {
-            text-align: right;
-        }
-
-        table td.center {
-            text-align: center;
-        }
-
-        .totals-section {
-            margin-top: 20px;
-        }
-
-        .totals-table {
-            width: 50%;
-            margin-left: auto;
-        }
-
-        .totals-table td {
-            padding: 6px;
-        }
-
-        .totals-table td.label {
-            font-weight: bold;
-            text-align: right;
-            width: 60%;
-        }
-
-        .totals-table td.value {
-            text-align: right;
-            width: 40%;
-        }
-
-        .total-row {
-            font-weight: bold;
-            font-size: 11pt;
-            background-color: #f0f0f0;
-        }
-
-        .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #000;
-            font-size: 8pt;
-            text-align: center;
-            color: #666;
-        }
-
-        .two-columns {
-            display: table;
+        .totals {
             width: 100%;
         }
 
-        .column {
-            display: table-cell;
-            width: 48%;
-            padding: 0 1%;
+        .totals td {
+            border: none !important;
+            padding: 6px 0;
         }
+
+        .totals td.label {
+            text-align: right;
+            font-weight: normal;
+            padding-right: 15px;
+            width: 65%;
+        }
+
+        .totals td.value {
+            text-align: right;
+            font-weight: bold;
+            width: 35%;
+        }
+
+        .totals tr.total td {
+            padding-top: 12px;
+            border-top: 2px solid #1976d2 !important;
+            border-bottom: none !important;
+            font-size: 12pt;
+            color: #1976d2;
+        }
+
+        .totals tr.total td.label {
+            font-weight: bold;
+        }
+
+        .footer {
+            width: 100%;
+            margin-top: 30px;
+            font-size: 8pt;
+            color: #555;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 10px;
+            text-align: center;
+        }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        {{-- Intestazione --}}
-        <h1>FATTURA ELETTRONICA</h1>
 
-        <div class="header-info">
-            <strong>{{ $sale->documentType?->name ?? 'Fattura' }}</strong><br>
-            N. {{ $sale->progressive_number }} del {{ $sale->date->format('d/m/Y') }}<br>
-            @if($sale->electronic_invoice)
-                Progressivo Invio: {{ $sale->electronic_invoice->transmission_id }}
-            @endif
-        </div>
+<div class="page-wrapper">
 
-        {{-- Cedente/Prestatore e Cessionario/Committente --}}
-        <div class="two-columns">
-            {{-- Cedente/Prestatore --}}
-            <div class="column">
-                <div class="section">
-                    <div class="section-title">CEDENTE/PRESTATORE</div>
-                    <div class="grid">
-                        @if($tenant->company_name)
-                            <div class="grid-row">
-                                <div class="grid-col label">Denominazione:</div>
-                                <div class="grid-col">{{ $tenant->company_name }}</div>
-                            </div>
-                        @endif
-
-                        @if($tenant->vat_number)
-                            <div class="grid-row">
-                                <div class="grid-col label">Partita IVA:</div>
-                                <div class="grid-col">IT{{ $tenant->vat_number }}</div>
-                            </div>
-                        @endif
-
-                        @if($tenant->tax_code)
-                            <div class="grid-row">
-                                <div class="grid-col label">Codice Fiscale:</div>
-                                <div class="grid-col">{{ $tenant->tax_code }}</div>
-                            </div>
-                        @endif
-
-                        <div class="grid-row">
-                            <div class="grid-col label">Indirizzo:</div>
-                            <div class="grid-col">
-                                {{ $tenant->address }}<br>
-                                {{ $tenant->postal_code }} {{ $tenant->city }} ({{ $tenant->province }})
-                            </div>
-                        </div>
-
-                        @if($tenant->pec_email)
-                            <div class="grid-row">
-                                <div class="grid-col label">PEC:</div>
-                                <div class="grid-col">{{ $tenant->pec_email }}</div>
-                            </div>
-                        @endif
-
-                        @if($tenant->fiscal_regime)
-                            <div class="grid-row">
-                                <div class="grid-col label">Regime Fiscale:</div>
-                                <div class="grid-col">{{ $tenant->fiscal_regime }}</div>
-                            </div>
-                        @endif
-                    </div>
+{{-- HEADER --}}
+<div class="header">
+    <table>
+        <tr>
+            <td style="width: 50%;" class="header-left">
+                @if($tenant->logo_url ?? false)
+                    <img src="{{ $tenant->logo_url }}" alt="Logo azienda">
+                @else
+                    <h2>{{ $tenant->company_name ?? 'Nome Azienda' }}</h2>
+                @endif
+            </td>
+            <td style="width: 50%;" class="header-right">
+                <h2>FATTURA n. {{ $sale->progressive_number }}</h2>
+                <p>del {{ $sale->date->format('d/m/Y') }}</p>
+                @if($sale->electronic_invoice)
+                    <small>Progressivo Invio: {{ $sale->electronic_invoice->transmission_id }}</small>
+                @endif
+                <div style="margin-top:5px;">
+                    {{ $tenant->address }}<br>
+                    {{ $tenant->postal_code }} {{ $tenant->city }} ({{ $tenant->province }})<br>
+                    P.IVA {{ $tenant->vat_number }} - C.F. {{ $tenant->tax_code }}<br>
+                    @if($tenant->pec_email)
+                        PEC: {{ $tenant->pec_email }}
+                    @endif
                 </div>
-            </div>
+            </td>
+        </tr>
+    </table>
+</div>
 
-            {{-- Cessionario/Committente --}}
-            <div class="column">
-                <div class="section">
-                    <div class="section-title">CESSIONARIO/COMMITTENTE</div>
-                    <div class="grid">
-                        <div class="grid-row">
-                            <div class="grid-col label">
-                                @if($sale->customer->company_name)
-                                    Denominazione:
-                                @else
-                                    Nome:
-                                @endif
-                            </div>
-                            <div class="grid-col">
-                                @if($sale->customer->company_name)
-                                    {{ $sale->customer->company_name }}
-                                @else
-                                    {{ $sale->customer->first_name }} {{ $sale->customer->last_name }}
-                                @endif
-                            </div>
-                        </div>
+<div class="main">
+    <div class="content-wrapper">
 
+    {{-- CLIENTE e AZIENDA --}}
+    <div class="two-columns">
+        <table>
+            <tr>
+                <td>
+                    <div class="section-title">CESSIONARIO / COMMITTENTE</div>
+                    <div>
+                        @if($sale->customer->company_name)
+                            <strong>{{ $sale->customer->company_name }}</strong><br>
+                        @else
+                            <strong>{{ $sale->customer->first_name }} {{ $sale->customer->last_name }}</strong><br>
+                        @endif
                         @if($sale->customer->vat_number)
-                            <div class="grid-row">
-                                <div class="grid-col label">Partita IVA:</div>
-                                <div class="grid-col">IT{{ $sale->customer->vat_number }}</div>
-                            </div>
+                            P.IVA: IT{{ $sale->customer->vat_number }}<br>
                         @endif
-
-                        @if($sale->customer->tax_code ?? $sale->customer->tax_id_code)
-                            <div class="grid-row">
-                                <div class="grid-col label">Codice Fiscale:</div>
-                                <div class="grid-col">{{ $sale->customer->tax_code ?? $sale->customer->tax_id_code }}</div>
-                            </div>
+                        @if($sale->customer->tax_code)
+                            C.F.: {{ $sale->customer->tax_code }}<br>
                         @endif
-
-                        <div class="grid-row">
-                            <div class="grid-col label">Indirizzo:</div>
-                            <div class="grid-col">
-                                {{ $sale->customer->street ?? $sale->customer->address }}<br>
-                                {{ $sale->customer->zip ?? $sale->customer->postal_code }}
-                                {{ $sale->customer->city }}
-                                @if($sale->customer->province)
-                                    ({{ $sale->customer->province }})
-                                @endif
-                            </div>
-                        </div>
-
-                        @if($sale->customer->email)
-                            <div class="grid-row">
-                                <div class="grid-col label">Email:</div>
-                                <div class="grid-col">{{ $sale->customer->email }}</div>
-                            </div>
+                        {{ $sale->customer->street ?? $sale->customer->address }}
+                        @if($sale->customer->number)
+                            {{ $sale->customer->number }}
+                        @endif
+                        <br>
+                        {{ $sale->customer->zip ?? $sale->customer->postal_code }} {{ $sale->customer->city }}
+                        @if($sale->customer->province)
+                            ({{ $sale->customer->province }})
                         @endif
                     </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Righe Documento --}}
-        <div class="section">
-            <div class="section-title">DETTAGLIO RIGHE</div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 5%">#</th>
-                        <th style="width: 35%">Descrizione</th>
-                        <th style="width: 10%" class="center">Quantità</th>
-                        <th style="width: 10%" class="center">U.M.</th>
-                        <th style="width: 12%" class="number">Prezzo Unit.</th>
-                        <th style="width: 10%" class="center">Sconto</th>
-                        <th style="width: 8%" class="center">IVA %</th>
-                        <th style="width: 10%" class="number">Totale</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($sale->saleRows as $index => $row)
-                        <tr>
-                            <td class="center">{{ $index + 1 }}</td>
-                            <td>{{ $row->description }}</td>
-                            <td class="center">{{ number_format($row->quantity, 2, ',', '.') }}</td>
-                            <td class="center">{{ $row->unit_measure ?? 'pz' }}</td>
-                            <td class="number">€ {{ number_format($row->unit_price, 2, ',', '.') }}</td>
-                            <td class="center">
-                                @if($row->percentage_discount)
-                                    {{ number_format($row->percentage_discount, 2, ',', '.') }}%
-                                @elseif($row->absolute_discount)
-                                    € {{ number_format($row->absolute_discount, 2, ',', '.') }}
-                                @else
-                                    -
-                                @endif
-                            </td>
-                            <td class="center">{{ $row->vatRate?->percentage ?? 0 }}%</td>
-                            <td class="number">€ {{ number_format($row->total_price, 2, ',', '.') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        {{-- Riepilogo IVA --}}
-        <div class="section">
-            <div class="section-title">RIEPILOGO IVA</div>
-
-            <table style="width: 70%">
-                <thead>
-                    <tr>
-                        <th style="width: 20%" class="center">Aliquota IVA</th>
-                        <th style="width: 30%" class="number">Imponibile</th>
-                        <th style="width: 20%" class="number">Imposta</th>
-                        <th style="width: 30%" class="number">Totale</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $vatBreakdown = [];
-                        foreach($sale->saleRows as $row) {
-                            $vatRate = $row->vatRate?->percentage ?? 0;
-                            if (!isset($vatBreakdown[$vatRate])) {
-                                $vatBreakdown[$vatRate] = [
-                                    'taxable' => 0,
-                                    'tax' => 0,
-                                ];
-                            }
-
-                            $rowTotal = $row->total_price;
-                            if ($sale->tax_included) {
-                                $taxable = $rowTotal / (1 + ($vatRate / 100));
-                                $tax = $rowTotal - $taxable;
-                            } else {
-                                $taxable = $rowTotal;
-                                $tax = $rowTotal * ($vatRate / 100);
-                            }
-
-                            $vatBreakdown[$vatRate]['taxable'] += $taxable;
-                            $vatBreakdown[$vatRate]['tax'] += $tax;
-                        }
-                        ksort($vatBreakdown);
-                    @endphp
-
-                    @foreach($vatBreakdown as $rate => $amounts)
-                        <tr>
-                            <td class="center">{{ number_format($rate, 0) }}%</td>
-                            <td class="number">€ {{ number_format($amounts['taxable'], 2, ',', '.') }}</td>
-                            <td class="number">€ {{ number_format($amounts['tax'], 2, ',', '.') }}</td>
-                            <td class="number">€ {{ number_format($amounts['taxable'] + $amounts['tax'], 2, ',', '.') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        {{-- Totali Documento --}}
-        <div class="totals-section">
-            <table class="totals-table">
-                @php
-                    $subtotal = array_sum(array_column($vatBreakdown, 'taxable'));
-                    $totalTax = array_sum(array_column($vatBreakdown, 'tax'));
-                    $grossTotal = $subtotal + $totalTax;
-                @endphp
-
-                <tr>
-                    <td class="label">Totale Imponibile:</td>
-                    <td class="value">€ {{ number_format($subtotal, 2, ',', '.') }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Totale IVA:</td>
-                    <td class="value">€ {{ number_format($totalTax, 2, ',', '.') }}</td>
-                </tr>
-
-                @if($sale->discount_percentage || $sale->discount_absolute)
-                    <tr>
-                        <td class="label">Sconto Generale:</td>
-                        <td class="value">
-                            @if($sale->discount_percentage)
-                                {{ number_format($sale->discount_percentage, 2, ',', '.') }}%
-                            @else
-                                € {{ number_format($sale->discount_absolute, 2, ',', '.') }}
-                            @endif
-                        </td>
-                    </tr>
-                @endif
-
-                @if($sale->withholding_tax_amount)
-                    <tr>
-                        <td class="label">Ritenuta d'Acconto ({{ number_format($sale->withholding_tax_rate, 0) }}%):</td>
-                        <td class="value">- € {{ number_format($sale->withholding_tax_amount, 2, ',', '.') }}</td>
-                    </tr>
-                @endif
-
-                @if($sale->welfare_fund_amount)
-                    <tr>
-                        <td class="label">Contributo Cassa ({{ number_format($sale->welfare_fund_rate, 2) }}%):</td>
-                        <td class="value">€ {{ number_format($sale->welfare_fund_amount, 2, ',', '.') }}</td>
-                    </tr>
-                @endif
-
-                @if($sale->stamp_duty_applied && $sale->stamp_duty_amount)
-                    <tr>
-                        <td class="label">Imposta di Bollo:</td>
-                        <td class="value">€ {{ number_format($sale->stamp_duty_amount, 2, ',', '.') }}</td>
-                    </tr>
-                @endif
-
-                <tr class="total-row">
-                    <td class="label">TOTALE DOCUMENTO:</td>
-                    <td class="value">
-                        € {{ number_format($sale->summary['total'], 2, ',', '.') }}
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        {{-- Note e Causale --}}
-        @if($sale->notes || $sale->causale)
-            <div class="section">
-                <div class="section-title">NOTE</div>
-                @if($sale->causale)
-                    <p><strong>Causale:</strong> {{ $sale->causale }}</p>
-                @endif
-                @if($sale->notes)
-                    <p>{{ $sale->notes }}</p>
-                @endif
-            </div>
-        @endif
-
-        {{-- Modalità di Pagamento --}}
-        @if($sale->paymentCondition || $sale->financialResource)
-            <div class="section">
-                <div class="section-title">MODALITÀ DI PAGAMENTO</div>
-                <div class="grid">
-                    @if($sale->paymentCondition)
-                        <div class="grid-row">
-                            <div class="grid-col label">Condizioni:</div>
-                            <div class="grid-col">{{ $sale->paymentCondition->name }}</div>
-                        </div>
-                    @endif
-                    @if($sale->financialResource)
-                        <div class="grid-row">
-                            <div class="grid-col label">Metodo:</div>
-                            <div class="grid-col">{{ $sale->financialResource->name }}</div>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        @endif
-
-        {{-- Footer --}}
-        <div class="footer">
-            <p>Documento emesso in formato elettronico ai sensi dell'art. 21 del D.P.R. n. 633/1972</p>
-            @if($sale->electronic_invoice)
-                <p>Trasmesso al Sistema di Interscambio in data {{ $sale->electronic_invoice->sdi_sent_at?->format('d/m/Y H:i') ?? 'N/D' }}</p>
-            @endif
-            <p style="margin-top: 10px">Generato il {{ now()->format('d/m/Y H:i') }}</p>
-        </div>
+                </td>
+                <td>
+                    <div class="section-title">CEDENTE / PRESTATORE</div>
+                    <div>
+                        <strong>{{ $tenant->company_name }}</strong><br>
+                        P.IVA: IT{{ $tenant->vat_number }}<br>
+                        C.F.: {{ $tenant->tax_code }}<br>
+                        {{ $tenant->address }}, {{ $tenant->postal_code }} {{ $tenant->city }} ({{ $tenant->province }})
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
+
+    {{-- RIGHE DOCUMENTO --}}
+    <table>
+        <thead>
+        <tr>
+            <th style="width:5%">#</th>
+            <th style="width:35%">Descrizione</th>
+            <th style="width:10%" class="center">Quantità</th>
+            <th style="width:10%" class="center">U.M.</th>
+            <th style="width:12%" class="number">Prezzo Unit.</th>
+            <th style="width:10%" class="center">Sconto</th>
+            <th style="width:8%" class="center">IVA</th>
+            <th style="width:10%" class="number">Totale</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach($sale->rows as $index => $row)
+            <tr>
+                <td class="center">{{ $index + 1 }}</td>
+                <td>{{ $row->description }}</td>
+                <td class="center">{{ number_format($row->quantity, 2, ',', '.') }}</td>
+                <td class="center">{{ $row->unit_measure ?? 'pz' }}</td>
+                <td class="number">€ {{ number_format($row->unit_price_net, 2, ',', '.') }}</td>
+                <td class="center">
+                    @if($row->percentage_discount)
+                        {{ number_format($row->percentage_discount, 2, ',', '.') }}%
+                    @elseif($row->absolute_discount)
+                        € {{ number_format($row->absolute_discount, 2, ',', '.') }}
+                    @else
+                        —
+                    @endif
+                </td>
+                <td class="center">{{ $row->vat_rate?->percentage ?? 0 }}%</td>
+                <td class="number">€ {{ number_format($row->total_gross, 2, ',', '.') }}</td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
+
+    </div>{{-- Fine content-wrapper --}}
+
+</div>{{-- Fine main --}}
+
+{{-- RIEPILOGO IVA + TOTALI --}}
+@php
+    $vatBreakdown = [];
+    foreach($sale->rows as $row) {
+        $rate = $row->vat_rate?->percentage ?? 0;
+        $nature = $row->vat_rate?->nature ?? null;
+        $description = $row->vat_rate?->description ?? null;
+
+        $key = $rate;
+        if ($nature) {
+            $key = $rate . '_' . $nature;
+        }
+
+        if (!isset($vatBreakdown[$key])) {
+            $vatBreakdown[$key] = [
+                'rate' => $rate,
+                'nature' => $nature,
+                'description' => $description,
+                'taxable' => 0,
+                'tax' => 0,
+            ];
+        }
+
+        $vatBreakdown[$key]['taxable'] += $row->total_net;
+        $vatBreakdown[$key]['tax'] += $row->vat_amount;
+    }
+    $subtotal = array_sum(array_column($vatBreakdown, 'taxable'));
+    $totalTax = array_sum(array_column($vatBreakdown, 'tax'));
+    $grossTotal = $subtotal + $totalTax;
+@endphp
+
+<div class="summary-wrapper">
+        <table>
+            <tr>
+                <td>
+                    {{-- RIEPILOGO IVA --}}
+                    <div class="summary-box">
+                        <div class="section-title">RIEPILOGO IVA</div>
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Aliquota</th>
+                                <th class="number">Imponibile</th>
+                                <th class="number">Imposta</th>
+                                <th class="number">Totale</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($vatBreakdown as $key => $v)
+                                <tr>
+                                    <td>
+                                        {{ $v['rate'] }}%
+                                        @if($v['nature'])
+                                            <br><small style="font-size: 6pt;">({{ $v['nature'] }})</small>
+                                        @endif
+                                    </td>
+                                    <td class="number">€ {{ number_format($v['taxable'], 2, ',', '.') }}</td>
+                                    <td class="number">€ {{ number_format($v['tax'], 2, ',', '.') }}</td>
+                                    <td class="number">€ {{ number_format($v['taxable'] + $v['tax'], 2, ',', '.') }}</td>
+                                </tr>
+                                @if($v['nature'] && $v['description'])
+                                    <tr>
+                                        <td colspan="4" style="font-size: 6.5pt; padding: 2px 5px; border-bottom: none;">
+                                            <em>{{ $v['description'] }}</em>
+                                        </td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+                <td>
+                    {{-- TOTALI DOCUMENTO --}}
+                    <div class="summary-box totals-box">
+                        <div class="section-title">TOTALI DOCUMENTO</div>
+                        <table class="totals">
+                            <tr>
+                                <td class="label">Totale Imponibile:</td>
+                                <td class="value">€ {{ number_format($subtotal, 2, ',', '.') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label">Totale IVA:</td>
+                                <td class="value">€ {{ number_format($totalTax, 2, ',', '.') }}</td>
+                            </tr>
+                            @if($sale->stamp_duty_applied && $sale->stamp_duty_amount)
+                                <tr>
+                                    <td class="label">Imposta di Bollo:</td>
+                                    <td class="value">€ {{ number_format($sale->stamp_duty_amount, 2, ',', '.') }}</td>
+                                </tr>
+                                @php $grossTotal += $sale->stamp_duty_amount; @endphp
+                            @endif
+                            <tr class="total">
+                                <td class="label">TOTALE FATTURA:</td>
+                                <td class="value">€ {{ number_format($grossTotal, 2, ',', '.') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+{{-- PAGAMENTI --}}
+@if($sale->payments->isNotEmpty())
+    <div class="payments-wrapper">
+        <div class="section-title">MODALITÀ DI PAGAMENTO</div>
+        @foreach($sale->payments as $p)
+            <p style="font-size:8.5pt; margin: 2px 0;">
+                Scadenza {{ \Illuminate\Support\Carbon::parse($p->due_date)->format('d/m/Y') }}:
+                € {{ number_format($p->amount, 2, ',', '.') }}
+                @if($p->payment_method)
+                    ({{ $p->payment_method->description }})
+                @endif
+                @if($p->is_payed)
+                    <strong style="color: green;"> - PAGATO</strong>
+                @endif
+            </p>
+        @endforeach
+    </div>
+@endif
+
+{{-- FOOTER --}}
+<div class="footer">
+    Documento emesso ai sensi dell'art. 21 DPR 633/1972<br>
+    Generato il {{ now()->format('d/m/Y H:i') }}
+</div>
+
+</div>{{-- Fine page-wrapper --}}
+
 </body>
 </html>

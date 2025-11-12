@@ -9,11 +9,10 @@ import FormikSaveButton from '@/components/ui/FormikSaveButton';
 import ColorInput from '@/components/ui/ColorInput';
 import { router, usePage } from '@inertiajs/react';
 import {
-  PriceList,
+  AutocompleteOptions,
   PriceListToken,
   PriceListFolder,
-  PriceListFolderTree,
-  VatRate
+  PriceListFolderTree
 } from '@/types';
 import Autocomplete from '@/components/ui/Autocomplete';
 import FolderPriceListDialog from '@/components/price-list/FolderPriceListDialog';
@@ -27,7 +26,7 @@ export type FormikValues = {
   color: string;
   saleable: boolean;
   parent_id: number | string | null;
-  vat_rate: number | VatRate | null;
+  vat_rate: number | { value: number; label: string } | null;
   price: string | number;
   token_quantity: number;
   validity_days: number | null;
@@ -37,9 +36,9 @@ export type FormikValues = {
 
 interface TokenGeneralFormProps {
   priceList: PriceListToken;
-  priceListOptions: PriceList[];
+  priceListOptions: AutocompleteOptions<number>;
   priceListOptionsTree: Array<PriceListFolderTree>;
-  vatCodes: VatRate[];
+  vatCodes: AutocompleteOptions<number>;
   ref: React.RefObject<FormikProps<FormikValues>>;
 }
 
@@ -62,7 +61,7 @@ export default function TokenGeneralForm({
       color: priceList.color ?? '#2196F3',
       saleable: priceList.saleable ?? true,
       parent_id: priceList.parent_id ?? null,
-      vat_rate: priceList.vat_rate_id ? vatCodes.find(item => (item as any).value === priceList.vat_rate_id)! : null,
+      vat_rate: priceList.vat_rate_id ? vatCodes.find(item => item.value === priceList.vat_rate_id)! : null,
       price: priceList.price ?? '',
       token_quantity: priceList.token_quantity ?? 10,
       validity_days: priceList.validity_days ?? 365,
@@ -71,7 +70,7 @@ export default function TokenGeneralForm({
     },
     onSubmit: (values) => {
       const vat_rate_id = values.vat_rate && typeof values.vat_rate !== 'number'
-        ? (values.vat_rate as any).value
+        ? values.vat_rate.value
         : values.vat_rate;
 
       // Omit vat_rate from values to avoid type mismatch

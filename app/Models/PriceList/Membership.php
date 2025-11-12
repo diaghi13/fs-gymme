@@ -22,12 +22,12 @@ class Membership extends PriceList implements VatRateable
         'saleable_to',
         'price',
         'vat_rate_id',
-        'duration_months',
+        'months_duration',
     ];
 
     protected $casts = [
         'price' => MoneyCast::class,
-        'duration_months' => 'integer',
+        'months_duration' => 'integer',
         'saleable' => 'boolean',
         'saleable_from' => 'date',
         'saleable_to' => 'date',
@@ -35,9 +35,9 @@ class Membership extends PriceList implements VatRateable
         'parent_id' => 'integer',
     ];
 
-//    protected $attributes = [
-//        'type' => PriceListItemTypeEnum::MEMBERSHIP->value,
-//    ];
+    //    protected $attributes = [
+    //        'type' => PriceListItemTypeEnum::MEMBERSHIP->value,
+    //    ];
 
     public function subscription_content(): MorphOne
     {

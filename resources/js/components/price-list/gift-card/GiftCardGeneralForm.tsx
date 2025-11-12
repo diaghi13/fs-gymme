@@ -11,12 +11,11 @@ import ColorInput from '@/components/ui/ColorInput';
 import { router, usePage } from '@inertiajs/react';
 import {
   AutocompleteOption,
+  AutocompleteOptions,
   PageProps,
-  PriceList,
   PriceListGiftCard,
   PriceListFolder,
-  PriceListFolderTree,
-  VatRate
+  PriceListFolderTree
 } from '@/types';
 import Autocomplete from '@/components/ui/Autocomplete';
 import FolderPriceListDialog from '@/components/price-list/FolderPriceListDialog';
@@ -35,9 +34,9 @@ export type FormikValues = {
 
 interface GiftCardGeneralFormProps {
   priceList: PriceListGiftCard;
-  priceListOptions: PriceList[];
+  priceListOptions: AutocompleteOptions<number>;
   priceListOptionsTree: Array<PriceListFolderTree>;
-  vatCodes: VatRate[];
+  vatCodes: AutocompleteOptions<number>;
   ref: React.RefObject<FormikProps<FormikValues>>;
 }
 

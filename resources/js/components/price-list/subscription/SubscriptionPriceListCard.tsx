@@ -35,7 +35,7 @@ export default function SubscriptionPriceListCard(
       bgColor={priceList.color}
       action={
         <PriceListCardActions
-          priceListId={priceList.id}
+          priceListId={typeof priceList.id === 'string' ? parseInt(priceList.id) : priceList.id}
           priceListType={priceList.type}
           tenantId={currentTenantId}
         />

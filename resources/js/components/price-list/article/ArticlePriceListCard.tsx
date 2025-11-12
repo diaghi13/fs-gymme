@@ -5,7 +5,7 @@ import React, { useRef } from 'react';
 import {
   PageProps,
   PriceList,
-  PriceListArticle, PriceListFolderTree, VatRate
+  PriceListArticle, PriceListFolderTree, VatRate, AutocompleteOptions
 } from '@/types';
 import ArticleGeneralForm, { FormikValues } from '@/components/price-list/article/ArticleGeneralForm';
 import { FormikProps } from 'formik';
@@ -15,9 +15,9 @@ import { usePage } from '@inertiajs/react';
 
 interface ArticlePriceListCardProps {
   priceList: PriceListArticle;
-  priceListOptions: PriceList[];
+  priceListOptions: AutocompleteOptions<number>;
   priceListOptionsTree: Array<PriceListFolderTree>;
-  vatRateOptions: VatRate[];
+  vatRateOptions: AutocompleteOptions<number>;
 }
 
 export default function ArticlePriceListCard({
@@ -52,7 +52,7 @@ export default function ArticlePriceListCard({
       bgColor={priceList.color}
       action={
         <PriceListCardActions
-          priceListId={priceList.id}
+          priceListId={typeof priceList.id === 'string' ? parseInt(priceList.id) : priceList.id}
           priceListType={priceList.type}
           tenantId={currentTenantId}
           onUndo={handleUndo}

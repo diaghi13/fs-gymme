@@ -18,8 +18,8 @@ interface BookingsTabProps {
 export default function BookingsTab({ product, onDismiss }: BookingsTabProps) {
   const { currentTenantId } = usePage<BaseProductPageProps>().props;
 
-  // Extract settings with safe defaults
-  const bookingSettings = product.settings?.booking || {};
+  // Extract settings with safe defaults - BaseProduct doesn't have booking settings
+  const bookingSettings = (product.settings as any)?.booking || {};
 
   const formik: FormikConfig<{
     advance_days: number;

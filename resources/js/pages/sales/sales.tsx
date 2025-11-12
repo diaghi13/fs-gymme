@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/AppLayout';
 import * as Yup from 'yup';
 import {
   AllPriceLists,
+  AutocompleteOptions,
   Customer,
   FinancialResource,
   PageProps, PaymentCondition, PaymentMethod, Promotion,
@@ -58,6 +59,7 @@ export interface SalePageProps extends PageProps {
   customers: Customer[];
   paymentConditions: PaymentCondition[];
   paymentMethods: PaymentMethod[];
+  paymentMethodOptions: AutocompleteOptions<number>;
   financialResources: FinancialResource[];
   promotions: Promotion[];
   priceLists: AllPriceLists[];
@@ -84,7 +86,11 @@ export default function Sales({ auth, sale, customers, paymentMethods, documentT
 
   const [installmentsCalculator, setInstallmentsCalculator] = useState<CalculatorProps>({
     installment_quantity: '',
-    payment_method: paymentMethods.find(option => option.id === 1)!,
+    payment_method: {
+      ...paymentMethods.find(option => option.id === 1)!,
+      value: 1,
+      label: paymentMethods.find(option => option.id === 1)!.description
+    },
     first_effective_date: addMonths(new Date(), 1),
     month_effective_date: '1'
   });

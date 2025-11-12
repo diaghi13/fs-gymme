@@ -38,7 +38,8 @@ return new class extends Migration
             $table->string('withholding_tax_type', 10)->nullable()->after('withholding_tax_rate');
 
             // Stamp duty (bollo)
-            $table->integer('stamp_duty_amount')->nullable()->after('withholding_tax_type');
+            $table->boolean('stamp_duty_applied')->default(false)->after('withholding_tax_type');
+            $table->integer('stamp_duty_amount')->nullable()->after('stamp_duty_applied');
 
             // Welfare fund (cassa previdenziale)
             $table->string('welfare_fund_type', 10)->nullable()->after('stamp_duty_amount');
@@ -77,6 +78,7 @@ return new class extends Migration
                 'withholding_tax_amount',
                 'withholding_tax_rate',
                 'withholding_tax_type',
+                'stamp_duty_applied',
                 'stamp_duty_amount',
                 'welfare_fund_type',
                 'welfare_fund_rate',

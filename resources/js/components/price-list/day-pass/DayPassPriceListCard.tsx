@@ -4,10 +4,9 @@ import MyCard from '@/components/ui/MyCard';
 import React, { useRef } from 'react';
 import {
   PageProps,
-  PriceList,
+  AutocompleteOptions,
   PriceListDayPass,
-  PriceListFolderTree,
-  VatRate
+  PriceListFolderTree
 } from '@/types';
 import { FormikProps } from 'formik';
 import SaleForm from '@/components/price-list/subscription/SaleForm';
@@ -17,9 +16,9 @@ import { usePage } from '@inertiajs/react';
 
 interface DayPassPriceListCardProps {
   priceList: PriceListDayPass;
-  priceListOptions: PriceList[];
+  priceListOptions: AutocompleteOptions<number>;
   priceListOptionsTree: Array<PriceListFolderTree>;
-  vatRateOptions: VatRate[];
+  vatRateOptions: AutocompleteOptions<number>;
 }
 
 export default function DayPassPriceListCard({
@@ -54,7 +53,7 @@ export default function DayPassPriceListCard({
       bgColor={priceList.color}
       action={
         <PriceListCardActions
-          priceListId={priceList.id}
+          priceListId={typeof priceList.id === 'string' ? parseInt(priceList.id) : priceList.id}
           priceListType={priceList.type}
           tenantId={currentTenantId}
           onUndo={handleUndo}

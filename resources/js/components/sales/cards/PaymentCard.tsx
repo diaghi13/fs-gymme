@@ -21,7 +21,7 @@ import MoneyTextField from '@/components/ui/MoneyTextField';
 import { SaleDiscountTypes, useSaleContext } from '@/Contexts/Sale/SaleContext';
 import MyMath from '@/support/Math';
 import Autocomplete from '@/components/ui/Autocomplete';
-import { FinancialResource, PaymentCondition, PaymentMethod } from '@/types';
+import { AutocompleteOption, FinancialResource, PaymentCondition, PaymentMethod } from '@/types';
 import SaleDiscounts from '@/components/sales/payment/SaleDiscounts';
 import CalculatorDialog from '@/components/sales/payment/CalculatorDialog';
 import currency from 'currency.js';
@@ -41,7 +41,7 @@ export interface SaleInstallmentFormValues {
 
 export interface CalculatorProps {
   installment_quantity: string,
-  payment_method: PaymentMethod | null,
+  payment_method: AutocompleteOption<number> | null,
   first_effective_date: Date | null,
   month_effective_date: string
 }
@@ -176,7 +176,7 @@ export default function PaymentCard({ calculator, setCalculator }: PaymentCardPr
       const payments: SaleInstallmentFormValues[] = [];
       for (let i = 0; i < installmentQuantity; i++) {
         payments.push({
-          payment_method: paymentMethods.find(p => p.id === calculator.payment_method!.id)!,
+          payment_method: paymentMethods.find(p => p.id === calculator.payment_method!.value)!,
           due_date: i > 0
             ? new Date(firstEffectiveDate.setMonth(firstEffectiveDate.getMonth() + monthEffectiveDate))
             : calculator.first_effective_date,

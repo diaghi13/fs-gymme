@@ -30,12 +30,12 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
   } | null;
 };
 
-export type AutocompleteOption = {
+export type AutocompleteOption<T = any> = {
   label: string;
-  //value: T;
+  value: T;
 }
 
-export type AutocompleteOptions = Array<AutocompleteOption>
+export type AutocompleteOptions<T = any> = Array<AutocompleteOption<T>>
 
 export interface Auth {
   user: User;
@@ -197,6 +197,9 @@ export interface VatRate {
   checkout_application: boolean;
   withholding_tax_application: boolean;
   social_security_withholding_application: boolean;
+  // Per compatibilità AutocompleteOption
+  value?: number;
+  label?: string;
 }
 
 export interface ProductListItem {
@@ -325,6 +328,17 @@ export interface CourseProduct extends Product {
       course_type?: string;
       curriculum?: string;
     };
+    materials?: {
+      equipment_provided?: boolean;
+      bring_own_equipment?: boolean;
+      materials_fee?: number;
+      equipment_list?: string[];
+    };
+    progression?: {
+      has_certification?: boolean;
+      next_level_course_id?: number | null;
+      prerequisites?: number[];
+    };
   };
 }
 
@@ -341,6 +355,11 @@ export interface BookableService extends Product {
       days: string[];
       time_slots: Array<{ start: string; end: string }>;
       blackout_dates: string[];
+      available_days?: string[];
+      default_start_time?: string;
+      default_end_time?: string;
+      slot_duration_minutes?: number;
+      max_concurrent_bookings?: number;
     };
     requirements: {
       requires_trainer: boolean;
@@ -411,6 +430,9 @@ export interface PriceList {
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;
+  // Per compatibilità AutocompleteOption
+  value?: number | string;
+  label?: string;
 }
 
 export interface PriceListFolder extends PriceList {
@@ -431,6 +453,7 @@ export interface PriceListArticle extends PriceList {
   price: number;
   vat_rate_id: number | null;
   vat_rate: VatRate | null;
+  saleable: boolean;
 }
 
 export interface PriceListMembershipFee extends PriceList {
@@ -439,7 +462,8 @@ export interface PriceListMembershipFee extends PriceList {
   price: number;
   vat_rate_id: number | null;
   vat_rate: VatRate | null;
-  duration_months: number;
+  months_duration: number;
+  saleable: boolean;
 }
 
 export interface PriceListDayPass extends PriceList {
@@ -448,6 +472,7 @@ export interface PriceListDayPass extends PriceList {
   price: number;
   vat_rate_id: number | null;
   vat_rate: VatRate | null;
+  saleable: boolean;
 }
 
 export interface PriceListToken extends PriceList {
@@ -492,14 +517,18 @@ export interface PriceListGiftCard extends PriceList {
   vat_rate_id: number | null;
   vat_rate: VatRate | null;
   validity_months: number | null;
+  saleable: boolean;
 }
 
 export interface PriceListSubscription extends PriceList {
   color: string;
   type: 'subscription';
   price: number;
+  vat_rate_id: number | null;
+  vat_rate: VatRate | null;
   standard_content: PriceListSubscriptionContent[];
   optional_content: PriceListSubscriptionContent[];
+  saleable: boolean;
 
   // Subscription-level benefits
   guest_passes_total?: number | null;
@@ -592,6 +621,7 @@ export interface Sale {
   year: number;
   customer_id: number;
   customer: Customer | null;
+  original_sale_id?: number | null;
   document_type_id: number | null;
   document_type: { id: number; code: string, description: string, label: string }[] | null;
   payment_condition_id: number;
@@ -602,14 +632,19 @@ export interface Sale {
   promotion: { id: number, description: string };
   discount_percentage: number;
   discount_absolute: number;
+  type?: 'invoice' | 'credit_note' | 'debit_note';
   status: string;
   payment_status: string;
   accounting_status: string;
   exported_status: string;
   currency: string;
+  tax_included: boolean;
   notes: string;
   rows: SaleRow[];
   payments: Payment[];
+  electronic_invoice?: ElectronicInvoice;
+  electronic_invoice_status?: ElectronicInvoiceStatus;
+  sdi_transmission_id?: string;
   summary: {
     total: number;
     total_gross: number;
@@ -626,7 +661,47 @@ export interface Sale {
     total_due: number;
     absolute_discount: number;
     percentage_discount: number;
+    vat_breakdown: Array<{
+      vat_rate_id: number | null;
+      vat_rate: VatRate | null;
+      percentage: number;
+      taxable_amount: number;
+      vat_amount: number;
+      total_amount: number;
+    }>;
   }
+}
+
+export type ElectronicInvoiceStatus =
+  | 'draft'
+  | 'generated'
+  | 'to_send'
+  | 'sending'
+  | 'sent'
+  | 'accepted'
+  | 'rejected'
+  | 'delivered';
+
+export interface ElectronicInvoice {
+  id: number;
+  sale_id: number;
+  transmission_id: string;
+  external_id?: string | null;
+  xml_version: string;
+  transmission_format: 'FPA12' | 'FPR12';
+  sdi_status: ElectronicInvoiceStatus;
+  sdi_sent_at: string | null;
+  sdi_received_at: string | null;
+  sdi_notification_type?: string | null;
+  sdi_error_messages?: string | null;
+  sdi_receipt_xml?: string | null;
+  xml_file_path: string;
+  xml_content?: string;
+  signed_pdf_path?: string | null;
+  send_attempts: number;
+  last_send_attempt_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SaleRow {
@@ -635,15 +710,22 @@ export interface SaleRow {
   price_list_id: number;
   description: string;
   quantity: number;
-  unit_price: number;
+  unit_price_net: number;  // Prezzo unitario NETTO (senza IVA) in centesimi
+  unit_price_gross?: number;  // Prezzo unitario LORDO (con IVA) in centesimi - evita arrotondamenti!
   percentage_discount: number;
   absolute_discount: number;
-  total: number;
+  vat_rate_id?: number;
+  vat_rate?: VatRate;
+  vat_amount: number;  // Importo IVA esatto calcolato dal backend (in centesimi)
+  total_net: number;  // Totale riga NETTO (senza IVA) in centesimi
+  total_gross?: number;  // Totale riga LORDO (con IVA) in centesimi - evita arrotondamenti!
   price_list: PriceListArticle | PriceListMembershipFee | PriceListSubscription;
   sale?: Sale;
   entitable_type?: string;
   entitable_id?: number;
   entitable?: PriceListSubscriptionContent;
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface Payment {

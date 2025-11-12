@@ -147,7 +147,7 @@ const ExtraContentRow: React.FC<ExtraContentRowProps> = ({ content }) => {
                 <Typography variant="subtitle2" fontWeight="bold">Restrizioni Orarie</Typography>
                 <Divider sx={{ mt: 0.5 }} />
               </Grid>
-              {content.time_restrictions.map((restriction: any, index: number) => {
+              {content.time_restrictions?.map((restriction: any, index: number) => {
                 const dayLabels: Record<string, string> = {
                   'monday': 'Lun',
                   'tuesday': 'Mar',

@@ -7,7 +7,7 @@ Route::middleware([])->group(function () {
 
     Route::get('/', function () {
         return response()->json([
-            'message' => 'This is your multi-tenant API. The id of the current tenant is ' . tenant('id'),
+            'message' => 'This is your multi-tenant API. The id of the current tenant is '.tenant('id'),
         ]);
     });
 
@@ -18,16 +18,11 @@ Route::middleware([])->group(function () {
     Route::get('price-lists', function () {
         return \App\Models\PriceList\PriceList::all();
     })
-        //->middleware('auth:sanctum')
+        // ->middleware('auth:sanctum')
         ->name('api.v1.price-lists.index');
 
     Route::get('price-lists/{priceList}', function (\App\Models\PriceList\PriceList $priceList) {
         $priceList->load('vat_rate');
-
-        echo "<pre>";
-        print_r($priceList->type);
-        echo "</pre>";
-        exit();
 
         $type = $priceList->type instanceof \App\Enums\PriceListType
             ? $priceList->type->value
@@ -36,11 +31,13 @@ Route::middleware([])->group(function () {
         if ($type === \App\Enums\PriceListItemTypeEnum::SUBSCRIPTION->value) {
             $priceList->load([
                 'standard_content' => [
+                    'vat_rate',
                     'price_listable' => [
                         'vat_rate',
                     ],
                 ],
                 'optional_content' => [
+                    'vat_rate',
                     'price_listable' => [
                         'vat_rate',
                     ],
@@ -48,9 +45,14 @@ Route::middleware([])->group(function () {
             ]);
         }
 
-        return new \App\Http\Resources\PriceListResource($priceList);
+        // Ensure vat_rate is always included in response
+        $priceList->makeVisible(['vat_rate']);
+
+        return ['data' => $priceList];
+
+        // return new \App\Http\Resources\PriceListResource($priceList);
     })
-        //->middleware(['auth:sanctum'])
+        // ->middleware(['auth:sanctum'])
         ->name('api.v1.price-lists.show');
 
     Route::get('payment-conditions', function () {
@@ -66,9 +68,9 @@ Route::middleware([])->group(function () {
     Route::get('customers', function (\Illuminate\Http\Request $request) {
         return \App\Models\Customer\Customer::query()
             ->when($request->has('term'), function ($query) use ($request) {
-                $query->where('first_name', 'like', '%' . $request->term . '%')
-                    ->orWhere('last_name', 'like', '%' . $request->term . '%')
-                    ->orWhere('email', 'like', '%' . $request->term . '%');
+                $query->where('first_name', 'like', '%'.$request->term.'%')
+                    ->orWhere('last_name', 'like', '%'.$request->term.'%')
+                    ->orWhere('email', 'like', '%'.$request->term.'%');
             })
             ->orderBy('last_name')
             ->orderBy('first_name')

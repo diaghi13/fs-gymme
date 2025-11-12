@@ -51,13 +51,12 @@ export default function QuickProductSearch({ onSelect, disabled = false }: Quick
   // Filter products based on search
   const filteredProducts = searchValue
     ? allProducts.filter(product =>
-        product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-        (product.code && product.code.toLowerCase().includes(searchValue.toLowerCase()))
+        product.name.toLowerCase().includes(searchValue.toLowerCase())
       )
     : [];
 
   const handleSelect = async (_: any, value: Exclude<AllPriceLists, PriceListFolder> | null) => {
-    if (!value) {
+    if (!value || typeof value === 'string') {
       return;
     }
 
@@ -65,9 +64,14 @@ export default function QuickProductSearch({ onSelect, disabled = false }: Quick
     try {
       // Fetch full product details
       const response = await axios.get(route('api.v1.price-lists.show', { priceList: value.id }));
-      const fullProduct = response.data.data as Exclude<AllPriceLists, PriceListFolder>;
+      const fullProduct = response.data.data;
 
-      onSelect(fullProduct);
+      if (!fullProduct || !fullProduct.type) {
+        console.error('Invalid product data received:', response.data);
+        return;
+      }
+
+      onSelect(fullProduct as Exclude<AllPriceLists, PriceListFolder>);
       setSearchValue(''); // Clear search after selection
     } catch (error) {
       console.error('Error loading product:', error);
@@ -95,22 +99,22 @@ export default function QuickProductSearch({ onSelect, disabled = false }: Quick
     }
   };
 
-  const formatPrice = (cents: number) => {
-    return `€ ${(cents / 100).toFixed(2).replace('.', ',')}`;
+  const formatPrice = (euros: number) => {
+    return `€ ${euros.toFixed(2).replace('.', ',')}`;
   };
 
   return (
     <Autocomplete
-      freeSolo
-      disableClearable
       options={filteredProducts}
       loading={loading}
       disabled={disabled}
+      value={null}
       inputValue={searchValue}
       onInputChange={(_, newValue) => setSearchValue(newValue)}
       onChange={handleSelect}
       getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
       filterOptions={(x) => x} // Disable built-in filtering (we do it ourselves)
+      isOptionEqualToValue={(option, value) => option.id === value.id}
       renderInput={(params) => (
         <TextField
           {...params}
@@ -142,11 +146,6 @@ export default function QuickProductSearch({ onSelect, disabled = false }: Quick
                 <Typography variant="body1" fontWeight={600}>
                   {option.name}
                 </Typography>
-                {option.code && (
-                  <Typography variant="caption" color="text.secondary">
-                    Codice: {option.code}
-                  </Typography>
-                )}
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Chip

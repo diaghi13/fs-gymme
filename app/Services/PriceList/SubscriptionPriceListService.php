@@ -3,9 +3,12 @@
 namespace App\Services\PriceList;
 
 use App\Models\PriceList\Article;
+use App\Models\PriceList\DayPass;
+use App\Models\PriceList\GiftCard;
 use App\Models\PriceList\Membership;
 use App\Models\PriceList\PriceList;
 use App\Models\PriceList\Subscription;
+use App\Models\PriceList\Token;
 use App\Models\Product\BaseProduct;
 use App\Models\Product\BookableService;
 use App\Models\Product\CourseProduct;
@@ -402,6 +405,9 @@ class SubscriptionPriceListService
             'articles' => Article::with('vat_rate')->get(),
             'membershipFees' => Membership::with('vat_rate')->get(),
             'bookableServices' => BookableService::with('vat_rate')->get(),
+            'tokens' => Token::with('vat_rate')->get(),
+            'giftCards' => GiftCard::with('vat_rate')->get(),
+            'dayPasses' => DayPass::with('vat_rate')->get(),
         ];
     }
 

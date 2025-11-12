@@ -61,7 +61,7 @@ export default function FolderGeneralForm() {
     enableReinitialize: true
   };
 
-  const selectedFolder = priceListOptions.find(p => p.value === formik.initialValues.parent_id);
+  const selectedFolder = priceListOptions?.find(p => p.value === formik.initialValues.parent_id);
 
   return (
     <Formik {...formik}>
@@ -76,7 +76,7 @@ export default function FolderGeneralForm() {
           toggleFolderDialogOpen();
         };
 
-        const currentSelectedFolder = priceListOptions.find(p => p.value === values.parent_id);
+        const currentSelectedFolder = priceListOptions?.find(p => p.value === values.parent_id);
 
         return (
           <Form>

@@ -74,7 +74,7 @@ const MainFormRow: React.FC<FormMainRowProps> = (
         <Autocomplete
           label={'IVA'}
           name={`${contentType}[${index}].vat_rate`}
-          options={vatRateOptions}
+          options={vatRateOptions || []}
         />
       </TableCell>
       <TableCell>

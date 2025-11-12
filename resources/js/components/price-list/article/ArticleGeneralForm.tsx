@@ -12,11 +12,11 @@ import ColorInput from '@/components/ui/ColorInput';
 import { router, usePage } from '@inertiajs/react';
 import {
   AutocompleteOption,
-  AutocompleteOptions, PageProps, PriceList,
+  AutocompleteOptions, PageProps,
   PriceListArticle,
   PriceListFolder,
   PriceListFolderTree,
-  PriceListMembershipFee, VatRate
+  PriceListMembershipFee
 } from '@/types';
 import Autocomplete from '@/components/ui/Autocomplete';
 import FolderPriceListDialog from '@/components/price-list/FolderPriceListDialog';
@@ -31,14 +31,14 @@ export type FormikValues = {
   parent_id: number | string | null;
   vat_rate: number | AutocompleteOption<number> | null;
   price: string | number;
-  duration_months?: number;
+  months_duration?: number;
 }
 
 interface ArticleGeneralFormProps {
   priceList: PriceListArticle | PriceListMembershipFee;
-  priceListOptions: PriceList[]
+  priceListOptions: AutocompleteOptions<number>;
   priceListOptionsTree: Array<PriceListFolderTree>;
-  vatCodes: VatRate[],
+  vatCodes: AutocompleteOptions<number>;
   ref: React.RefObject<FormikProps<FormikValues>>;
 }
 
@@ -69,7 +69,7 @@ export default function ArticleGeneralForm(
   const formik: FormikConfig<FormikValues> = {
     initialValues: isArticle
       ? initialValues
-      : { ...initialValues, duration_months: priceList.duration_months ?? 12 },
+      : { ...initialValues, months_duration: priceList.months_duration ?? 12 },
     validationSchema: Yup.object({
       name: Yup.string()
         .required('Il nome è obbligatorio')
@@ -87,7 +87,7 @@ export default function ArticleGeneralForm(
         .required('Il reparto fiscale è obbligatorio'),
       price: Yup.string()
         .required('Il prezzo è obbligatorio'),
-      duration_months: isMembership
+      months_duration: isMembership
         ? Yup.number()
             .required('La durata è obbligatoria')
             .min(1, 'La durata deve essere almeno 1 mese')
@@ -247,7 +247,7 @@ export default function ArticleGeneralForm(
                     <Grid size={6}>
                       <TextField
                         label="Durata in mesi"
-                        name="duration_months"
+                        name="months_duration"
                         type="number"
                         helperText="Durata della membership in mesi"
                       />
@@ -278,7 +278,7 @@ export default function ArticleGeneralForm(
                     </Typography>
                     {isMembership && (
                       <Typography variant="body2" color="text.secondary">
-                        <strong>Durata:</strong> {values.duration_months || 0} mesi
+                        <strong>Durata:</strong> {values.months_duration || 0} mesi
                       </Typography>
                     )}
                     <Typography variant="body2" color="text.secondary">

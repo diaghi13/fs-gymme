@@ -716,7 +716,7 @@ Query per validare prenotazione:
 4. **Vendita** - Periodo vendibilità
 
 ### Article / Membership
-1. **Generale** - Nome, folder, colore, prezzo, IVA, (duration_months per Membership)
+1. **Generale** - Nome, folder, colore, prezzo, IVA, (months_duration per Membership)
 2. **Vendita** - Periodo vendibilità
 
 ### DayPass (Ingresso Giornaliero)
@@ -2659,6 +2659,106 @@ Quando viene completata una vendita con un abbonamento:
 - Almeno 1 prodotto nel carrello
 - Condizione pagamento obbligatoria
 - Se rate manuali: somma rate = totale vendita
+
+**Funzionalità CartSidebar** (`resources/js/pages/sales/components/CartSidebar.tsx`):
+- **Modifica Sconto Item**: Ogni item ha bottone Edit che apre dialog per modificare sconto % o € con calcolo real-time sincronizzato
+- **Dettagli Abbonamento**: Se item è subscription, mostra contenuti selezionati con durate (mesi/giorni) per verifica operatore
+- **Riepilogo IVA**: Box dedicato con breakdown per aliquota (Imponibile + IVA) per FatturaPA compliance
+- **Sconto Globale**: Visual feedback con box arancione se applicato sconto a livello vendita
+- **Totali**: Imponibile + IVA Totale + TOTALE in box evidenziato
+- **Validazione**: Bottone "Completa Vendita" disabilitato fino a quando non sono soddisfatti tutti i requisiti (cliente, prodotti, payment_condition, result)
+
+**Gestione Payment Conditions**:
+- Modello `PaymentCondition` ha relazione `installments()` con `PaymentInstallment`
+- **Automatico**: Se `installments.length > 0`, rate generate dal sistema (NON modificabili dall'operatore)
+- **Manuale**: Se `installments.length === 0`, operatore può aggiungere/modificare/eliminare rate manualmente
+- Logica implementata in `PaymentsSection.tsx` con stato `isAutomaticInstallments`
+
+**QuickProductSearch Autocomplete**:
+- Configurazione corretta: `value={null}`, `inputValue={searchValue}`, `filterOptions={(x) => x}` (filtro custom)
+- `isOptionEqualToValue={(option, value) => option.id === value.id}` per evitare warning
+- Formatting prezzo: `€ ${euros.toFixed(2).replace('.', ',')}` (NO divisione per 100)
+
+## Sistema Configurazioni - TenantSettings
+
+Il progetto utilizza un sistema flessibile **key-value** per gestire tutte le configurazioni a livello tenant.
+
+### Modello TenantSetting
+
+```php
+// Get setting con default value
+$chargeCustomer = TenantSetting::get('invoice.stamp_duty.charge_customer', true);
+
+// Set setting con auto-detection del tipo
+TenantSetting::set(
+    key: 'invoice.stamp_duty.charge_customer',
+    value: true,
+    group: 'invoice',
+    description: 'Se TRUE, imposta di bollo addebitata al cliente'
+);
+
+// Check esistenza
+if (TenantSetting::has('invoice.stamp_duty.threshold')) { ... }
+
+// Get tutte le impostazioni di un gruppo
+$invoiceSettings = TenantSetting::getGroup('invoice');
+
+// Delete setting
+TenantSetting::forget('invoice.stamp_duty.charge_customer');
+```
+
+**Caratteristiche**:
+- **Cache automatico**: 1 ora (3600s) per performance
+- **Type casting**: boolean, integer, decimal, json, string
+- **Scope tenant**: Automatico, ogni tenant ha le sue settings
+- **Convenzione naming**: `gruppo.sotto_gruppo.nome_setting` (snake_case)
+
+**Gruppi Standard**:
+- `invoice.*`: Impostazioni fatturazione elettronica
+- `general.*`: Impostazioni generali applicazione
+- `notifications.*`: Notifiche e comunicazioni
+
+### Imposta di Bollo (Marca da Bollo Virtuale)
+
+Sistema completo per gestione automatica imposta di bollo secondo normativa AdE.
+
+**Impostazioni Configurabili**:
+```php
+'invoice.stamp_duty.charge_customer' => true,    // Addebita al cliente o no
+'invoice.stamp_duty.amount' => 200,              // Importo in centesimi (2€)
+'invoice.stamp_duty.threshold' => 77.47,         // Soglia minima in euro
+```
+
+**Regole Applicazione** (Agenzia delle Entrate):
+- Totale fattura > 77,47€ (somma TUTTE le operazioni)
+- Almeno UNA riga con Nature esenti: N2.1, N2.2, N3.5, N3.6, N4
+- Importo fisso: 2€
+
+**Comportamento**:
+- **charge_customer = TRUE**: Bollo mostrato nel totale e addebitato al cliente
+- **charge_customer = FALSE**: Azienda si fa carico, NON mostrato al cliente
+- **XML FatturaPA**: Tag `<BolloVirtuale>SI</BolloVirtuale>` sempre presente se applicato
+
+**Campi Database (sales)**:
+- `stamp_duty_applied` (boolean): Indica se bollo è applicabile
+- `stamp_duty_amount` (integer/MoneyCast): Importo in centesimi
+
+**Calcolo Automatico**:
+Il metodo `SaleService::applyStampDuty()` calcola e applica automaticamente il bollo durante il salvataggio della vendita.
+
+**Sale Summary**:
+```php
+$summary = $sale->sale_summary;
+// Ritorna:
+[
+    'net_price' => 100.00,           // Imponibile
+    'total_tax' => 22.00,            // IVA totale
+    'gross_price' => 122.00,         // Lordo (senza bollo)
+    'stamp_duty_applied' => true,    // Se applicato
+    'stamp_duty_amount' => 2.00,     // Solo se charge_customer=true
+    'final_total' => 124.00,         // Totale finale (con bollo)
+]
+```
 
 ## Note Finali
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, Typography, Button, Chip, Box, Alert } from '@mui/material';
 import { router } from '@inertiajs/react';
-import { Download, Send, FileText, FilePdf } from 'lucide-react';
+import { Download, Send, FileText, FileType } from 'lucide-react';
 import { Sale, ElectronicInvoiceStatus } from '@/types';
 
 interface ElectronicInvoiceCardProps {
@@ -175,7 +175,7 @@ export default function ElectronicInvoiceCard({ sale, tenantId }: ElectronicInvo
               <Button
                 variant="outlined"
                 color="secondary"
-                startIcon={<FilePdf size={20} />}
+                startIcon={<FileType size={20} />}
                 href={route('app.sales.electronic-invoice.download-pdf', {
                   sale: sale.id,
                   tenant: tenantId

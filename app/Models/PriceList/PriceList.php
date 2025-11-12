@@ -58,8 +58,8 @@ class PriceList extends Model implements PriceListContract, VatRateable
         'description',
         'selling_description',
         'price',
-        'duration_months',
-        'duration_days',
+        'months_duration',
+        'days_duration',
         'is_renewable',
         'auto_renew_default',
         'validity_days',
@@ -98,8 +98,8 @@ class PriceList extends Model implements PriceListContract, VatRateable
         'vat_rate_id' => 'integer',
         'parent_id' => 'integer',
         'price' => 'integer',
-        'duration_months' => 'integer',
-        'duration_days' => 'integer',
+        'months_duration' => 'integer',
+        'days_duration' => 'integer',
         'is_renewable' => 'boolean',
         'auto_renew_default' => 'boolean',
         'validity_days' => 'integer',
@@ -180,17 +180,17 @@ class PriceList extends Model implements PriceListContract, VatRateable
     }
 
     // Subscription content relations (only used when type is SUBSCRIPTION)
-    public function standard_content()
-    {
-        return $this->hasMany(SubscriptionContent::class, 'subscription_id')
-            ->where('is_optional', false);
-    }
-
-    public function optional_content()
-    {
-        return $this->hasMany(SubscriptionContent::class, 'subscription_id')
-            ->where('is_optional', true);
-    }
+    //    public function standard_content()
+    //    {
+    //        return $this->hasMany(SubscriptionContent::class, 'subscription_id')
+    //            ->where('is_optional', false);
+    //    }
+    //
+    //    public function optional_content()
+    //    {
+    //        return $this->hasMany(SubscriptionContent::class, 'subscription_id')
+    //            ->where('is_optional', true);
+    //    }
 
     public function getActivitylogOptions(): LogOptions
     {

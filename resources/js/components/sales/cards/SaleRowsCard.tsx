@@ -13,29 +13,56 @@ interface SaleRowsCardProps {
 }
 
 const SaleRowsCard : React.FC<SaleRowsCardProps> = ({sale}) => {
+  // Usa vat_amount salvato dal backend per calcolare il prezzo lordo
+  // Questo garantisce che i prezzi mostrati siano esattamente quelli inseriti dall'utente
+  const getGrossPrice = (row: typeof sale.rows[0]) => {
+    const netPrice = row.unit_price_net;
+    const vatPerUnit = row.vat_amount / row.quantity;
+    return sale.tax_included ? netPrice + vatPerUnit : netPrice;
+  };
+
+  const getTotalGross = (row: typeof sale.rows[0]) => {
+    // Totale lordo = Netto + IVA esatta calcolata dal backend
+    return row.total_net + row.vat_amount;
+  };
+
   return (
-   <MyCard title="Prodotti e servizi">
-     <Table>
+   <MyCard title="Prodotti e Servizi">
+     <Table size="small">
        <TableHead>
          <TableRow>
-           <TableCell>Descrizione</TableCell>
-           <TableCell>Prezzo base</TableCell>
-           <TableCell>IVA (%)</TableCell>
-           <TableCell>Sconto %</TableCell>
-           <TableCell>Sconto ass.</TableCell>
-           <TableCell>Prezzo</TableCell>
+           <TableCell sx={{ fontWeight: 600 }}>Descrizione</TableCell>
+           <TableCell align="right" sx={{ fontWeight: 600 }}>Qta</TableCell>
+           <TableCell align="right" sx={{ fontWeight: 600 }}>
+             Prezzo {sale.tax_included ? 'Lordo' : 'Netto'}
+           </TableCell>
+           <TableCell align="right" sx={{ fontWeight: 600 }}>IVA %</TableCell>
+           <TableCell align="right" sx={{ fontWeight: 600 }}>Sconto %</TableCell>
+           <TableCell align="right" sx={{ fontWeight: 600 }}>Totale Netto</TableCell>
+           <TableCell align="right" sx={{ fontWeight: 600 }}>Totale Lordo</TableCell>
          </TableRow>
        </TableHead>
        <TableBody>
-         {sale.rows.map((saleContent, index) => (
+         {sale.rows.map((row, index) => (
            <React.Fragment key={index}>
-             <TableRow>
-               <TableCell>{saleContent.description}</TableCell>
-               <TableCell>{Str.EURO(saleContent.unit_price).format()}</TableCell>
-               <TableCell>{saleContent.price_list.type === ARTICLE || saleContent.price_list.type === MEMBERSHIP ? saleContent.price_list.vat_rate?.percentage : '0'}</TableCell>
-               <TableCell>{saleContent.percentage_discount}</TableCell>
-               <TableCell>{Str.EURO(saleContent.absolute_discount).format()}</TableCell>
-               <TableCell>{Str.EURO(saleContent.total).format()}</TableCell>
+             <TableRow hover>
+               <TableCell>{row.description}</TableCell>
+               <TableCell align="right">{row.quantity}</TableCell>
+               <TableCell align="right">
+                 {Str.EURO(getGrossPrice(row)).format()}
+               </TableCell>
+               <TableCell align="right">
+                 {row.vat_rate?.percentage ?? 0}%
+               </TableCell>
+               <TableCell align="right">
+                 {row.percentage_discount > 0 ? `${row.percentage_discount}%` : '-'}
+               </TableCell>
+               <TableCell align="right" sx={{ fontWeight: 500 }}>
+                 {Str.EURO(row.total_net).format()}
+               </TableCell>
+               <TableCell align="right" sx={{ fontWeight: 600, color: 'success.main' }}>
+                 {Str.EURO(getTotalGross(row)).format()}
+               </TableCell>
              </TableRow>
              {/*{saleContent.price_list.type === SUBSCRIPTION && saleContent.entitable && (*/}
              {/*  <TableRow>*/}

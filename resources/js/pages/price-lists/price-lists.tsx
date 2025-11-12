@@ -6,12 +6,11 @@ import {
   PageProps,
   BaseProduct,
   CourseProduct,
-  BookableService,
-  PriceList,
   AllPriceLists,
+  PriceList,
   PriceListFolder,
   PriceListArticle,
-  PriceListMembershipFee, PriceListSubscription, PriceListDayPass, PriceListToken, PriceListGiftCard, PriceListFolderTree, VatRate
+  PriceListMembershipFee, PriceListSubscription, PriceListDayPass, PriceListToken, PriceListGiftCard, PriceListFolderTree, AutocompleteOptions, BookableService
 } from '@/types';
 import AppLayout from '@/layouts/AppLayout';
 import { Box, Grid, Typography } from '@mui/material';
@@ -25,7 +24,6 @@ import TokenPriceListCard from '@/components/price-list/token/TokenPriceListCard
 import GiftCardPriceListCard from '@/components/price-list/gift-card/GiftCardPriceListCard';
 
 import LoyaltyOutlinedIcon from '@mui/icons-material/LoyaltyOutlined';
-import { useQueryParam } from '@/hooks/useQueryParam';
 
 export const FOLDER = 'folder';
 export const SUBSCRIPTION = 'subscription';
@@ -37,18 +35,18 @@ export const GIFT_CARD = 'gift_card';
 
 export interface PriceListPageProps extends PageProps {
   priceLists: Array<AllPriceLists>;
-  priceListOptions?: PriceList[];
+  priceListOptions?: AutocompleteOptions<number>;
   priceListOptionsTree?: Array<PriceListFolderTree>;
   priceList?: PriceListFolder | PriceListArticle | PriceListMembershipFee | PriceListSubscription | PriceListDayPass | PriceListToken | PriceListGiftCard;
-  vatRateOptions?: VatRate[];
+  vatRateOptions?: AutocompleteOptions<number>;
   articles?: Array<PriceListArticle>;
   baseProducts?: Array<BaseProduct>;
   courseProducts?: Array<CourseProduct>;
   bookableServices?: Array<BookableService>;
   membershipFees?: Array<PriceListMembershipFee>;
-  dayPasses?: Array<PriceListDayPass>;
   tokens?: Array<PriceListToken>;
   giftCards?: Array<PriceListGiftCard>;
+  dayPasses?: Array<PriceListDayPass>;
 }
 
 export default function PriceListPage(
@@ -61,7 +59,7 @@ export default function PriceListPage(
   }: PriceListPageProps) {
   const props = usePage<PageProps>().props;
 
-  const handleSelect = (priceList: PriceList) => {
+  const handleSelect = (priceList: AllPriceLists) => {
     switch (priceList.type) {
       case FOLDER:
         router.get(
@@ -120,13 +118,13 @@ export default function PriceListPage(
       <Head><title>Listini</title></Head>
 
       <Grid container spacing={2} sx={{ p: 2 }}>
-        <Grid size={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <PriceListListCard
             onSelect={handleSelect}
             canCreate={true}
           />
         </Grid>
-        <Grid size={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           {priceList?.type === FOLDER && (
             <FolderPriceListCard />
           )}
@@ -179,13 +177,7 @@ export default function PriceListPage(
             <Grid container spacing={2} sx={{ p: 2 , height: '70vh'}}>
               <Grid size={12} sx={{ textAlign: 'center', p: 2, color: '#666', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{
-                  //backgroundColor: "#888",
-                  //backgroundClip: "text",
-                  //"-webkit-background-clip": "text",
-                  //color: "transparent",
-                  //textShadow: "2px 3px 1px rgba(245, 245, 245, 0.5)",
                   color: '#888',
-                  //textShadow: '0px 1px 0px rgba(255,255,255,.3), 0px -1px 0px rgba(0,0,0,.7)'
                 }}>
                   <Typography variant="h5" gutterBottom mb={2} sx={{ fontWeight: 500 }}>
                     Benvenuto nella pagina dei listini!

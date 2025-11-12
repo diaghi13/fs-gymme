@@ -10,6 +10,7 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import StorageIcon from '@mui/icons-material/Storage';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import WorkIcon from '@mui/icons-material/Work';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 
 export const productType = {
   baseProduct: 'BASE_PRODUCT',
@@ -87,7 +88,7 @@ export const menuList = (tenant: string) => ([
       },
       {
         name: 'Effettuate',
-        href: '/sales'
+        href: route('app.sales.index', { tenant })
       }
     ]
   },
@@ -220,6 +221,11 @@ export const configurationMenuList = (tenant: string) => ([
     name: 'Risorse finanziarie',
     href: route('app.configurations.financial-resources', { tenant }),
     Icon: AccountBalanceIcon
+  },
+  {
+    name: 'Fatturazione',
+    href: route('app.configurations.invoice', { tenant }),
+    Icon: ReceiptIcon
   }
 
 ]);

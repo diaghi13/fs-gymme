@@ -17,6 +17,7 @@ class ElectronicInvoice extends Model
         'xml_version',
         'transmission_id',
         'transmission_format',
+        'external_id',
         'sdi_status',
         'sdi_status_updated_at',
         'sdi_receipt_xml',

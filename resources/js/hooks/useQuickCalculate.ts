@@ -2,25 +2,40 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { PageProps } from '@/types';
+import { array } from 'yup';
 
 interface QuickCalculateRow {
   unit_price: number;
   quantity: number;
   percentage_discount?: number | null;
   absolute_discount?: number | null;
-  vat_rate_percentage?: number | null;
+  vat_rate_percentage?: number | Array<number> | null;
+  vat_breakdown?: {
+    subtotal: number;
+    vat_rate: number;
+  }[];
 }
 
 interface QuickCalculateParams {
   rows: QuickCalculateRow[];
   sale_percentage_discount?: number | null;
   sale_absolute_discount?: number | null;
+  tax_included?: boolean;
 }
 
 interface QuickCalculateResult {
   subtotal: number;
   tax_total: number;
+  stamp_duty_applied: boolean;
+  stamp_duty_amount: number;
   total: number;
+  vat_breakdown?: Array<{
+    rate: number;
+    amount: number;
+    percentage: number;
+    taxable_amount: number;
+    tax_amount: number;
+  }>;
 }
 
 interface UseQuickCalculateReturn {
@@ -75,6 +90,10 @@ export function useQuickCalculate(debounceMs: number = 300): UseQuickCalculateRe
           params,
           { signal: abortController.current.signal }
         );
+
+        // console.log('Quick calculate params:', params );
+        // console.log('Route:', route('app.sales.quick-calculate', { tenant: currentTenantId }));
+        // console.log('Quick calculate response:', response.data );
 
         setResult(response.data);
       } catch (err: any) {

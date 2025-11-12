@@ -3,9 +3,10 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { Alert, Box, Grid, Tab, Typography } from '@mui/material';
 import AppLayout from '@/layouts/AppLayout';
 import {
+  AutocompleteOptions,
   CourseProduct,
   PageProps,
-  ProductListItem, ProductPlanning,
+  ProductListItem,
   VatRate
 } from '@/types';
 import ProductListCard from '@/components/products/ProductListCard';
@@ -31,7 +32,7 @@ export interface CourseProductPageProps extends PageProps {
   products: Array<ProductListItem>;
   product?: CourseProduct;
   vatRateOptions?: VatRate[];
-  planningOptions: ProductPlanning[];
+  planningOptions?: AutocompleteOptions<number>;
 }
 
 export default function CourseProductPage({ auth, products, product, currentTenantId, planningOptions }: CourseProductPageProps) {

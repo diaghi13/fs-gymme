@@ -79,7 +79,7 @@ export default function TokenValidityTab({ priceList }: TokenValidityTabProps) {
         {
           validity_days: values.validity_days,
           validity_months: values.validity_months,
-          settings: updatedSettings
+          settings: updatedSettings,
         },
         { preserveState: false }
       );
@@ -257,4 +257,3 @@ export default function TokenValidityTab({ priceList }: TokenValidityTabProps) {
     </Formik>
   );
 }
-

@@ -4,10 +4,9 @@ import MyCard from '@/components/ui/MyCard';
 import React, { useRef } from 'react';
 import {
   PageProps,
-  PriceList,
+  AutocompleteOptions,
   PriceListToken,
-  PriceListFolderTree,
-  VatRate
+  PriceListFolderTree
 } from '@/types';
 import { FormikProps } from 'formik';
 import SaleForm from '@/components/price-list/subscription/SaleForm';
@@ -19,9 +18,9 @@ import { usePage } from '@inertiajs/react';
 
 interface TokenPriceListCardProps {
   priceList: PriceListToken;
-  priceListOptions: PriceList[];
+  priceListOptions: AutocompleteOptions<number>;
   priceListOptionsTree: Array<PriceListFolderTree>;
-  vatRateOptions: VatRate[];
+  vatRateOptions: AutocompleteOptions<number>;
 }
 
 export default function TokenPriceListCard({
@@ -56,7 +55,7 @@ export default function TokenPriceListCard({
       bgColor={priceList.color}
       action={
         <PriceListCardActions
-          //priceListId={priceList.id}
+          //ppriceListId={priceList.id}
           priceListType={priceList.type}
           tenantId={currentTenantId}
           onUndo={handleUndo}

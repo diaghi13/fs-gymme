@@ -30,7 +30,7 @@ export default function PaymentRowItem({ index, payment }: PaymentRowItemProps) 
       </ListItemText>
       <ListItemText>
         {`${
-          paymentMethodOptions.find(p => p.value === payment.payment_method.value)
+          paymentMethodOptions.find(p => p.value === payment.payment_method.id)
             ?.label
         } - €${parseFloat(String(payment.amount === "" ? 0 : payment.amount)).toFixed(2).replace('.', ',')}`}
       </ListItemText>

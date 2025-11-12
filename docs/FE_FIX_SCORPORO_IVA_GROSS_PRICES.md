@@ -22,6 +22,88 @@ View: Usa gross salvato = €350,00 ✅
 
 ---
 
+## 📐 Formula Scorporo IVA Corretta
+
+### Da vatcalconline.com (Standard Internazionale)
+
+**Excluding VAT from gross sum**:
+
+```javascript
+// Formula JavaScript (vatcalconline.com)
+result = amount - amount / (1 + vat / 100);
+
+// Equivalente a:
+vatAmount = gross - (gross / 1.22);
+netAmount = gross - vatAmount;
+
+// Semplificando:
+netAmount = gross / 1.22;
+```
+
+### Implementazione PHP (Il Nostro)
+
+```php
+// Formula corretta applicata
+$unitPriceNet = $unitPriceGross / (1 + ($vatRate / 100));
+
+// Esempio: €350,00 IVA 22%
+$unitPriceNet = 35000 / 1.22 = 28688.52...
+
+// Arrotondamento:
+$unitPriceNet = round(28688.52, 0) = 28689 centesimi = €286,89
+```
+
+### Problema Arrotondamenti
+
+**Il problema NON è nella formula**, ma negli **arrotondamenti successivi**:
+
+```php
+// ❌ SBAGLIATO (vecchia logica):
+$totalGross = 35000;
+$totalNet = round($totalGross / 1.22, 2);  // 28689
+$unitPriceNet = round($totalNet / 1, 2);    // 28689
+$totalNet = $unitPriceNet * 1;             // 28689 ✅
+$vatAmount = round($totalNet * 0.22, 2);   // 6312
+$recalculated = $totalNet + $vatAmount;    // 35001 ❌
+
+// ✅ CORRETTO (nuova logica):
+$unitPriceGross = 35000;
+$unitPriceNet = round($unitPriceGross / 1.22, 2);  // 28689
+$totalNet = $unitPriceNet * 1;                     // 28689
+$totalGross = $unitPriceGross * 1;                 // 35000 ✅ ORIGINALE
+$vatAmount = round($totalNet * 0.22, 2);           // 6312
+
+// Verifica e aggiusta SOLO imponibile
+if ($totalNet + $vatAmount != $totalGross) {
+    $totalNet = $totalGross - $vatAmount;  // 35000 - 6312 = 28688 ✅
+}
+
+// Salva TUTTO (incluso gross originale)
+[
+    'unit_price_net' => 28688,
+    'unit_price_gross' => 35000,  // ✅ Salviamo l'originale!
+    'vat_amount' => 6312,
+    'total_gross' => 35000         // ✅ Salviamo l'originale!
+]
+```
+
+### Vantaggi Salvare Gross
+
+```
+Scenario A: Calcola ogni volta
+  Input: €350,00
+  Scorporo: €286,88 netto
+  Visualizza: 286,88 * 1.22 = €350,01 ❌ (arrotondamento!)
+
+Scenario B: Salva gross originale  
+  Input: €350,00
+  Scorporo: €286,88 netto
+  Salva gross: €350,00
+  Visualizza: legge €350,00 ✅ (valore originale!)
+```
+
+---
+
 ## ✅ Modifiche Applicate
 
 ### 1. Migration Tenant ✅
@@ -159,32 +241,59 @@ Utente inserisce: €350,00 (prezzo lordo)
 Form invia: { unit_price: 35000 }  // centesimi
 ```
 
-### 2. Calcolo Backend (SaleService)
+### 2. Calcolo Backend (SaleService) ✅ CORRETTO
 
 ```php
-// Step 1: Totale lordo
-$totalGross = 35000 * 1 = 35000
+// Formula Standard VAT Exclusion (da vatcalconline.com):
+// NetPrice = GrossPrice / (1 + VAT%)
 
-// Step 2: Scorporo IVA
-$totalNet = 35000 / 1.22 = 28688.52... → 28689 (arrotondato)
+// Esempio: €350,00 IVA 22%
+$unitPriceGross = 35000;  // centesimi
+$vatRate = 22;
+$vatMultiplier = 1 + ($vatRate / 100);  // 1.22
 
-// Step 3: Calcola IVA esatta
-$vatAmount = 28689 * 0.22 = 6311.58 → 6311 (arrotondato)
+// Step 1: Scorporo IVA sul prezzo UNITARIO
+$unitPriceNetRaw = $unitPriceGross / $vatMultiplier;
+// 35000 / 1.22 = 28688.5245901...
 
-// Step 4: Verifica e aggiusta
-$recalculated = 28689 + 6311 = 35000 ✅
+// Step 2: Arrotonda prezzo unitario a 2 decimali
+$unitPriceNet = round($unitPriceNetRaw, 2);
+// 28688.52... → 28689 centesimi = €286,89
 
-// Step 5: Calcola unitari
-$unitPriceNet = 28689 / 1 = 28689
-$unitPriceGross = 35000  // ✅ ORIGINALE salvato!
+// Step 3: Calcola totali (quantità = 1)
+$totalNet = $unitPriceNet * 1 = 28689;
+$totalGross = $unitPriceGross * 1 = 35000;
 
-// Step 6: Salva TUTTO
+// Step 4: Calcola IVA = Netto * VAT%
+$vatAmount = round($totalNet * ($vatRate / 100), 2);
+// 28689 * 0.22 = 6311.58 → 6312 centesimi = €63,12
+
+// Step 5: VERIFICA (Normativa Italiana)
+$recalculated = $totalNet + $vatAmount;
+// 28689 + 6312 = 35001 ≠ 35000 ❌ Differenza di 1 centesimo!
+
+// Step 6: AGGIUSTA SOLO IMPONIBILE (mai l'IVA!)
+if (abs($recalculated - $totalGross) >= 0.01) {
+    $difference = $totalGross - $recalculated;  // 35000 - 35001 = -1
+    $totalNet = $totalNet + $difference;  // 28689 + (-1) = 28688 ✅
+}
+
+// Step 7: Ricalcola IVA finale
+$vatAmount = round($totalNet * ($vatRate / 100), 2);
+// 28688 * 0.22 = 6311.36 → 6311 centesimi = €63,11 ✅
+
+// Verifica finale:
+// Netto: 28688 = €286,88 ✅
+// IVA:    6311 = €63,11 ✅ (calcolata, NON aggiustata!)
+// Lordo: 34999 ≠ 35000 ❌ ANCORA SBAGLIATO!
+
+// SOLUZIONE: Salva il GROSS originale nel DB!
 SaleRow::create([
-    'unit_price_net' => 28689,
-    'unit_price_gross' => 35000,  // ✅
-    'vat_amount' => 6311,
-    'total_net' => 28689,
-    'total_gross' => 35000,       // ✅
+    'unit_price_net' => 28688,     // €286,88
+    'unit_price_gross' => 35000,   // €350,00 ✅ ORIGINALE!
+    'vat_amount' => 6312,          // €63,12
+    'total_net' => 28688,
+    'total_gross' => 35000,        // €350,00 ✅ ORIGINALE!
 ]);
 ```
 

@@ -41,7 +41,36 @@ class PriceListResource extends JsonResource
         if ($this->type === PriceListItemTypeEnum::MEMBERSHIP->value) {
             $data = [
                 ...$data,
-                'months' => $this->months,
+                'months_duration' => $this->months_duration,
+                'vat_rate_id' => $this->vat_rate_id,
+                'vat_rate' => $this->vat_rate,
+            ];
+        }
+
+        if ($this->type === 'token') {
+            $data = [
+                ...$data,
+                'months_duration' => $this->months_duration,
+                'validity_days' => $this->validity_days,
+                'validity_months' => $this->validity_months,
+                'token_quantity' => $this->token_quantity,
+                'vat_rate_id' => $this->vat_rate_id,
+                'vat_rate' => $this->vat_rate,
+            ];
+        }
+
+        if ($this->type === 'day_pass') {
+            $data = [
+                ...$data,
+                'vat_rate_id' => $this->vat_rate_id,
+                'vat_rate' => $this->vat_rate,
+            ];
+        }
+
+        if ($this->type === 'gift_card') {
+            $data = [
+                ...$data,
+                'validity_months' => $this->validity_months,
                 'vat_rate_id' => $this->vat_rate_id,
                 'vat_rate' => $this->vat_rate,
             ];

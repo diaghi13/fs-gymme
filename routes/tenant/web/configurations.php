@@ -1,11 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['web', 'auth'])->prefix('/configurations')->group(function() {
+Route::middleware(['web', 'auth'])->prefix('/configurations')->group(function () {
 
-    Route::get('/', function(\Illuminate\Http\Request $request) {
+    Route::get('/', function (\Illuminate\Http\Request $request) {
         $currentTenantId = $request->session()->get('current_tenant_id');
 
         return redirect()->route('app.configurations.company', [
@@ -15,22 +14,22 @@ Route::middleware(['web', 'auth'])->prefix('/configurations')->group(function() 
 
     Route::get('/company', [
         \App\Http\Controllers\Application\Configurations\CompanyConfigurationController::class,
-        'show'
+        'show',
     ])->name('app.configurations.company');
 
     Route::patch('/company', [
         \App\Http\Controllers\Application\Configurations\CompanyConfigurationController::class,
-        'update'
+        'update',
     ])->name('app.configurations.company');
 
     Route::get('/structure', [
         \App\Http\Controllers\Application\Configurations\StructureConfigurationController::class,
-        'show'
+        'show',
     ])->name('app.configurations.structure');
 
     Route::patch('/structure', [
         \App\Http\Controllers\Application\Configurations\StructureConfigurationController::class,
-        'update'
+        'update',
     ])->name('app.configurations.structure');
 
     Route::resource('/financial-resources', \App\Http\Controllers\Application\Configurations\FinancialResourceConfigurationController::class)
@@ -40,7 +39,7 @@ Route::middleware(['web', 'auth'])->prefix('/configurations')->group(function() 
             'create' => 'app.configurations.financial-resources.create',
             'store' => 'app.configurations.financial-resources.store',
             'show' => 'app.configurations.financial-resources.show',
-            'update' => 'app.configurations.financial-resources.update'
+            'update' => 'app.configurations.financial-resources.update',
         ]);
 
     Route::match(['put', 'patch'], '/financial-resources/set-default/{financial_resource}', \App\Http\Controllers\Application\Configurations\FinancialResourcesSetDefaultController::class)
@@ -48,5 +47,15 @@ Route::middleware(['web', 'auth'])->prefix('/configurations')->group(function() 
 
     Route::match(['put', 'patch'], '/financial-resources/toggle-active/{financial_resource}', \App\Http\Controllers\Application\Configurations\FinancialResourcesToggleActiveController::class)
         ->name('app.configurations.financial-resources.toggle-active');
+
+    Route::get('/invoice', [
+        \App\Http\Controllers\Application\Configurations\InvoiceConfigurationController::class,
+        'show',
+    ])->name('app.configurations.invoice');
+
+    Route::patch('/invoice', [
+        \App\Http\Controllers\Application\Configurations\InvoiceConfigurationController::class,
+        'update',
+    ])->name('app.configurations.invoice.update');
 
 });

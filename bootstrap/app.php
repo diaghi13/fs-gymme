@@ -39,14 +39,23 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->prefix('/api/v1')
                 ->group(base_path('routes/tenant/api/routes.php'));
 
+            // Webhook routes (no auth, no tenant middleware)
+            Route::middleware('api')
+                ->prefix('/webhooks')
+                ->group(base_path('routes/webhooks.php'));
+
             //        web: __DIR__.'/../routes/web.php',
             //        api: __DIR__.'/../routes/api.php',
             //        commands: __DIR__.'/../routes/console.php',
             //        health: '/up',
             //        apiPrefix: '/api/v1',
         })
-//    )
     ->withMiddleware(function (Middleware $middleware) {
+        // Add global middleware to serve static assets first - must be the very first middleware
+        $middleware->use([
+            \App\Http\Middleware\ServeStaticAssets::class,
+        ]);
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'current_structure_id']);
 
         $middleware->validateCsrfTokens(except: [

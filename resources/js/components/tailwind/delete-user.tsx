@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+/* TEMPORARILY DISABLED - Missing UI components
 import { FormEventHandler, useRef } from 'react';
 
 import InputError from '@/components/input-error';
@@ -85,5 +85,7 @@ export default function DeleteUser() {
                 </Dialog>
             </div>
         </div>
-    );
+        </form>
 }
+
+*/

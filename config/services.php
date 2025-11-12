@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'fattura_elettronica_api' => [
+        'enabled' => env('FE_API_ENABLED', false),
+        'api_key' => env('FE_API_KEY'),
+        'username' => env('FE_API_USERNAME'),
+        'password' => env('FE_API_PASSWORD'),
+        'endpoint_test' => env('FE_ENDPOINT_TEST', 'https://fattura-elettronica-api.it/ws2.0/test'),
+        'endpoint_prod' => env('FE_ENDPOINT_PROD', 'https://fattura-elettronica-api.it/ws2.0/prod'),
+        'webhook_token' => env('FE_API_WEBHOOK_TOKEN'),
+        'sandbox' => env('FE_API_SANDBOX', true),
+    ],
+
 ];

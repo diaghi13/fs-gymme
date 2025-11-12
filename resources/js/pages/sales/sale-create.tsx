@@ -1,6 +1,6 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
-import { Box, Grid } from '@mui/material';
+import { Head, router } from '@inertiajs/react';
+import { Box } from '@mui/material';
 import AppLayout from '@/layouts/AppLayout';
 import { Form, Formik, FormikConfig } from 'formik';
 import * as Yup from 'yup';
@@ -27,6 +27,7 @@ const validationSchema = Yup.object().shape({
   customer: Yup.object().required('Cliente obbligatorio'),
   sale_contents: Yup.array().min(1, 'Aggiungi almeno un prodotto'),
   payment_condition: Yup.object().required('Condizione di pagamento obbligatoria'),
+  financial_resource: Yup.object().required('Risorsa finanziaria obbligatoria'),
 });
 
 export interface SaleFormValues {
@@ -47,6 +48,7 @@ export interface SaleFormValues {
   accounting_status: string;
   exported_status: string;
   currency: string;
+  tax_included: boolean;
   notes: string;
   sale_contents: SaleRowFormValues[];
   payments: SaleInstallmentFormValues[];
@@ -72,10 +74,11 @@ export default function SaleCreate({
   paymentConditions,
   financialResources,
   documentTypeElectronicInvoices,
+  currentTenantId,
 }: SalePageProps) {
   const formik: FormikConfig<SaleFormValues> = {
     initialValues: {
-      progressive_number: sale?.progressive_number ?? '0001',
+      progressive_number: sale.progressive_number, // Usa sempre il progressivo generato dal backend
       description: '',
       date: new Date(sale?.date ?? new Date()),
       year: sale.year ?? new Date().getFullYear(),
@@ -91,14 +94,59 @@ export default function SaleCreate({
       accounting_status: 'not_accounted',
       exported_status: 'not_exported',
       currency: 'EUR',
+      tax_included: true, // Default: prezzi IVA inclusa (standard Italia)
       notes: '',
       sale_contents: [],
       payments: [],
     },
     validationSchema,
     onSubmit: (values) => {
-      console.log('Submit sale:', values);
-      // TODO: Implement save logic
+      // Transform frontend data to backend format
+      const saleRows = values.sale_contents.map((content) => ({
+        price_list_id: content.price_list.id,
+        quantity: content.quantity,
+        unit_price: content.unit_price,
+        percentage_discount: content.percentage_discount,
+        absolute_discount: content.absolute_discount,
+        start_date: content.start_date ? new Date(content.start_date).toISOString().split('T')[0] : null,
+        subscription_selected_content: content.subscription_selected_content?.map((sc) => ({
+          id: sc.id,
+        })) ?? null,
+      }));
+
+      const payments = values.payments.map((payment) => ({
+        due_date: payment.due_date ? new Date(payment.due_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        amount: payment.amount,
+        payment_method_id: payment.payment_method.id,
+        payed_at: payment.payed_at ? new Date(payment.payed_at).toISOString().split('T')[0] : null,
+      }));
+
+      const data = {
+        document_type_id: values.document_type?.id,
+        progressive_number: values.progressive_number,
+        date: new Date(values.date).toISOString().split('T')[0],
+        year: values.year,
+        customer_id: values.customer?.id,
+        payment_condition_id: values.payment_condition?.id,
+        financial_resource_id: values.financial_resource?.id,
+        promotion_id: values.promotion?.id ?? null,
+        discount_percentage: values.discount_percentage,
+        discount_absolute: values.discount_absolute,
+        status: values.status,
+        tax_included: values.tax_included,
+        notes: values.notes,
+        sale_rows: saleRows,
+        payments: payments,
+      };
+
+      router.post(route('app.sales.store', { tenant: currentTenantId }), data, {
+        onSuccess: () => {
+          console.log('Sale created successfully');
+        },
+        onError: (errors) => {
+          console.error('Error creating sale:', errors);
+        },
+      });
     },
   };
 
@@ -162,6 +210,8 @@ export default function SaleCreate({
                     <Box
                       sx={{
                         width: 400,
+                        minWidth: 400,
+                        flexShrink: 0,
                         borderLeft: 1,
                         borderColor: 'divider',
                         bgcolor: 'background.paper',

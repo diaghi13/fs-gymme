@@ -50,6 +50,7 @@ export default function() {
       rows,
       sale_percentage_discount: values.discount_percentage || null,
       sale_absolute_discount: values.discount_absolute || 0,
+      tax_included: values.tax_included,
     });
   }, [values.sale_contents, values.discount_percentage, values.discount_absolute, calculate]);
 
@@ -123,6 +124,12 @@ export default function() {
                     <Typography fontWeight={600} variant="body2" color="text.secondary">
                       IVA: € {formatCurrency(result.tax_total)}
                     </Typography>
+                    {/* Stamp Duty (Imposta di Bollo) - shown only if applied and charged to customer */}
+                    {result.stamp_duty_applied && result.stamp_duty_amount > 0 && (
+                      <Typography fontWeight={600} variant="body2" color="info.main">
+                        Imposta di Bollo: € {formatCurrency(result.stamp_duty_amount)}
+                      </Typography>
+                    )}
                     <Divider sx={{ width: '100%', my: 0.5 }} />
                     <Typography fontWeight={800} variant="h6" color="primary.main">
                       TOTALE: € {formatCurrency(result.total)}

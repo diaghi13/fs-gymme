@@ -21,26 +21,35 @@ export default function ProductSearch() {
   const [membershipFeeModalOpen, setMembershipFeeModalOpen] = useState<boolean>(false);
 
   const handleSelect = async (priceList: Exclude<AllPriceLists, PriceListFolder>) => {
-    const response = await axios.get(route('api.v1.price-lists.show', { priceList: priceList.id }));
-    const resData = response.data.data as Exclude<AllPriceLists, PriceListFolder>;
+    try {
+      const response = await axios.get(route('api.v1.price-lists.show', { priceList: priceList.id }));
+      const resData = response.data.data;
 
-    if (resData.type === SUBSCRIPTION) {
-      console.log('Subscription data received:', resData);
-      console.log('Standard content:', resData.standard_content);
-      console.log('Optional content:', resData.optional_content);
-      setSubscription(resData);
-      setSubscriptionModalOpen(true);
-      return;
+      if (!resData || !resData.type) {
+        console.error('Invalid API response:', response.data);
+        return;
+      }
+
+      if (resData.type === SUBSCRIPTION) {
+        // console.log('Subscription data received:', resData);
+        // console.log('Standard content:', resData.standard_content);
+        // console.log('Optional content:', resData.optional_content);
+        setSubscription(resData);
+        setSubscriptionModalOpen(true);
+        return;
+      }
+
+      if (resData.type === MEMBERSHIP) {
+        setMembershipFee(resData);
+        setMembershipFeeModalOpen(true);
+        return;
+      }
+
+      const cartItem = createCartItem(resData);
+      await setFieldValue('sale_contents', [...values.sale_contents, cartItem]);
+    } catch (error) {
+      console.error('Error loading price list:', error);
     }
-
-    if (resData.type === MEMBERSHIP) {
-      setMembershipFee(resData);
-      setMembershipFeeModalOpen(true);
-      return;
-    }
-
-    const cartItem = createCartItem(resData);
-    await setFieldValue('sale_contents', [...values.sale_contents, cartItem]);
   };
 
   const handleAdd = async (item: SaleRowFormValues | SaleRowFormValues[] | undefined) => {

@@ -183,7 +183,7 @@ const ExtraFormRow: React.FC<ExtraExpandableFormRowProps> = ({ index, content })
                       label="Tipo Validità"
                       name={`${content}[${index}].validity_type`}
                       value={contentValue.validity_type ?? 'duration'}
-                      onChange={(e) => setFieldValue(`${content}[${index}].validity_type`, e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFieldValue(`${content}[${index}].validity_type`, e.target.value)}
                     >
                       <MenuItem value="duration">Durata</MenuItem>
                       <MenuItem value="fixed_date">Data Fissa</MenuItem>

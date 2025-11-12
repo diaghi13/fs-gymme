@@ -35,16 +35,16 @@ export default function AvailabilityTab({ service, onDismiss }: AvailabilityTabP
     return slots.map(slot => ({
       day: slot.day,
       start_time: slot.start_time
-        ? new Date().setHours(
+        ? new Date(new Date().setHours(
             Number(slot.start_time.split(':')[0]),
             Number(slot.start_time.split(':')[1])
-          )
+          ))
         : null,
       end_time: slot.end_time
-        ? new Date().setHours(
+        ? new Date(new Date().setHours(
             Number(slot.end_time.split(':')[0]),
             Number(slot.end_time.split(':')[1])
-          )
+          ))
         : null,
       max_bookings: slot.max_bookings || 1,
     }));
@@ -66,17 +66,17 @@ export default function AvailabilityTab({ service, onDismiss }: AvailabilityTabP
     initialValues: {
       available_days: availabilitySettings.available_days || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
       default_start_time: availabilitySettings.default_start_time
-        ? new Date().setHours(
+        ? new Date(new Date().setHours(
             Number(availabilitySettings.default_start_time.split(':')[0]),
             Number(availabilitySettings.default_start_time.split(':')[1])
-          )
-        : new Date().setHours(9, 0),
+          ))
+        : new Date(new Date().setHours(9, 0)),
       default_end_time: availabilitySettings.default_end_time
-        ? new Date().setHours(
+        ? new Date(new Date().setHours(
             Number(availabilitySettings.default_end_time.split(':')[0]),
             Number(availabilitySettings.default_end_time.split(':')[1])
-          )
-        : new Date().setHours(20, 0),
+          ))
+        : new Date(new Date().setHours(20, 0)),
       slot_duration_minutes: availabilitySettings.slot_duration_minutes || 60,
       max_concurrent_bookings: availabilitySettings.max_concurrent_bookings || 1,
       time_slots: timeSlots.length > 0 ? parseTimeSlots(timeSlots) : [],

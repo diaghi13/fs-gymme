@@ -28,16 +28,22 @@ const fillPlanning = (planning: ProductPlanning) => {
     planning_id: planning.id,
     from_date: new Date(planning.from_date),
     to_date: new Date(planning.to_date),
-    details: planning.details?.map(detail => ({
-      day: scheduleOptions.find(option => option.value === String(detail.day)),
-      time: new Date().setHours(
+    details: planning.details?.map(detail => {
+      const dayOption = scheduleOptions.find(option => option.value === String(detail.day));
+      const timeDate = new Date();
+      timeDate.setHours(
         Number((detail.time as string).split(':')[0]),
         Number((detail.time as string).split(':')[1])
-      ),
-      duration_in_minutes: detail.duration_in_minutes,
-      instructor_id: detail.instructor_id?.toString() || '',
-      room_id: detail.room_id?.toString() || ''
-    })) || []
+      );
+
+      return {
+        day: dayOption || { value: '', label: '' },
+        time: timeDate,
+        duration_in_minutes: detail.duration_in_minutes,
+        instructor_id: detail.instructor_id?.toString() || '',
+        room_id: detail.room_id?.toString() || ''
+      };
+    }) || []
   };
 };
 

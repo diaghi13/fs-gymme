@@ -24,7 +24,9 @@ import MoneyTextField from '@/components/ui/MoneyTextField';
 import PaymentIcon from '@mui/icons-material/Payment';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { addDays, endOfMonth, format } from 'date-fns';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import { addDays, endOfMonth } from 'date-fns';
 import axios from 'axios';
 import currency from 'currency.js';
 import { useQuickCalculate } from '@/hooks/useQuickCalculate';
@@ -40,26 +42,100 @@ export default function PaymentsSection({
   paymentMethods,
   financialResources,
 }: PaymentsSectionProps) {
-  const { values, setFieldValue } = useFormikContext<SaleFormValues>();
+  const { values, setFieldValue, validateForm } = useFormikContext<SaleFormValues>();
+  const { result: quickCalcResult, calculate: quickCalculate } = useQuickCalculate(300);
   const [availableFinancialResources, setAvailableFinancialResources] = useState<FinancialResource[]>([]);
-  const [isAutomaticInstallments, setIsAutomaticInstallments] = useState(false);
-  const { result: calculatedTotals } = useQuickCalculate(0);
+  const [hasInstallmentsSuggestion, setHasInstallmentsSuggestion] = useState(false);
+  const [installmentsLocked, setInstallmentsLocked] = useState(false);
+  const [calculatingInstallments, setCalculatingInstallments] = useState(false);
+
+  // Trigger calculation when cart or discounts change to keep quickCalcResult updated
+  useEffect(() => {
+    if (values.sale_contents.length === 0) {
+      return;
+    }
+
+    const rows = values.sale_contents.map((content) => ({
+      unit_price: content.unit_price || 0,
+      quantity: content.quantity || 1,
+      percentage_discount: content.percentage_discount || null,
+      absolute_discount: content.absolute_discount || 0,
+      vat_rate_percentage: content.price_list?.vat_rate?.percentage || content.subscription_selected_content?.map(selected_content => selected_content.vat_rate.percentage) || null,
+      vat_breakdown: content.subscription_selected_content?.map(selected_content => ({
+        subtotal: selected_content.price,
+        vat_rate: selected_content.vat_rate.percentage,
+      })) || undefined,
+    }));
+
+    quickCalculate({
+      rows,
+      sale_percentage_discount: values.discount_percentage || null,
+      sale_absolute_discount: values.discount_absolute || 0,
+      tax_included: values.tax_included,
+    });
+  }, [values.sale_contents, values.discount_percentage, values.discount_absolute, values.tax_included, quickCalculate]);
+
+  // Calculate total from cart with discounts INCLUDING stamp duty
+  const calculateTotal = useCallback(() => {
+    // Use quickCalcResult if available (includes stamp duty)
+    if (quickCalcResult) {
+      return quickCalcResult.total;
+    }
+
+    // Fallback calculation (shouldn't happen often)
+    if (values.sale_contents.length === 0) return 0;
+
+    const rows = values.sale_contents.map((content) => ({
+      unit_price: content.unit_price || 0,
+      quantity: content.quantity || 1,
+      percentage_discount: content.percentage_discount || null,
+      absolute_discount: content.absolute_discount || 0,
+      vat_rate_percentage: content.price_list?.vat_rate?.percentage || null,
+    }));
+
+    // Calculate subtotal after item discounts
+    let subtotal = 0;
+    rows.forEach((row) => {
+      const lineTotal = row.unit_price * row.quantity;
+      const discount = row.percentage_discount ? lineTotal * (row.percentage_discount / 100) : row.absolute_discount;
+      subtotal += lineTotal - discount;
+    });
+
+    // Apply sale-level discount
+    if (values.discount_percentage) {
+      subtotal -= subtotal * (values.discount_percentage / 100);
+    }
+    if (values.discount_absolute) {
+      subtotal -= values.discount_absolute;
+    }
+
+    return subtotal;
+  }, [quickCalcResult, values.sale_contents, values.discount_percentage, values.discount_absolute]);
 
   const getPaymentConditionData = useCallback(
     async (id: number) => {
-      const response = await axios.get(route('api.v1.payment-conditions.show', { paymentCondition: id }));
-      const resData: PaymentCondition = await response.data;
+      setCalculatingInstallments(true);
+      try {
+        const response = await axios.get(route('api.v1.payment-conditions.show', { paymentCondition: id }));
+        const resData: PaymentCondition = await response.data;
 
-      // Set available financial resources
-      setAvailableFinancialResources(financialResources);
-      await setFieldValue('financial_resource', financialResources.find((f) => f.default) || null);
+        // Set available financial resources
+        setAvailableFinancialResources(financialResources);
+        const defaultFinancialResource = financialResources.find((f) => f.default) || null;
+        await setFieldValue('financial_resource', defaultFinancialResource);
 
-      const totalAmount = calculatedTotals?.total || 0;
+        // Trigger full form validation to update isValid and enable submit button
+        if (defaultFinancialResource) {
+          await validateForm();
+        }
 
-      // Check if payment condition has installments (automatic)
+        const totalAmount = calculateTotal();
+
+      // Check if payment condition has installments suggestion
       if (!resData.installments || resData.installments.length === 0) {
-        // No installments - manual mode, create single payment
-        setIsAutomaticInstallments(false);
+        // No installments suggestion - fully manual mode
+        setHasInstallmentsSuggestion(false);
+        setInstallmentsLocked(false);
         await setFieldValue('payments', [
           {
             due_date: new Date(),
@@ -71,8 +147,9 @@ export default function PaymentsSection({
         return;
       }
 
-      // Has installments - automatic mode
-      setIsAutomaticInstallments(true);
+      // Has installments suggestion - generate them but allow unlock
+      setHasInstallmentsSuggestion(true);
+      setInstallmentsLocked(true); // Start locked, user can unlock
       const dividedAmount = currency(totalAmount).distribute(resData.installments.length);
 
       const payments = resData.installments.map((installment, index) => {
@@ -88,9 +165,12 @@ export default function PaymentsSection({
         };
       });
 
-      await setFieldValue('payments', payments);
+        await setFieldValue('payments', payments);
+      } finally {
+        setCalculatingInstallments(false);
+      }
     },
-    [financialResources, setFieldValue, calculatedTotals, paymentMethods]
+    [financialResources, setFieldValue, validateForm, calculateTotal, paymentMethods]
   );
 
   const handlePaymentConditionChange = async (_: SyntheticEvent<Element, Event>, value: PaymentCondition | null) => {
@@ -99,7 +179,8 @@ export default function PaymentsSection({
       await setFieldValue('payments', []);
       await setFieldValue('financial_resource', null);
       setAvailableFinancialResources([]);
-      setIsAutomaticInstallments(false);
+      setHasInstallmentsSuggestion(false);
+      setInstallmentsLocked(false);
       return;
     }
 
@@ -109,9 +190,7 @@ export default function PaymentsSection({
 
   // Quick installments generation for manual mode
   const handleQuickInstallments = async (count: number, daysBetween: number = 30) => {
-    if (isAutomaticInstallments) return;
-
-    const totalAmount = calculatedTotals?.total || 0;
+    const totalAmount = calculateTotal();
     const dividedAmount = currency(totalAmount).distribute(count);
 
     const payments = Array.from({ length: count }, (_, i) => ({
@@ -122,6 +201,16 @@ export default function PaymentsSection({
     }));
 
     await setFieldValue('payments', payments);
+
+    // Unlock if it was locked (user is customizing)
+    if (installmentsLocked) {
+      setInstallmentsLocked(false);
+    }
+  };
+
+  // Toggle lock/unlock for installments
+  const toggleInstallmentsLock = () => {
+    setInstallmentsLocked(!installmentsLocked);
   };
 
   return (
@@ -135,6 +224,19 @@ export default function PaymentsSection({
       </Typography>
 
       <Grid container spacing={2}>
+        {/* Info Alert */}
+        <Grid size={12}>
+          <Alert severity="info" sx={{ mb: 1 }}>
+            <Typography variant="body2">
+              <strong>Condizione di pagamento</strong> e <strong>Risorsa finanziaria</strong> sono obbligatorie.
+              La risorsa finanziaria verrà selezionata automaticamente quando scegli una condizione di pagamento.
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+              Configura le risorse finanziarie in: Configurazioni → Risorse Finanziarie
+            </Typography>
+          </Alert>
+        </Grid>
+
         {/* Payment Condition (required) */}
         <Grid size={12}>
           <Autocomplete<PaymentCondition>
@@ -144,14 +246,27 @@ export default function PaymentsSection({
             onChange={handlePaymentConditionChange}
             getOptionLabel={(option) => option.description}
             isOptionEqualToValue={(option, value) => option.id === value.id}
+            disabled={calculatingInstallments}
           />
         </Grid>
+
+        {/* Loading Indicator */}
+        {calculatingInstallments && (
+          <Grid size={12}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', py: 2 }}>
+              <CircularProgress size={20} />
+              <Typography variant="body2" color="text.secondary">
+                Calcolo rate in corso...
+              </Typography>
+            </Box>
+          </Grid>
+        )}
 
         {/* Financial Resource */}
         <Grid size={6}>
           <Autocomplete<FinancialResource>
             name="financial_resource"
-            label="Risorsa Finanziaria"
+            label="Risorsa Finanziaria *"
             options={availableFinancialResources}
             getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -159,27 +274,41 @@ export default function PaymentsSection({
           />
         </Grid>
 
-        {/* Quick Actions for Manual Mode */}
-        {values.payment_condition && !isAutomaticInstallments && (
+        {/* Quick Actions - Always show when payment condition selected */}
+        {values.payment_condition && (
           <Grid size={12}>
             <Box sx={{ p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Azioni rapide:
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, gap: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Azioni rapide:
+                </Typography>
+                {hasInstallmentsSuggestion && (
+                  <Button
+                    variant="text"
+                    size="small"
+                    startIcon={installmentsLocked ? <LockIcon /> : <LockOpenIcon />}
+                    onClick={toggleInstallmentsLock}
+                    color={installmentsLocked ? 'warning' : 'success'}
+                    sx={{ flexShrink: 0, minWidth: 'auto', px: 1 }}
+                  >
+                    {installmentsLocked ? 'Sblocca' : 'Blocca'}
+                  </Button>
+                )}
+              </Box>
               <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-                <Button variant="outlined" size="small" onClick={() => handleQuickInstallments(1)}>
-                  Unica soluzione
+                <Button variant="outlined" size="small" onClick={() => handleQuickInstallments(1)} disabled={installmentsLocked}>
+                  Unica
                 </Button>
-                <Button variant="outlined" size="small" onClick={() => handleQuickInstallments(2)}>
+                <Button variant="outlined" size="small" onClick={() => handleQuickInstallments(2)} disabled={installmentsLocked}>
                   2 rate
                 </Button>
-                <Button variant="outlined" size="small" onClick={() => handleQuickInstallments(3)}>
+                <Button variant="outlined" size="small" onClick={() => handleQuickInstallments(3)} disabled={installmentsLocked}>
                   3 rate
                 </Button>
-                <Button variant="outlined" size="small" onClick={() => handleQuickInstallments(6)}>
+                <Button variant="outlined" size="small" onClick={() => handleQuickInstallments(6)} disabled={installmentsLocked}>
                   6 rate
                 </Button>
-                <Button variant="outlined" size="small" onClick={() => handleQuickInstallments(12)}>
+                <Button variant="outlined" size="small" onClick={() => handleQuickInstallments(12)} disabled={installmentsLocked}>
                   12 rate
                 </Button>
               </Stack>
@@ -187,11 +316,22 @@ export default function PaymentsSection({
           </Grid>
         )}
 
-        {/* Automatic Installments Info */}
-        {isAutomaticInstallments && (
+        {/* Installments Lock Info */}
+        {hasInstallmentsSuggestion && installmentsLocked && (
           <Grid size={12}>
-            <Alert severity="info">
-              Rate generate automaticamente dalla condizione di pagamento. Non modificabili.
+            <Alert
+              severity="info"
+              icon={<LockIcon fontSize="small" />}
+              sx={{
+                py: 0.5,
+                '& .MuiAlert-message': {
+                  fontSize: '0.875rem',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }
+              }}
+            >
+              Rate predefinite. Clicca "Sblocca" per modificare.
             </Alert>
           </Grid>
         )}
@@ -206,7 +346,7 @@ export default function PaymentsSection({
                   <TableCell>Data Scadenza</TableCell>
                   <TableCell>Importo</TableCell>
                   <TableCell>Metodo</TableCell>
-                  {!isAutomaticInstallments && <TableCell></TableCell>}
+                  {!installmentsLocked && <TableCell></TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -218,20 +358,20 @@ export default function PaymentsSection({
                         <TableRow key={index} sx={{ bgcolor: index % 2 ? 'action.hover' : 'transparent' }}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell sx={{ maxWidth: 150 }}>
-                            <DatePicker name={`payments[${index}].due_date`} disabled={isAutomaticInstallments} />
+                            <DatePicker name={`payments[${index}].due_date`} disabled={installmentsLocked} />
                           </TableCell>
                           <TableCell sx={{ maxWidth: 120 }}>
-                            <MoneyTextField name={`payments[${index}].amount`} disabled={isAutomaticInstallments} />
+                            <MoneyTextField name={`payments[${index}].amount`} disabled={installmentsLocked} />
                           </TableCell>
                           <TableCell sx={{ minWidth: 200 }}>
                             <Autocomplete
                               name={`payments[${index}].payment_method`}
                               options={paymentMethods}
                               isOptionEqualToValue={(option, value) => option.id === value.id}
-                              disabled={isAutomaticInstallments}
+                              disabled={installmentsLocked}
                             />
                           </TableCell>
-                          {!isAutomaticInstallments && (
+                          {!installmentsLocked && (
                             <TableCell sx={{ width: 10, padding: 0 }}>
                               <IconButton onClick={() => arrayHelpers.remove(index)} size="small">
                                 <DeleteIcon fontSize="small" />
@@ -240,7 +380,7 @@ export default function PaymentsSection({
                           )}
                         </TableRow>
                       ))}
-                      {!isAutomaticInstallments && (
+                      {!installmentsLocked && (
                         <TableRow>
                           <TableCell colSpan={5} sx={{ textAlign: 'center' }}>
                             <Button
