@@ -72,15 +72,15 @@ const SaleShow: React.FC<SaleShowProps> = ({ auth, sale, currentTenantId }) => {
               </Typography>
             </Box>
             <Stack direction="row" spacing={1}>
-              <Tooltip title="Modifica vendita">
+              {/* TODO: Implement edit functionality */}
+              {/* <Tooltip title="Modifica vendita">
                 <IconButton
                   size="small"
                   sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.2)' }}
-                  href={route('app.sales.edit', { tenant: currentTenantId, sale: sale.id! })}
                 >
                   <EditIcon />
                 </IconButton>
-              </Tooltip>
+              </Tooltip> */}
             </Stack>
           </Stack>
         </Paper>
