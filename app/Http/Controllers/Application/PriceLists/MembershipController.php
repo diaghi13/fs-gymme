@@ -16,12 +16,15 @@ class MembershipController extends Controller
      */
     public function create()
     {
+        $membership = new Membership([
+            'color' => Color::randomHex(),
+            'months_duration' => 12,
+        ]);
+        $membership->type = 'membership';
+
         return Inertia::render('price-lists/price-lists', [
             ...PriceListService::getViewAttributes(),
-            'priceList' => new Membership([
-                'color' => Color::randomHex(),
-                'duration_months' => 12,
-            ]),
+            'priceList' => $membership,
         ]);
     }
 
@@ -36,11 +39,16 @@ class MembershipController extends Controller
             'color' => ['required', 'string', 'max:7'],
             'price' => ['required', 'numeric', 'min:0'],
             'vat_rate_id' => ['required', 'integer', 'exists:vat_rates,id'],
-            'duration_months' => ['required', 'integer', 'min:1', 'max:120'],
+            'months_duration' => ['required', 'integer', 'min:1', 'max:120'],
             'saleable' => ['nullable', 'boolean'],
             'saleable_from' => ['nullable', 'date'],
             'saleable_to' => ['nullable', 'date', 'after_or_equal:saleable_from'],
         ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($validated['parent_id']) && $validated['parent_id'] === '') {
+            $validated['parent_id'] = null;
+        }
 
         $membership = Membership::create($validated);
 
@@ -79,11 +87,16 @@ class MembershipController extends Controller
             'color' => ['required', 'string', 'max:7'],
             'price' => ['required', 'numeric', 'min:0'],
             'vat_rate_id' => ['required', 'integer', 'exists:vat_rates,id'],
-            'duration_months' => ['required', 'integer', 'min:1', 'max:120'],
+            'months_duration' => ['required', 'integer', 'min:1', 'max:120'],
             'saleable' => ['nullable', 'boolean'],
             'saleable_from' => ['nullable', 'date'],
             'saleable_to' => ['nullable', 'date', 'after_or_equal:saleable_from'],
         ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($validated['parent_id']) && $validated['parent_id'] === '') {
+            $validated['parent_id'] = null;
+        }
 
         $membership->update($validated);
 

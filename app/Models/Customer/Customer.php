@@ -59,7 +59,9 @@ class Customer extends Model
 
     public function getOptionLabelAttribute()
     {
-        return $this->first_name.' '.$this->last_name.' ('.$this->birth_date->format('d/m/Y').')';
+        $birthDateStr = $this->birth_date ? ' ('.$this->birth_date->format('d/m/Y').')' : '';
+
+        return $this->first_name.' '.$this->last_name.$birthDateStr;
     }
 
     public function getFullNameAttribute()

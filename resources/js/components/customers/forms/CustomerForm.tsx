@@ -97,12 +97,12 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ formTitle, onDismiss }) => 
               onChange={(event) => setFieldValue('gender', event.target.value)}
             >
               <FormControlLabel
-                value="female"
+                value="F"
                 control={<Radio />}
                 label="Donna"
               />
               <FormControlLabel
-                value="male"
+                value="M"
                 control={<Radio />}
                 label="Uomo"
               />

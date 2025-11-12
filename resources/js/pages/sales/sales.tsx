@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import AppLayout from '@/layouts/AppLayout';
 import * as Yup from 'yup';
 import {
@@ -10,7 +10,7 @@ import {
 } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Form, Formik, FormikConfig } from 'formik';
-import { Box, Button, Grid } from '@mui/material';
+import { Alert, Box, Button, Grid, Snackbar } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import Header from '@/components/sales/Header';
 import SaleStepper, { STEPS } from '@/components/sales/Stepper';
@@ -23,6 +23,7 @@ import { addMonths } from 'date-fns';
 import { SaleContextProvider } from '@/Contexts/Sale/SaleContext';
 import SummaryTab from '@/components/sales/SummaryTab';
 import { format } from 'date-fns/format';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 const validationSchema = Yup.object().shape({
   customer: Yup.object().required('Richiesto')
@@ -75,8 +76,11 @@ export interface SalePageProps extends PageProps {
 
 export default function Sales({ auth, sale, customers, paymentMethods, documentTypeElectronicInvoices }: SalePageProps) {
   const [activeStep, setActiveStep] = React.useState(0);
-  //const { app_config } = usePage<SalePageProps>().props;
   const theme = useTheme();
+  const [shortcutHint, setShortcutHint] = useState<string | null>(null);
+
+  const customerSearchRef = useRef<HTMLInputElement>(null);
+  const productSearchRef = useRef<HTMLInputElement>(null);
 
   const [installmentsCalculator, setInstallmentsCalculator] = useState<CalculatorProps>({
     installment_quantity: '',
@@ -93,13 +97,63 @@ export default function Sales({ auth, sale, customers, paymentMethods, documentT
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
+  // Keyboard shortcuts for fast workflow
+  useKeyboardShortcuts([
+    {
+      key: 'F2',
+      handler: () => {
+        // Focus customer search
+        const customerInput = document.querySelector('input[name="customer"]') as HTMLInputElement;
+        if (customerInput) {
+          customerInput.focus();
+          setShortcutHint('Cliente selezionato (F2)');
+        }
+      },
+      description: 'Focus customer search',
+    },
+    {
+      key: 'F3',
+      handler: () => {
+        // Focus product search
+        const productInput = document.querySelector('input[placeholder*="Cerca prodotto"]') as HTMLInputElement;
+        if (productInput && activeStep === 0) {
+          productInput.focus();
+          setShortcutHint('Ricerca prodotto attiva (F3)');
+        }
+      },
+      description: 'Focus product search',
+    },
+    {
+      key: 'F4',
+      handler: () => {
+        // Go to payment step
+        if (activeStep === 0) {
+          handleNext();
+          setShortcutHint('Vai a Pagamenti (F4)');
+        }
+      },
+      description: 'Go to payment step',
+    },
+    {
+      key: 'F9',
+      handler: () => {
+        // Go to summary (final step)
+        if (activeStep < STEPS.length - 1) {
+          setActiveStep(STEPS.length - 1);
+          setShortcutHint('Riepilogo vendita (F9)');
+        }
+      },
+      description: 'Go to summary',
+    },
+  ]);
+
   const formik: FormikConfig<SaleFormValues> = {
     initialValues: {
       progressive_number: sale?.progressive_number ?? '0001',
       description: '',
       date: new Date(sale?.date ?? new Date()),
       year: sale.year ?? new Date().getFullYear(),
-      customer: sale?.customer,
+      customer: sale?.customer ?? null,
       document_type: documentTypeElectronicInvoices.find(doc => doc.id === sale?.document_type_id) ?? null,
       payment_condition: null,
       financial_resource: null,
@@ -131,6 +185,8 @@ export default function Sales({ auth, sale, customers, paymentMethods, documentT
         payment_condition_id: values.payment_condition?.id,
         financial_resource_id: values.financial_resource?.id,
         promotion_id: values.promotion?.id,
+        discount_percentage: parseFloat(String(values.discount_percentage || 0)),
+        discount_absolute: parseFloat(String(values.discount_absolute || 0)),
         sale_rows: values.sale_contents.map(item => ({
           ...item,
           price_list_id: item.price_list.id,
@@ -159,6 +215,18 @@ export default function Sales({ auth, sale, customers, paymentMethods, documentT
   return (
     <AppLayout user={auth.user}>
       <Head><title>Nuova Vendita</title></Head>
+
+      {/* Keyboard shortcut hint */}
+      <Snackbar
+        open={!!shortcutHint}
+        autoHideDuration={2000}
+        onClose={() => setShortcutHint(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="info" onClose={() => setShortcutHint(null)}>
+          {shortcutHint}
+        </Alert>
+      </Snackbar>
 
       <Formik {...formik}>
         {({ values }) => (

@@ -15,13 +15,13 @@ return new class extends Migration
         if (Schema::hasTable('price_lists')) {
             Schema::table('price_lists', function (Blueprint $table) {
                 if (! Schema::hasColumn('price_lists', 'guest_passes_total')) {
-                    $table->integer('guest_passes_total')->nullable()->after('saleable_to');
+                    $table->integer('guest_passes_total')->nullable();
                 }
                 if (! Schema::hasColumn('price_lists', 'guest_passes_per_month')) {
-                    $table->integer('guest_passes_per_month')->nullable()->after('guest_passes_total');
+                    $table->integer('guest_passes_per_month')->nullable();
                 }
                 if (! Schema::hasColumn('price_lists', 'multi_location_access')) {
-                    $table->boolean('multi_location_access')->default(false)->after('guest_passes_per_month');
+                    $table->boolean('multi_location_access')->default(false);
                 }
             });
         }

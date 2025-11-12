@@ -39,6 +39,16 @@ Route::middleware([])->group(function () {
     Route::get('sales/{sale}/export-xml', \App\Http\Controllers\Application\Sales\ExportXml::class)
         ->name('app.sales.export-xml');
 
+    // Sales API endpoints for real-time calculations
+    Route::post('sales/quick-calculate', [\App\Http\Controllers\Application\Sales\SaleController::class, 'quickCalculate'])
+        ->name('app.sales.quick-calculate');
+
+    Route::post('sales/calculate-installments', [\App\Http\Controllers\Application\Sales\SaleController::class, 'calculateInstallments'])
+        ->name('app.sales.calculate-installments');
+
+    Route::post('sales/subscription-contents', [\App\Http\Controllers\Application\Sales\SaleController::class, 'getSubscriptionContents'])
+        ->name('app.sales.subscription-contents');
+
     Route::get('subscription-plan', \App\Http\Controllers\Application\SubscriptionPlanChoiceController::class)
         ->withoutMiddleware(\App\Http\Middleware\HasActiveSubscriptionPlan::class)
         ->name('app.subscription-plans.index');

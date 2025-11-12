@@ -3,22 +3,26 @@
 namespace App\Models\Sale;
 
 use App\Casts\MoneyCast;
-use App\Models\Scopes\StructureScope;
+use App\Enums\ElectronicInvoiceStatusEnum;
+use App\Enums\SdiNotificationTypeEnum;
 use App\Models\Traits\HasStructure;
-use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Sale extends Model
 {
     /** @use HasFactory<\Database\Factories\Sale\SaleFactory> */
-    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, HasStructure;
+    use HasFactory, HasStructure, \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $fillable = [
         'uuid',
         'document_type_id',
+        'document_type_electronic_invoice_id',
         'progressive_number',
+        'progressive_number_prefix',
+        'progressive_number_value',
         'description',
+        'causale',
         'date',
         'year',
         'customer_id',
@@ -33,6 +37,23 @@ class Sale extends Model
         'exported_status',
         'currency',
         'notes',
+        'electronic_invoice_status',
+        'sdi_sent_at',
+        'sdi_received_at',
+        'sdi_notification_type',
+        'sdi_notification_message',
+        'electronic_invoice_xml_path',
+        'sdi_transmission_id',
+        'withholding_tax_amount',
+        'withholding_tax_rate',
+        'withholding_tax_type',
+        'stamp_duty_amount',
+        'welfare_fund_type',
+        'welfare_fund_rate',
+        'welfare_fund_amount',
+        'welfare_fund_taxable_amount',
+        'welfare_fund_vat_rate_id',
+        'fiscal_retention_until',
     ];
 
     protected $casts = [
@@ -44,6 +65,17 @@ class Sale extends Model
         'payment_status' => \App\Enums\SalePaymentStatusEnum::class,
         'accounting_status' => \App\Enums\SaleAccountingStatusEnum::class,
         'exported_status' => \App\Enums\SaleExportedStatusEnum::class,
+        'electronic_invoice_status' => ElectronicInvoiceStatusEnum::class,
+        'sdi_sent_at' => 'datetime',
+        'sdi_received_at' => 'datetime',
+        'sdi_notification_type' => SdiNotificationTypeEnum::class,
+        'fiscal_retention_until' => 'datetime',
+        'withholding_tax_amount' => MoneyCast::class,
+        'withholding_tax_rate' => 'decimal:2',
+        'stamp_duty_amount' => MoneyCast::class,
+        'welfare_fund_rate' => 'decimal:2',
+        'welfare_fund_amount' => MoneyCast::class,
+        'welfare_fund_taxable_amount' => MoneyCast::class,
     ];
 
     protected $appends = [
@@ -56,7 +88,7 @@ class Sale extends Model
 
         static::creating(function ($sale) {
             $sale->uuid = (string) \Illuminate\Support\Str::uuid();
-            //$sale->progressive_number = $sale->next_progressive_number;
+            // $sale->progressive_number = $sale->next_progressive_number;
         });
     }
 
@@ -90,25 +122,46 @@ class Sale extends Model
         return $this->hasMany(\App\Models\Sale\Payment::class);
     }
 
+    public function electronic_invoice()
+    {
+        return $this->hasOne(ElectronicInvoice::class);
+    }
+
+    public function document_type()
+    {
+        return $this->belongsTo(\App\Models\Support\DocumentType::class);
+    }
+
+    public function document_type_electronic_invoice()
+    {
+        return $this->belongsTo(\App\Models\Support\DocumentTypeElectronicInvoice::class);
+    }
+
+    public function welfare_fund_vat_rate()
+    {
+        return $this->belongsTo(\App\Models\VatRate::class, 'welfare_fund_vat_rate_id');
+    }
+
     public function getTotalPriceAttribute()
     {
         // Somma i totali delle righe (considerando eventuale sconto sulla riga)
         $rowsTotal = $this->rows->sum(function ($row) {
             $rowTotal = ($row->quantity * $row->unit_price) - ($row->discount_absolute ?? 0);
             // Applica sconto percentuale sulla riga se presente
-            if (!empty($row->discount_percentage)) {
+            if (! empty($row->discount_percentage)) {
                 $rowTotal -= $rowTotal * ($row->discount_percentage / 100);
             }
+
             return $rowTotal;
         });
 
         // Applica sconto percentuale sull'intera vendita
-//        if (!empty($this->discount_percentage)) {
-//            $rowsTotal -= $rowsTotal * ($this->discount_percentage / 100);
-//        }
+        //        if (!empty($this->discount_percentage)) {
+        //            $rowsTotal -= $rowsTotal * ($this->discount_percentage / 100);
+        //        }
 
         // Applica sconto assoluto sull'intera vendita
-        if (!empty($this->discount_absolute)) {
+        if (! empty($this->discount_absolute)) {
             $rowsTotal -= $this->discount_absolute;
         }
 
@@ -119,7 +172,7 @@ class Sale extends Model
     {
         // Raggruppa le righe per aliquota IVA e natura
         $groups = $this->rows->groupBy(function ($row) {
-            return $row->vat_rate->percentage . '-' . ($row->vat_rate->nature ?? '');
+            return $row->vat_rate->percentage.'-'.($row->vat_rate->nature ?? '');
         });
 
         $summary = [];
@@ -132,15 +185,16 @@ class Sale extends Model
 
             $taxableAmount = $rows->sum(function ($row) {
                 $rowTotal = ($row->quantity * $row->unit_price) - ($row->discount_absolute ?? 0);
-                if (!empty($row->discount_percentage)) {
+                if (! empty($row->discount_percentage)) {
                     $rowTotal -= $rowTotal * ($row->discount_percentage / 100);
                 }
+
                 return $rowTotal;
             });
 
             $tax = $vatRate > 0 ? round($taxableAmount * ($vatRate / 100), 2) : 0;
 
-            $item = new \stdClass();
+            $item = new \stdClass;
             $item->vat_rate = number_format($vatRate, 2, '.', '');
             $item->taxable_amount = number_format($taxableAmount, 2, '.', '');
             $item->tax = number_format($tax, 2, '.', '');
@@ -162,9 +216,10 @@ class Sale extends Model
         // Totale con sconti applicati
         $total = $this->rows->sum(function ($row) {
             $rowTotal = ($row->quantity * $row->unit_price) - ($row->discount_absolute ?? 0);
-            if (!empty($row->discount_percentage)) {
+            if (! empty($row->discount_percentage)) {
                 $rowTotal -= $rowTotal * ($row->discount_percentage / 100);
             }
+
             return $rowTotal;
         });
 
@@ -174,7 +229,7 @@ class Sale extends Model
         });
 
         // Applica eventuale sconto assoluto sull'intera vendita
-        if (!empty($this->discount_absolute)) {
+        if (! empty($this->discount_absolute)) {
             $total -= $this->discount_absolute;
         }
 
@@ -185,10 +240,10 @@ class Sale extends Model
         $due = max(0, $total - $payed);
 
         return [
-            'total'        => round(max(0, $total), 2),
-            'total_gross'  => round($total_gross, 2),
-            'payed'        => round($payed, 2),
-            'due'          => round($due, 2),
+            'total' => round(max(0, $total), 2),
+            'total_gross' => round($total_gross, 2),
+            'payed' => round($payed, 2),
+            'due' => round($due, 2),
         ];
     }
 
@@ -200,18 +255,20 @@ class Sale extends Model
 
         $netPrice = $this->rows->sum(function ($row) {
             $rowTotal = ($row->quantity * $row->unit_price) - ($row->absolute_discount ?? 0);
-            if (!empty($row->percentage_discount)) {
+            if (! empty($row->percentage_discount)) {
                 $rowTotal -= $rowTotal * ($row->percentage_discount / 100);
             }
+
             // Rimuovi l'IVA dal totale della riga
             return $row->vat_rate ? $rowTotal / (1 + ($row->vat_rate->percentage / 100)) : $rowTotal;
         });
 
         $totalTax = $this->rows->sum(function ($row) {
             $rowTotal = ($row->quantity * $row->unit_price) - ($row->absolute_discount ?? 0);
-            if (!empty($row->percentage_discount)) {
+            if (! empty($row->percentage_discount)) {
                 $rowTotal -= $rowTotal * ($row->percentage_discount / 100);
             }
+
             return $row->vat_rate ? $rowTotal * ($row->vat_rate->percentage / 100) : 0;
         });
 

@@ -35,9 +35,9 @@ class Membership extends PriceList implements VatRateable
         'parent_id' => 'integer',
     ];
 
-    protected $attributes = [
-        'type' => PriceListItemTypeEnum::MEMBERSHIP->value,
-    ];
+//    protected $attributes = [
+//        'type' => PriceListItemTypeEnum::MEMBERSHIP->value,
+//    ];
 
     public function subscription_content(): MorphOne
     {

@@ -28,11 +28,11 @@ interface AddSubscriptionDialogProps {
 export default function AddSubscriptionDialog({open, onClose, subscription, onAdd}: AddSubscriptionDialogProps) {
   //const [open, setOpen] = React.useState(true);
   const [startDate, setStartDate] = React.useState<Date | null>(new Date());
-  const [standardContent] = React.useState<PriceListSubscriptionContent[] | PriceListSubscriptionContent>(
-    subscription.type ? subscription.standard_content : []
+  const [standardContent] = React.useState<PriceListSubscriptionContent[]>(
+    Array.isArray(subscription.standard_content) ? subscription.standard_content : []
   );
   const [optionalContent, setOptionalContent] = React.useState<PriceListSubscriptionContent[]>(
-    subscription.type ? subscription.optional_content.map(item => ({...item, selected:false})) : []
+    Array.isArray(subscription.optional_content) ? subscription.optional_content.map(item => ({...item, selected:false})) : []
   );
 
   const handleClose = () => {
@@ -66,39 +66,26 @@ export default function AddSubscriptionDialog({open, onClose, subscription, onAd
         <DialogContentText sx={{pt: 2}}>
           La data di scadenza verrà calcolata automaticamente in base alla configurazione del prodotto
         </DialogContentText>
-        <List>
-          {Array.isArray(standardContent) && standardContent.map((product, index) => product && (
-            <ListItem
-              //secondaryAction={product.to && `Scad.: ${format(product.to, "d/MM/y")}`}
-              key={index}
-            >
-              <ListItemIcon>
-                {product.price_listable_type === "App\\Models\\Product\\Product" && product.price_listable.type === "App\\Models\\Product\\BaseProduct" && <FitnessCenterIcon />}
-                {product.price_listable_type === "App\\Models\\Product\\Product" && product.price_listable.type === "App\\Models\\Product\\CourseProduct" && <SportsGymnasticsIcon />}
-                {product.price_listable_type === "App\\Models\\PriceList\\PriceList" && product.price_listable.type === MEMBERSHIP && <CardMembershipIcon />}
-                {product.price_listable_type === "App\\Models\\PriceList\\PriceList" && product.price_listable.type === ARTICLE && <CategoryIcon />}
-              </ListItemIcon>
-              <ListItemText
-                secondary={`€ ${parseFloat(String(product.price)).toFixed(2).replace(".", ",")}`}
-              >{product.price_listable.name}</ListItemText>
-            </ListItem>
-          ))}
-          {!Array.isArray(standardContent) && (
-            <ListItem
-              //secondaryAction={product.to && `Scad.: ${format(product.to, "d/MM/y")}`}
-            >
-              <ListItemIcon>
-                {standardContent.price_listable.type === "App\\Models\\Product\\BaseProduct" && <FitnessCenterIcon />}
-                {standardContent.price_listable.type === "App\\Models\\Product\\BaseProduct" && <SportsGymnasticsIcon />}
-                {standardContent.price_listable.type === MEMBERSHIP && <CardMembershipIcon />}
-                {standardContent.price_listable.type === ARTICLE && <CategoryIcon />}
-              </ListItemIcon>
-              <ListItemText
-                secondary={`€ ${parseFloat(String(standardContent.price)).toFixed(2).replace(".", ",")}`}
-              >{standardContent.price_listable.name}</ListItemText>
-            </ListItem>
-          )}
-        </List>
+        {standardContent.length > 0 && (
+          <>
+            <DialogContentText sx={{pt: 2, fontWeight: 600}}>Contenuto standard</DialogContentText>
+            <List>
+              {standardContent.map((product, index) => product && (
+                <ListItem key={index}>
+                  <ListItemIcon>
+                    {product.price_listable_type === "App\\Models\\Product\\Product" && product.price_listable.type === "App\\Models\\Product\\BaseProduct" && <FitnessCenterIcon />}
+                    {product.price_listable_type === "App\\Models\\Product\\Product" && product.price_listable.type === "App\\Models\\Product\\CourseProduct" && <SportsGymnasticsIcon />}
+                    {product.price_listable_type === "App\\Models\\PriceList\\PriceList" && product.price_listable.type === MEMBERSHIP && <CardMembershipIcon />}
+                    {product.price_listable_type === "App\\Models\\PriceList\\PriceList" && product.price_listable.type === ARTICLE && <CategoryIcon />}
+                  </ListItemIcon>
+                  <ListItemText
+                    secondary={`€ ${parseFloat(String(product.price)).toFixed(2).replace(".", ",")}`}
+                  >{product.price_listable.name}</ListItemText>
+                </ListItem>
+              ))}
+            </List>
+          </>
+        )}
         {optionalContent.length > 0 && (
           <>
             <Divider />

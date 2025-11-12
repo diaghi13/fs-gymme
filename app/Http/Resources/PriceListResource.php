@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Enums\PriceListItemTypeEnum;
+use App\Enums\PriceListType;
 use App\Models\PriceList\SubscriptionContent;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -46,7 +47,7 @@ class PriceListResource extends JsonResource
             ];
         }
 
-        if ($this->type === PriceListItemTypeEnum::SUBSCRIPTION->value) {
+        if ($this->type === PriceListType::SUBSCRIPTION) {
             $data = [
                 ...$data,
                 // Subscription-level benefits

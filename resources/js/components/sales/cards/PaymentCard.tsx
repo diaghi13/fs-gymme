@@ -1,10 +1,15 @@
 import React, { SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
+  Chip,
+  CircularProgress,
   Divider,
   Grid, IconButton,
+  Stack,
   Table, TableBody, TableCell, TableHead, TableRow,
+  TextField,
   Typography
 } from '@mui/material';
 import MyCard from '@/components/ui/MyCard';
@@ -22,8 +27,10 @@ import CalculatorDialog from '@/components/sales/payment/CalculatorDialog';
 import currency from 'currency.js';
 import DatePicker from '@/components/ui/DatePicker';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { addDays, endOfMonth } from 'date-fns';
+import { addDays, endOfMonth, format } from 'date-fns';
 import axios from 'axios';
+import { useCalculateInstallments } from '@/hooks/useCalculateInstallments';
+import { useQuickCalculate } from '@/hooks/useQuickCalculate';
 
 export interface SaleInstallmentFormValues {
   due_date: Date | null;
@@ -55,8 +62,36 @@ export default function PaymentCard({ calculator, setCalculator }: PaymentCardPr
   const [disableInstallmentCalculationButton, setDisableInstallmentCalculationButton] = useState(true);
 
   const { sale_price, total_price, setSaleDiscount, vatRateSummary } = useSaleContext();
+  const { result: calculatedTotals } = useQuickCalculate(0);
+  const { installments, isCalculating, error: installmentsError, generateInstallments } = useCalculateInstallments();
 
   const [availableFinancialResources, setAvailableFinancialResources] = useState<(FinancialResource)[]>([]);
+
+  // Quick action: Generate installments automatically using backend API
+  const handleQuickInstallments = async (count: number, daysBetween: number = 30) => {
+    const totalAmount = calculatedTotals?.total || total_price;
+
+    await generateInstallments({
+      total_amount: totalAmount,
+      installments_count: count,
+      first_due_date: format(new Date(), 'yyyy-MM-dd'),
+      days_between_installments: daysBetween,
+    });
+  };
+
+  // Apply generated installments to form
+  useEffect(() => {
+    if (installments.length > 0) {
+      const formattedPayments = installments.map(inst => ({
+        due_date: new Date(inst.due_date),
+        amount: inst.amount,
+        payment_method: values.payments[0]?.payment_method || paymentMethods[0],
+        payed_at: null,
+      }));
+
+      setFieldValue('payments', formattedPayments);
+    }
+  }, [installments, setFieldValue, paymentMethods]);
 
 
 
@@ -259,19 +294,74 @@ export default function PaymentCard({ calculator, setCalculator }: PaymentCardPr
           <Grid size={12}>
             <Divider />
           </Grid>
-          {/*<Typography mb={2}>*/}
-          {/*  A saldo: {Str.EURO(total_price - Number(values.payments[0].amount)).format()}*/}
-          {/*</Typography>*/}
           <Grid size={12}>
             <Typography variant={'h6'}>Pagamenti</Typography>
           </Grid>
+
+          {/* Quick Action Buttons */}
+          <Grid size={12}>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Azioni rapide:
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => handleQuickInstallments(1)}
+                  disabled={isCalculating}
+                >
+                  Unica soluzione
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => handleQuickInstallments(2)}
+                  disabled={isCalculating}
+                >
+                  2 rate
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => handleQuickInstallments(3)}
+                  disabled={isCalculating}
+                >
+                  3 rate
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => handleQuickInstallments(6)}
+                  disabled={isCalculating}
+                >
+                  6 rate
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => handleQuickInstallments(12)}
+                  disabled={isCalculating}
+                >
+                  12 rate
+                </Button>
+                {isCalculating && <CircularProgress size={20} />}
+              </Stack>
+            </Box>
+          </Grid>
+
+          {installmentsError && (
+            <Grid size={12}>
+              <Alert severity="error">{installmentsError}</Alert>
+            </Grid>
+          )}
+
           <Grid size={12} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <Button
               variant={'contained'}
               onClick={() => setOpenCalculatorDialog(!openCalculatorDialog)}
-              //disabled={disableInstallmentCalculationButton}
             >
-              Calcola rateizzazione
+              Calcola personalizzato
             </Button>
           </Grid>
           <CalculatorDialog

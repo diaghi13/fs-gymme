@@ -20,13 +20,15 @@ export interface SaleRowFormValues {
 }
 
 export const createCartItem = (priceList: AllPriceLists, startDate: Date | number | null = null, options: PriceListSubscriptionContent[] = []): SaleRowFormValues | SaleRowFormValues[] | undefined => {
-  if (priceList.type === ARTICLE) {
+  // Articles and day passes don't need start date
+  if (priceList.type === ARTICLE || priceList.type === 'day_pass' || priceList.type === 'token' || priceList.type === 'gift_card') {
     return createArticle(priceList);
   }
 
+  // Membership and Subscription require start date
   if (!startDate) {
-    alert('Inserisci una data di inizio')
-    throw new Error("No start date provided for subscription calculation");
+    alert('Inserisci una data di inizio per abbonamento/tessera')
+    throw new Error("No start date provided for subscription/membership calculation");
   }
 
   if (priceList.type === MEMBERSHIP) {
@@ -62,7 +64,8 @@ const createMembership = (priceList: PriceListMembershipFee, startDate: Date): S
 }
 
 const createSubscription = (priceList: PriceListSubscription, startDate: Date, options: PriceListSubscriptionContent[] = []): SaleRowFormValues => {
-  const content = [...priceList.standard_content, ...options];
+  const standardContent = Array.isArray(priceList.standard_content) ? priceList.standard_content : [];
+  const content = [...standardContent, ...options];
   const price = content.reduce((acc, item) => {
     return acc + item.price;
   }, 0);

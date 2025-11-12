@@ -36,7 +36,7 @@ class SubscriptionController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:price_lists,id|integer',
+            'parent_id' => 'nullable|integer|exists:price_lists,id',
             'color' => 'required|string|max:7',
             'saleable' => 'boolean',
 
@@ -112,6 +112,11 @@ class SubscriptionController extends Controller
             'standard_content.*.reservation_limit' => 'nullable|integer|min:0',
             'standard_content.*.daily_reservation_limit' => 'nullable|integer|min:0',
         ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($data['parent_id']) && $data['parent_id'] === '') {
+            $data['parent_id'] = null;
+        }
 
         $priceList = $service->store($data);
 
@@ -159,7 +164,7 @@ class SubscriptionController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:price_lists,id|integer',
+            'parent_id' => 'nullable|integer|exists:price_lists,id',
             'color' => 'required|string|max:7',
             'saleable' => 'boolean',
 
@@ -235,6 +240,11 @@ class SubscriptionController extends Controller
             'standard_content.*.reservation_limit' => 'nullable|integer|min:0',
             'standard_content.*.daily_reservation_limit' => 'nullable|integer|min:0',
         ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($data['parent_id']) && $data['parent_id'] === '') {
+            $data['parent_id'] = null;
+        }
 
         $service->update($data, $subscription);
 

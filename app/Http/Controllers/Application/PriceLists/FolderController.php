@@ -37,6 +37,11 @@ class FolderController extends Controller
             'saleable' => ['nullable', 'boolean'],
         ]);
 
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($data['parent_id']) && $data['parent_id'] === '') {
+            $data['parent_id'] = null;
+        }
+
         $folder = Folder::create($data);
 
         return to_route('app.price-lists.folders.show', [
@@ -75,6 +80,11 @@ class FolderController extends Controller
             }],
             'saleable' => ['nullable', 'boolean'],
         ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($data['parent_id']) && $data['parent_id'] === '') {
+            $data['parent_id'] = null;
+        }
 
         $folder->update($data);
 

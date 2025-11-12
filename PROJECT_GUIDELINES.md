@@ -9,6 +9,7 @@
 - **Multi-tenancy**: Stancl Tenancy con database separati
 - **Database**: SQLite per tenant (dev), supporto PostgreSQL/MySQL
 - **Pattern**: Single Table Inheritance (STI) con package Parental per Product types
+- **Fatturazione Elettronica**: Sistema completo FatturaPA v1.9 per Italia (SDI)
 
 ### Architettura Multi-Tenant
 - Ogni tenant ha database separato (SQLite file in `database/`)
@@ -1039,6 +1040,529 @@ SubscriptionContent belongsToMany Product via subscription_content_services
 SubscriptionContent hasMany SubscriptionContentTimeRestrictions
 ```
 
+## Sales & Electronic Invoicing System
+
+### Panoramica
+Sistema completo di vendite e fatturazione elettronica conforme alle normative italiane 2025:
+- **Fatturazione Elettronica XML v1.9** (obbligatoria fino al 2027)
+- **Sistema di Interscambio (SdI)** - Invio/ricezione fatture via PEC o web service
+- **Conservazione Sostitutiva Digitale** - 10 anni obbligatori per legge
+- **GDPR Compliance** - Retention policies fiscali (10 anni) e marketing (personalizzabili)
+- **Multi-documento**: Fatture, Note di Credito, Note di Debito, Auto-fatture
+
+### Architettura Database
+
+#### Sales Table (Vendite)
+Tabella principale per tutte le transazioni commerciali:
+
+```php
+sales:
+  // Identificazione
+  - id, uuid, sdi_transmission_id (identificativo SDI univoco)
+
+  // Numerazione
+  - progressive_number (es: "FT2025/001")
+  - progressive_number_prefix (es: "FT", "NC", "ND")
+  - progressive_number_value (numero sequenziale)
+  - year (anno fiscale)
+
+  // Relazioni
+  - structure_id (FK structures)
+  - customer_id (FK customers)
+  - document_type_id (FK document_types)
+  - document_type_electronic_invoice_id (FK document_type_electronic_invoices)
+  - payment_condition_id (FK payment_conditions)
+  - financial_resource_id (FK financial_resources)
+  - promotion_id (FK promotions) nullable
+
+  // Contenuto
+  - description
+  - causale (obbligatorio per fattura elettronica)
+  - date (data emissione)
+  - currency (default: EUR)
+  - notes
+
+  // Importi e sconti
+  - discount_percentage (MoneyCast)
+  - discount_absolute (MoneyCast)
+
+  // Ritenuta d'acconto
+  - withholding_tax_amount (MoneyCast)
+  - withholding_tax_rate (decimal 2)
+  - withholding_tax_type (es: "RT01", "RT02")
+
+  // Bollo
+  - stamp_duty_amount (MoneyCast)
+
+  // Cassa previdenziale
+  - welfare_fund_type (es: "TC01", "TC02")
+  - welfare_fund_rate (decimal 2)
+  - welfare_fund_amount (MoneyCast)
+  - welfare_fund_taxable_amount (MoneyCast)
+  - welfare_fund_vat_rate_id (FK vat_rates)
+
+  // Stati
+  - status (draft, completed, cancelled)
+  - payment_status (pending, paid, partial, not_paid)
+  - accounting_status (pending, accounted, not_accounted)
+  - exported_status (pending, exported, not_exported)
+  - electronic_invoice_status (ElectronicInvoiceStatusEnum)
+
+  // SDI Tracking
+  - sdi_sent_at
+  - sdi_received_at
+  - sdi_notification_type (SdiNotificationTypeEnum: RC, NS, MC, NE, DT, AT)
+  - sdi_notification_message
+  - electronic_invoice_xml_path
+
+  // GDPR & Retention
+  - fiscal_retention_until (10 anni da emissione)
+
+  // Timestamps
+  - created_at, updated_at, deleted_at (SoftDeletes)
+```
+
+#### ElectronicInvoices Table
+Gestione completa del ciclo di vita della fattura elettronica:
+
+```php
+electronic_invoices:
+  - id
+  - sale_id (FK sales, cascade delete)
+
+  // XML
+  - xml_content (LONGTEXT, contenuto completo)
+  - xml_version (default: "1.9")
+  - xml_file_path (storage path)
+
+  // Trasmissione SDI
+  - transmission_id (univoco, generato es: "IT01234567890_00001")
+  - transmission_format (default: "FPR12")
+  - send_attempts (contatore tentativi)
+  - last_send_attempt_at
+
+  // Stati SDI
+  - sdi_status (ElectronicInvoiceStatusEnum)
+  - sdi_status_updated_at
+  - sdi_receipt_xml (LONGTEXT, ricevute SDI)
+  - sdi_error_messages (errori validazione)
+
+  // Conservazione Sostitutiva
+  - preserved_at
+  - preservation_hash (hash per integrità)
+  - preservation_provider (es: "AgenziaEntrate", "Aruba")
+  - preservation_reference_id (ID conservatore)
+  - signed_pdf_path (PDF firmato)
+
+  // Timestamps
+  - created_at, updated_at, deleted_at (SoftDeletes)
+```
+
+#### DataRetentionPolicies Table
+Policy GDPR per conservazione/cancellazione dati:
+
+```php
+data_retention_policies:
+  - id
+  - structure_id (FK structures) nullable
+
+  // Retention Periods
+  - fiscal_retention_years (default: 10, obbligatorio per legge)
+  - marketing_retention_months (personalizzabile, nullable)
+  - customer_inactive_retention_months (default: 24)
+
+  // Cleanup Automation
+  - auto_delete_after_retention (boolean, default: false)
+  - auto_anonymize_after_retention (boolean, default: true)
+  - last_cleanup_at
+  - last_cleanup_records_count
+
+  // Notifications
+  - notify_before_cleanup (boolean, default: true)
+  - notify_days_before (default: 30)
+
+  // Timestamps
+  - created_at, updated_at
+```
+
+### Enums
+
+#### ElectronicInvoiceStatusEnum
+Stati del ciclo di vita fattura elettronica:
+
+```php
+enum ElectronicInvoiceStatusEnum: string
+{
+    case DRAFT = 'draft';                     // Bozza, non ancora generata
+    case GENERATED = 'generated';             // XML generato, pronto per invio
+    case TO_SEND = 'to_send';                // In coda per invio
+    case SENDING = 'sending';                // In fase di invio
+    case SENT = 'sent';                      // Inviata al SdI
+    case ACCEPTED = 'accepted';              // Accettata dal SdI (ricevuta RC)
+    case DELIVERED = 'delivered';            // Consegnata al destinatario (MC positiva)
+    case REJECTED = 'rejected';              // Rifiutata dal SdI (notifica NS)
+    case DELIVERY_FAILED = 'delivery_failed'; // Mancata consegna (MC negativa)
+    case CANCELLED = 'cancelled';            // Annullata
+
+    // Helper methods:
+    public function label(): string;         // Label italiana
+    public function color(): string;         // Colore UI (gray, blue, green, red, etc.)
+    public function isFinal(): bool;         // Se stato finale
+    public function canResend(): bool;       // Se può essere re-inviata
+}
+```
+
+#### SdiNotificationTypeEnum
+Tipi di notifiche ufficiali dal Sistema di Interscambio:
+
+```php
+enum SdiNotificationTypeEnum: string
+{
+    case RC = 'RC';  // Ricevuta di Consegna - Successo
+    case NS = 'NS';  // Notifica di Scarto - Errori formali
+    case MC = 'MC';  // Mancata Consegna - Destinatario irraggiungibile
+    case NE = 'NE';  // Notifica Esito - Accettazione/rifiuto destinatario
+    case DT = 'DT';  // Decorrenza Termini - Accettazione implicita
+    case AT = 'AT';  // Attestazione di Trasmissione
+
+    // Helper methods:
+    public function label(): string;
+    public function description(): string;
+    public function isPositive(): bool;      // RC, DT, AT
+    public function isNegative(): bool;      // NS, MC
+    public function requiresAction(): bool;  // NS, MC (richiedono intervento)
+}
+```
+
+### Models
+
+#### Sale Model
+```php
+class Sale extends Model
+{
+    use HasFactory, HasStructure, SoftDeletes;
+
+    // Relationships
+    public function customer(): BelongsTo;
+    public function rows(): HasMany;              // SaleRow
+    public function payments(): HasMany;           // Payment
+    public function electronic_invoice(): HasOne;  // ElectronicInvoice
+    public function document_type(): BelongsTo;
+    public function document_type_electronic_invoice(): BelongsTo;
+    public function payment_condition(): BelongsTo;
+    public function financial_resource(): BelongsTo;
+    public function welfare_fund_vat_rate(): BelongsTo; // VatRate
+
+    // Accessors (già implementati)
+    public function getTotalPriceAttribute(): float;
+    public function getSummaryDataAttribute(): array;  // Raggruppamento IVA
+    public function getSummaryAttribute(): array;      // Totali/pagato/dovuto
+    public function getSaleSummaryAttribute(): array;  // Dettaglio completo
+}
+```
+
+#### ElectronicInvoice Model
+```php
+class ElectronicInvoice extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    protected function casts(): array
+    {
+        return [
+            'sdi_status' => ElectronicInvoiceStatusEnum::class,
+            'sdi_status_updated_at' => 'datetime',
+            'preserved_at' => 'datetime',
+            'last_send_attempt_at' => 'datetime',
+            'send_attempts' => 'integer',
+        ];
+    }
+
+    // Relationships
+    public function sale(): BelongsTo;
+
+    // Helper Methods
+    public function isPreserved(): bool;
+    public function canSend(): bool;
+    public function canResend(): bool;
+    public function isFinal(): bool;
+    public function updateStatus(ElectronicInvoiceStatusEnum $status, ?string $message = null): void;
+    public function incrementSendAttempts(): void;
+}
+```
+
+#### DataRetentionPolicy Model
+```php
+class DataRetentionPolicy extends Model
+{
+    use HasFactory, HasStructure;
+
+    public function getFiscalRetentionDate(): Carbon;      // now - 10 anni
+    public function getMarketingRetentionDate(): ?Carbon;  // now - X mesi
+    public function getCustomerInactiveRetentionDate(): Carbon; // now - 24 mesi
+}
+```
+
+### Services (Da Implementare)
+
+#### ElectronicInvoiceService
+Generazione XML v1.9 conforme:
+
+```php
+class ElectronicInvoiceService
+{
+    public function generateXml(Sale $sale): string;
+    public function validateXml(string $xml): array;
+    public function sendToSdi(Sale $sale): bool;
+    public function processReceiptXml(string $xml): void;
+}
+```
+
+**Specifiche XML v1.9** (Effettive dal 1 Aprile 2025):
+- Nuovi document types: **TD29** (irregolarità fatturazione)
+- Nuovo regime fiscale: **RF20** (esenzione IVA transfrontaliera)
+- Header: FatturaElettronicaHeader (dati cedente/cessionario)
+- Body: FatturaElettronicaBody (righe, IVA, totali, ritenute, bollo, cassa)
+
+**Mapping Dati**:
+```
+Sale → XML FatturaPA
+
+CedentePrestatore:
+  - Tenant.vat_number → IdFiscaleIVA
+  - Tenant.pec_email → PECDestinatario
+  - Tenant.sdi_code → CodiceDestinatario
+  - Tenant.tax_code, name, address, etc.
+
+CessionarioCommittente:
+  - Customer.tax_id_code, vat_number
+  - Customer.first_name, last_name, email, address
+
+DatiGenerali:
+  - Sale.progressive_number → Numero
+  - Sale.date → Data
+  - Sale.document_type_electronic_invoice.code → TipoDocumento
+  - Sale.causale → Causale
+
+DatiRiepilogo (per ciascuna aliquota IVA):
+  - Raggruppamento SaleRows per vat_rate
+  - ImponibileImporto, Aliquota, Imposta
+  - Natura (N1-N7 se IVA 0%)
+
+DatiPagamento:
+  - Payment.payment_method → ModalitaPagamento
+  - Payment.due_date, amount
+
+DatiRitenuta:
+  - Sale.withholding_tax_* → DatiRitenuta
+
+DatiBollo:
+  - Sale.stamp_duty_amount → BolloVirtuale
+
+DatiCassaPrevidenziale:
+  - Sale.welfare_fund_* → DatiCassaPrevidenziale
+```
+
+#### ProgressiveNumberService
+Generazione numerazione thread-safe:
+
+```php
+class ProgressiveNumberService
+{
+    public function getNext(string $documentType, int $year, int $structureId): string;
+    // Thread-safe con DB transactions/locks
+    // Esempio output: "FT2025/0001", "NC2025/0001"
+}
+```
+
+#### ConservazioneService
+Conservazione sostitutiva a norma:
+
+```php
+class ConservazioneService
+{
+    public function preserve(Sale $sale): void;
+    public function verifyPreservation(Sale $sale): bool;
+    public function schedulePreservation(): void;
+    public function integrateCertifiedProvider(): void; // Aruba, InfoCert, etc.
+}
+```
+
+**Obblighi Legali**:
+- Conservazione **10 anni** obbligatoria (emittente + destinatario)
+- Deadline: **3 mesi** dalla scadenza dichiarazione annuale
+- Garanzie: **Integrità, autenticità, leggibilità, disponibilità**
+- Provider: Agenzia delle Entrate (gratuito) o conservatori accreditati
+
+#### DataRetentionService
+GDPR compliance automatica:
+
+```php
+class DataRetentionService
+{
+    public function calculateRetentionDate(Customer|Sale $model): Carbon;
+    public function cleanupExpiredData(): void;      // Scheduled job
+    public function anonymizeExpiredData(): void;    // Alternative to deletion
+}
+```
+
+**Logica**:
+- Dati fiscali (Sales): `sale.date + 10 anni`
+- Dati marketing (Customers): configurabile per struttura
+- Clienti inattivi: `last_activity + 24 mesi` (default)
+
+#### Validators
+Validazione P.IVA e Codice Fiscale:
+
+```php
+class VatNumberValidator
+{
+    public function validate(string $vatNumber, ?string $country = 'IT'): bool;
+    public function validateVies(string $vatNumber): bool; // Verifica partita IVA europea
+}
+
+class TaxCodeValidator
+{
+    public function validate(string $taxCode): bool; // Algoritmo ufficiale italiano
+}
+```
+
+### Scheduled Jobs (Da Implementare)
+
+```php
+// app/Console/Kernel.php o routes/console.php
+
+Schedule::command('invoices:process-sdi-receipts')->everyFifteenMinutes();
+Schedule::command('invoices:preserve-due')->daily();
+Schedule::command('data:cleanup-expired')->weekly();
+Schedule::command('data:notify-cleanup-upcoming')->monthly();
+```
+
+**Jobs**:
+1. **ProcessSdiReceipts** - Controlla PEC per nuove ricevute SdI (ogni 15 min)
+2. **PreserveInvoices** - Conservazione automatica fatture (giornaliero)
+3. **CleanupExpiredData** - Cancellazione/anonimizzazione dati scaduti (settimanale)
+4. **NotifyCleanupUpcoming** - Alert per scadenze prossime (mensile)
+
+### Package Esterni Consigliati
+
+1. **devcode-it/fattura-elettronica-xml** o **taocomp/php-e-invoice-it**
+   - Generazione/validazione XML FatturaPA
+   - Già conformi specifiche italiane
+
+2. **spatie/laravel-data**
+   - DTOs type-safe per mapping Sale → XML
+
+3. **league/flysystem** con driver S3
+   - Storage sicuro per XML/PDF
+
+4. **Package PEC/Email** per invio SdI
+   - Oppure web service FatturaPA.gov.it
+
+### Priorità Implementazione
+
+**FASE 1 - CRITICO** (Prima del 1 Aprile 2025): ✅ COMPLETATA
+1. ✅ Migration database (sales, electronic_invoices, data_retention_policies)
+2. ✅ Enums (ElectronicInvoiceStatusEnum, SdiNotificationTypeEnum)
+3. ✅ Models (Sale, ElectronicInvoice, DataRetentionPolicy) con relationships
+4. ✅ Formattazione codice con Pint
+
+**FASE 2 - ALTA** (Q1 2025):
+5. ElectronicInvoiceService - Generazione XML v1.9
+6. ProgressiveNumberService - Numerazione automatica
+7. Validators (P.IVA, Codice Fiscale)
+8. SdiService - Invio manuale via PEC (MVP)
+
+**FASE 3 - MEDIA** (Q2 2025):
+9. Integrazione automatica SdI
+10. Gestione ricevute e stati
+11. ConservazioneService base
+12. UI/UX per fatture elettroniche
+
+**FASE 4 - BASSA** (Q3 2025):
+13. Note di credito/debito
+14. Auto-conservazione schedulata
+15. Integrazione conservatore accreditato
+16. Fatture semplificate B2C
+17. Auto-fatture reverse charge
+
+### Normativa di Riferimento
+
+**GDPR** (Regolamento UE 2016/679):
+- Dati fiscali/contrattuali: 10 anni (Art. 2220 Codice Civile, Art. 39 DPR 633/1972)
+- Dati marketing: Consenso esplicito, retention personalizzabile
+- Obbligo cancellazione/anonimizzazione post-retention
+
+**Fatturazione Elettronica**:
+- Obbligatoria fino al 2027 (inclusi forfettari)
+- Sistema di Interscambio (SdI) - validazione centralizzata
+- XML formato v1.9 effettivo dal 1 Aprile 2025
+- Nuovi codici: TD29, RF20
+
+**Conservazione Sostitutiva**:
+- 10 anni obbligatori (emittente + destinatario)
+- Garanzie: integrità, autenticità, leggibilità, disponibilità
+- Deadline: 3 mesi da scadenza dichiarazione annuale
+- Provider: AgE (gratuito) o privati accreditati
+
+### Migration Eseguite
+
+```bash
+# Tenant migrations (già applicate con tenants:migrate)
+✅ 2025_11_08_094204_add_electronic_invoice_fields_to_sales_table.php
+✅ 2025_11_08_094233_create_electronic_invoices_table.php
+✅ 2025_11_08_094254_create_data_retention_policies_table.php
+```
+
+**Modifiche Strutturali**:
+- `sale_number` → `progressive_number`
+- `sale_date` → `date`
+- +22 nuovi campi nella tabella `sales`
+- Nuova tabella `electronic_invoices` (gestione completa XML/SDI)
+- Nuova tabella `data_retention_policies` (GDPR)
+
+### Testing
+
+**Test da Creare**:
+```php
+// Feature Tests
+tests/Feature/ElectronicInvoice/
+  - XmlGenerationTest.php
+  - SdiTransmissionTest.php
+  - ReceiptProcessingTest.php
+  - ConservazioneTest.php
+
+tests/Feature/DataRetention/
+  - RetentionPolicyTest.php
+  - CleanupServiceTest.php
+  - AnonymizationTest.php
+
+// Unit Tests
+tests/Unit/Services/
+  - ProgressiveNumberServiceTest.php
+  - VatNumberValidatorTest.php
+  - TaxCodeValidatorTest.php
+```
+
+### Riferimenti Tecnici
+
+**Specifiche XML FatturaPA**:
+- [Agenzia delle Entrate - Specifiche Tecniche v1.9](https://www.agenziaentrate.gov.it/portale/web/guest/specifiche-tecniche-versione-1-9)
+- XSD Validation Schema
+- Codici documento (TD01-TD29)
+- Nature IVA (N1-N7)
+- Regimi fiscali (RF01-RF20)
+
+**Sistema di Interscambio**:
+- Endpoint PEC: sdi01@pec.fatturapa.it (produzione)
+- Formato trasmissione: FPR12 (PA), FPA12 (PA), FSM10 (semplificata)
+- Ricevute: RC, NS, MC, NE, DT, AT
+
+**Conservazione**:
+- [DPCM 3 dicembre 2013](https://www.gazzettaufficiale.it/eli/id/2014/03/12/14A01820/sg)
+- Standard UNI 11386:2020
+- Provid er accreditati AgID
+
 ## Work In Progress
 
 ### Completato ✅
@@ -1402,6 +1926,739 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 1. Verify validationSchema presente in FormikConfig
 2. Check FormFeedback/TabContainer integrato
 3. Verify backend validation messages tornano correttamente
+
+## Sistema di Vendita e Fatturazione Elettronica
+
+### Architettura del Sistema di Vendita
+
+Il sistema di vendita è progettato per **velocità operativa in backoffice**, utilizzato dallo staff della palestra per processare vendite in loco tra un cliente e l'altro.
+
+#### Componenti Backend
+
+**SaleService** (`app/Services/Sale/SaleService.php`):
+- `calculateRowTotal()` - Calcolo totale riga con sconti percentuali + assoluti
+- `calculateSaleTotal()` - Totale vendita con sconti a livello vendita
+- `calculateExpirationDate()` - Calcolo automatico scadenze abbonamenti
+- `calculateInstallments()` - Generazione rate con distribuzione corretta del resto
+- `quickCalculate()` - Calcolo real-time per UI (imponibile + IVA + totale)
+- `getSubscriptionContents()` - Gestione contenuti standard + opzionali abbonamenti
+
+**Regole di Calcolo**:
+- Tutti i valori monetari in **centesimi** (integers) per evitare errori floating-point
+- Ordine applicazione sconti: `percentuale prima, assoluto dopo`
+- Sconto riga applicato prima, sconto vendita dopo
+- Resto rate sempre sulla prima rata
+- Totali negativi automaticamente a zero
+
+**API Endpoints** (routes/tenant/web/routes.php):
+```php
+POST /sales/quick-calculate         // Calcolo real-time totali
+POST /sales/calculate-installments  // Generazione rate automatica
+POST /sales/subscription-contents   // Contenuti abbonamento con opzionali
+```
+
+#### Componenti Frontend (React + Inertia)
+
+**Custom Hooks**:
+
+**useQuickCalculate** (`resources/js/hooks/useQuickCalculate.ts`):
+```typescript
+const { result, isCalculating, error, calculate } = useQuickCalculate(300);
+// Debounced API calls (300ms default)
+// Returns: { subtotal, tax_total, total } in cents
+```
+
+**useCalculateInstallments** (`resources/js/hooks/useCalculateInstallments.ts`):
+```typescript
+const { installments, isCalculating, error, generateInstallments } = useCalculateInstallments();
+await generateInstallments({
+  total_amount: 10000, // cents
+  installments_count: 3,
+  first_due_date: '2025-01-15',
+  days_between_installments: 30
+});
+```
+
+**useKeyboardShortcuts** (`resources/js/hooks/useKeyboardShortcuts.ts`):
+```typescript
+useKeyboardShortcuts([
+  { key: 'F2', handler: () => focusCustomerSearch() },
+  { key: 'F3', handler: () => focusProductSearch() },
+  { key: 'F4', handler: () => goToPayments() },
+  { key: 'F9', handler: () => goToSummary() },
+]);
+```
+
+**Componenti UI Migliorati**:
+
+**Cart Component** (`resources/js/components/sales/Cart.tsx`):
+- Integrazione API real-time per calcoli server-side
+- Debouncing automatico (300ms)
+- Skeleton loading durante calcolo
+- Display: Imponibile | IVA | TOTALE
+- Formato valuta italiana (€ 100,00)
+
+**PaymentCard Component** (`resources/js/components/sales/cards/PaymentCard.tsx`):
+- **Quick Action Buttons**: Unica soluzione, 2/3/6/12 rate
+- Generazione automatica rate via API backend
+- Distribuzione resto corretta (prima rata)
+- Supporto pagamenti flessibili (1-12 rate)
+
+**QuickProductSearch Component** (`resources/js/components/sales/QuickProductSearch.tsx`):
+- Autocomplete veloce per ricerca prodotti
+- Ricerca per nome o codice
+- Chip colorate per tipo (Abbonamento, Tessera, Articolo, etc.)
+- Preview prezzo
+- Focus con F3
+
+**Keyboard Shortcuts Backoffice**:
+- `F2` - Focus cliente
+- `F3` - Focus ricerca prodotto
+- `F4` - Vai a pagamenti
+- `F9` - Vai a riepilogo
+- Snackbar hint visivo quando usati
+
+### Workflow Vendita Veloce
+
+1. **Selezione Cliente** (F2)
+   - Autocomplete clienti esistenti
+   - Campo focus rapido con shortcut
+
+2. **Aggiunta Prodotti** (F3)
+   - **Ricerca veloce**: Autocomplete con preview
+   - **Esplora albero**: Navigazione listini tradizionale
+   - Gestione contenuti opzionali abbonamenti
+
+3. **Calcolo Real-time**
+   - Debounced API calls (300ms)
+   - Server-side calculations per accuratezza
+   - Display continuo: Imponibile + IVA + Totale
+
+4. **Pagamenti Flessibili** (F4)
+   - Quick actions: 1/2/3/6/12 rate con un click
+   - Calcolo personalizzato con dialog
+   - Generazione automatica via backend API
+
+5. **Riepilogo e Salvataggio** (F9)
+   - Review completo vendita
+   - Salvataggio con validazione
+
+### Sistema Fatturazione Elettronica Italiana
+
+#### ElectronicInvoiceService (`app/Services/Sale/ElectronicInvoiceService.php`)
+
+Genera XML conforme a **FatturaPA v1.9** (valido dal 1 Aprile 2025):
+
+**Metodi Principali**:
+- `generateXml()` - Genera fattura XML completa
+- `buildDatiTrasmissione()` - Dati trasmissione SDI
+- `buildCedentePrestatore()` - Dati cedente (palestra)
+- `buildCessionarioCommittente()` - Dati cliente
+- `buildDatiBeniServizi()` - Righe dettaglio con IVA
+- `buildDatiPagamento()` - Condizioni pagamento
+
+**Supporto Completo**:
+- Ritenuta d'acconto
+- Marca da bollo
+- Cassa previdenziale
+- Riepilogo IVA per aliquota
+- Split payment
+- Reverse charge
+- Esigibilità IVA differita
+
+#### ProgressiveNumberService (`app/Services/Sale/ProgressiveNumberService.php`)
+
+Gestione **thread-safe** numerazione progressiva fatture:
+
+```php
+public function generateNext(int $year, ?string $prefix = null): array
+{
+    return DB::transaction(function () use ($year, $prefix) {
+        // lockForUpdate() prevents concurrent duplicate numbers
+        $maxValue = Sale::query()
+            ->where('year', $year)
+            ->lockForUpdate()
+            ->max('progressive_number_value') ?? 0;
+
+        return [
+            'progressive_number' => $this->formatProgressiveNumber($maxValue + 1, $prefix),
+            'progressive_number_value' => $maxValue + 1,
+            'year' => $year,
+        ];
+    });
+}
+```
+
+**Caratteristiche**:
+- Locking pessimistico per prevenire duplicati
+- Reset automatico annuale
+- Supporto prefissi (es. NC per note di credito)
+- Validazione integrità sequenza
+- Statistiche per anno
+
+#### Validatori Fiscali Italiani
+
+**ItalianVatNumberValidator** (`app/Support/Validators/ItalianVatNumberValidator.php`):
+- Validazione P.IVA con algoritmo di Luhn
+- Formattazione con prefisso IT
+- Estrazione codice provincia
+- Verifica VIES per UE
+- Generazione P.IVA test valide
+
+**ItalianTaxCodeValidator** (`app/Support/Validators/ItalianTaxCodeValidator.php`):
+- Validazione Codice Fiscale persone fisiche (16 caratteri)
+- Validazione CF aziende (11 cifre = P.IVA)
+- Estrazione dati: cognome, nome, data nascita, sesso, comune
+- Generazione codici nome/cognome
+- Algoritmo check character completo
+
+### Testing del Sistema Vendita
+
+**SaleServiceTest** (`tests/Feature/Services/Sale/SaleServiceTest.php`):
+- 18 tests, 35 assertions
+- Coverage: Sconti, Date, Rate, Calcoli rapidi
+- Casi edge: totali negativi, resto rate, precision
+
+**ItalianValidatorsTest** (`tests/Feature/Support/Validators/ItalianValidatorsTest.php`):
+- 15 tests, 48 assertions
+- Validazione P.IVA e CF
+- Estrazione dati CF
+- Generazione codici
+
+### Best Practices Vendita
+
+1. **Sempre calcoli server-side** - Mai duplicare logica calcolo in frontend
+2. **Debouncing appropriato** - 300ms per quick-calculate (evita chiamate eccessive)
+3. **Money as integers** - Tutti i valori monetari come integers (in euro, non centesimi)
+4. **Thread-safe numbering** - `lockForUpdate()` per progressive numbers
+5. **Keyboard first** - Shortcuts per velocizzare workflow staff
+6. **Real-time feedback** - Skeleton + loading states durante calcoli
+7. **Error handling** - Alert visibili per errori calcolo/API
+
+### Convenzioni Prezzi (IMPORTANTE!)
+
+**I prezzi sono memorizzati come `integer` nel database, ma rappresentano EURO (non centesimi):**
+
+```php
+// Database (migrations)
+$table->integer('price'); // Es: 35 = €35.00, 100 = €100.00
+
+// Model casting
+protected $casts = [
+    'price' => 'integer', // Stored as euros (35, 100, etc.)
+];
+```
+
+**Frontend - Backend Flow:**
+```typescript
+// Backend API restituisce prezzi in euro (integer)
+{ price: 35 }  // = €35.00
+
+// Frontend riceve e usa direttamente
+const unitPrice = priceList.price; // 35
+
+// Display formatting
+const formatCurrency = (euros: number) => {
+  return euros.toFixed(2).replace('.', ',');
+};
+formatCurrency(35); // Output: "35,00"
+
+// Salvataggio: NO conversione necessaria
+const data = {
+  unit_price: parseFloat(item.unit_price), // Già in euro
+  amount: parseFloat(payment.amount), // Già in euro
+};
+```
+
+**❌ ERRORE COMUNE - NON dividere/moltiplicare per 100:**
+```typescript
+// ❌ SBAGLIATO
+price: this.price / 100  // NO! Il prezzo è già in euro
+unit_price: Math.round(price * 100)  // NO! Non serve conversione
+
+// ✅ CORRETTO
+price: this.price  // Il prezzo è già in euro
+unit_price: parseFloat(price)  // Usa direttamente
+```
+
+### API Request/Response Examples
+
+**POST /sales/quick-calculate**:
+```json
+Request:
+{
+  "rows": [
+    {
+      "unit_price": 100,  // €100.00 (già in euro)
+      "quantity": 1,
+      "percentage_discount": 10,
+      "absolute_discount": 0,
+      "vat_rate_percentage": 22
+    }
+  ],
+  "sale_percentage_discount": null,
+  "sale_absolute_discount": 0
+}
+
+Response:
+{
+  "subtotal": 90,    // €90.00 (dopo sconto 10%)
+  "tax_total": 19.8, // IVA 22% su €90
+  "total": 109.8     // Totale lordo
+}
+```
+
+**POST /sales/calculate-installments**:
+```json
+Request:
+{
+  "total_amount": 100,  // €100.00 (già in euro)
+  "installments_count": 3,
+  "first_due_date": "2025-01-15",
+  "days_between_installments": 30
+}
+
+Response:
+{
+  "installments": [
+    {
+      "installment_number": 1,
+      "amount": 33.34,  // Prima rata con resto (€33.34)
+      "due_date": "2025-01-15",
+      "payed_at": null
+    },
+    {
+      "installment_number": 2,
+      "amount": 33.33,  // €33.33
+      "due_date": "2025-02-14",
+      "payed_at": null
+    },
+    {
+      "installment_number": 3,
+      "amount": 33.33,  // €33.33
+      "due_date": "2025-03-16",
+      "payed_at": null
+    }
+  ]
+}
+```
+
+## Bug Fixes e Pattern da Ricordare
+
+### Prezzi - Integer NON è Centesimi (2025-11-09)
+
+**Problema**: Prezzi mostrati come €0,35 invece di €35,00 dopo tentativo di conversione centesimi/euro.
+
+**Root Cause**: Assunzione errata che `integer` nel database significasse "centesimi". In realtà i prezzi sono memorizzati come **euro interi** (es: 35 = €35.00, non 3500 centesimi).
+
+**Soluzione**: NON fare conversioni /100 o *100 tra frontend e backend.
+
+**Schema corretto**:
+```php
+// Database
+$table->integer('price'); // 35 = €35.00
+
+// Model
+protected $casts = ['price' => 'integer']; // NO MoneyCast, plain integer
+
+// API Resource - NO conversione
+'price' => $this->price,  // ✅ Restituisci così com'è
+
+// Frontend - NO conversione
+const price = priceList.price;  // ✅ 35 (euro)
+unit_price: parseFloat(item.unit_price),  // ✅ NO * 100
+
+// Display
+const formatCurrency = (euros: number) => euros.toFixed(2);  // ✅ NO / 100
+```
+
+**File interessati**:
+- `app/Http/Resources/PriceListResource.php` - NO divisione per 100
+- `resources/js/components/sales/Cart.tsx` - NO moltiplicazione per 100
+- `resources/js/pages/sales/sales.tsx` - NO moltiplicazione per 100
+- `resources/js/components/sales/cards/PaymentCard.tsx` - NO conversioni
+
+### Customer Model - Null Safety in Accessors (2025-11-09)
+
+**Problema**: `getOptionLabelAttribute()` causava errore 500 quando `birth_date` era null.
+
+**Root Cause**: Il codice chiamava `format()` su `birth_date` senza verificare se fosse null:
+```php
+// ❌ SBAGLIATO
+return $this->first_name.' '.$this->last_name.' ('.$this->birth_date->format('d/m/Y').')';
+```
+
+**Soluzione**: Verificare sempre null prima di chiamare metodi su oggetti opzionali:
+```php
+// ✅ CORRETTO
+public function getOptionLabelAttribute()
+{
+    $birthDateStr = $this->birth_date ? ' ('.$this->birth_date->format('d/m/Y').')' : '';
+
+    return $this->first_name.' '.$this->last_name.$birthDateStr;
+}
+```
+
+**Pattern generale**:
+- **SEMPRE** verificare null per campi opzionali prima di chiamare metodi
+- Usare ternary operator per fallback graceful
+- Testare con unit test per casi null e non-null
+- Questo pattern si applica a TUTTI gli accessors con date/oggetti opzionali
+
+**File interessati**:
+- `app/Models/Customer/Customer.php:62` (getOptionLabelAttribute)
+- Test: `tests/Unit/Customer/CustomerAccessorTest.php`
+
+## Sistema Vendite (Sales)
+
+### Architettura e Requisiti
+
+Il sistema vendite è progettato per gestire vendite multi-prodotto con fatturazione elettronica italiana (FatturaPA).
+
+### Flusso Vendita Completo
+
+1. **Selezione Cliente** (obbligatorio)
+2. **Generazione Progressivo** (auto-generato da BE, modificabile da operatore)
+3. **Aggiunta Prodotti al Carrello** (uno o più items)
+4. **Applicazione Sconti**:
+   - Sconto per singolo item (% o €)
+   - Sconto globale vendita (% o €)
+5. **Configurazione Pagamento**:
+   - Condizione di pagamento (obbligatoria)
+   - Metodo di pagamento
+   - Risorsa finanziaria
+   - Gestione rate (automatiche o manuali)
+6. **Salvataggio Vendita**
+7. **Generazione Abbonamento Cliente** (se acquistato abbonamento)
+
+### Tipi di Prodotti Vendibili
+
+Tutti i tipi di PriceList sono vendibili:
+- **Article** - Articoli retail (integratori, magliette, etc.)
+- **Membership** - Quote associative/tesseramento
+- **Subscription** - Abbonamenti con contenuti standard + opzionali
+- **DayPass** - Ingressi giornalieri
+- **Token** - Carnet/crediti prepagati
+- **GiftCard** - Buoni regalo
+
+### Abbonamenti (Subscription)
+
+**Struttura**:
+- **Contenuti Standard**: Sempre inclusi nell'abbonamento (obbligatori)
+- **Contenuti Opzionali**: Selezionabili dall'operatore su richiesta cliente (con prezzi specifici)
+
+**Contenuti Supportati**:
+- BaseProduct (sala pesi, cardio, etc.)
+- CourseProduct (corsi)
+- BookableService (PT, consulenze)
+- Article (gadget, integratori)
+- Membership (quota associativa)
+
+**Flusso Aggiunta Abbonamento**:
+1. Operatore seleziona abbonamento
+2. Dialog mostra:
+   - Data inizio abbonamento (default: oggi, modificabile)
+   - Lista contenuti standard (solo visualizzazione)
+   - Lista contenuti opzionali (checkbox per includere)
+3. Selezione opzionali → si sommano al prezzo base
+4. Aggiunto al carrello come singolo item con prezzo totale
+
+**Calcolo Scadenze Multiple**:
+Ogni contenuto ha durata indipendente calcolata dalla data inizio:
+
+Esempio:
+```
+Data inizio: 10 novembre 2025
+Contenuti:
+- Open annuale (12 mesi) → scade 10 novembre 2026
+- Corso (1 mese) → scade 10 dicembre 2025
+- Quota associativa (12 mesi) → scade 10 novembre 2026
+```
+
+### Sconti
+
+**Livelli di Sconto**:
+1. **Sconto item singolo**: % o € sul singolo prodotto nel carrello
+2. **Sconto vendita globale**: % o € sul totale carrello
+
+**Calcolo Sconto su Abbonamento con Opzionali**:
+```
+Abbonamento base: €100
++ Opzionale A: €20
++ Opzionale B: €30
+= €150 (prezzo pacchetto)
+
+Sconto 10% item → si applica su €150 totali
+Totale item: €135
+```
+
+**Priorità applicazione**:
+1. Prima sconti a livello item
+2. Poi sconto globale vendita sul subtotale
+
+### IVA e Fatturazione Elettronica Italiana
+
+**Gestione IVA**:
+- Ogni prodotto ha `vat_rate_id` (0%, 4%, 10%, 22%, etc.)
+- **IVA inclusa nel prezzo** (configurazione attuale)
+- Possibilità futura: configurazione globale "IVA inclusa/esclusa" a livello company
+
+**Ritenuta d'Acconto**:
+- **Company se ne fa carico** (configurazione attuale)
+- Possibilità futura: configurazione globale "aggiungi/company paga" a livello company
+
+**Riepilogo IVA Obbligatorio**:
+Per normativa FatturaPA, nel riepilogo vendita serve breakdown per codice IVA:
+```
+Imponibile IVA 22%: €80.00
+Imponibile IVA 10%: €20.00
+Imponibile IVA 0% (esente): €10.00
+────────────────────────────
+IVA 22%: €17.60
+IVA 10%: €2.00
+IVA 0%: €0.00
+────────────────────────────
+TOTALE: €129.60
+```
+
+### Sistema Pagamenti
+
+**Terminologia**:
+- **Condizione di Pagamento**: Definisce QUANDO si paga (es. "30 gg data fattura", "60-90 gg fine mese")
+- **Metodo di Pagamento**: Definisce COME si paga (es. "Bonifico", "Contante", "Carta")
+- **Risorsa Finanziaria**: Definisce DOVE arrivano i soldi (es. "Conto Intesa", "PayPal Business", "Satispay")
+
+**Condizione di Pagamento** (obbligatoria):
+```php
+PaymentCondition {
+  id: 1,
+  description: "Bonifico 30-60-90 gg",
+  payment_method_id: 2,  // Bonifico
+  end_of_month: true,    // Scadenze a fine mese
+  installments: [
+    { days: 30 },
+    { days: 60 },
+    { days: 90 }
+  ]
+}
+```
+
+**Due Scenari di Gestione Rate**:
+
+1. **Rate Automatiche (NON modificabili)**:
+   - Condizione di pagamento HA installments definiti
+   - Sistema genera rate con scadenze automatiche
+   - Operatore NON può modificare date/importi (vincolate da contratto)
+   - Esempio: "Bonifico 30-60-90 gg" → 3 rate fisse
+
+2. **Rate Manuali (modificabili)**:
+   - Condizione di pagamento SENZA installments (es. "A vista", "Contanti", "PayPal")
+   - Operatore può usare:
+     - Bottoni quick: "Unica soluzione", "2 rate", "3 rate", "6 rate", "12 rate"
+     - Calculator personalizzato: quantità rate + intervallo giorni + data prima rata
+   - Rate completamente modificabili (date, importi, metodo)
+
+**Flusso Selezione Condizione**:
+```typescript
+if (paymentCondition.installments.length > 0) {
+  // Rate automatiche
+  generateInstallmentsFromCondition(paymentCondition);
+  disableManualEdit = true;
+} else {
+  // Rate manuali disponibili
+  showQuickButtons = true;
+  showCalculator = true;
+  disableManualEdit = false;
+}
+```
+
+### UI Layout - Sidebar Approach (Opzione C)
+
+```
+┌───────────────────────────────────────────────────────────┐
+│ HEADER                                                    │
+│ Cliente • Progressivo • Data                              │
+├────────────────────────────┬──────────────────────────────┤
+│                            │                              │
+│  MAIN AREA (scroll)        │   SIDEBAR (fixed)            │
+│                            │   ┌──────────────────────┐   │
+│  [1] Ricerca Prodotti      │   │   CARRELLO           │   │
+│      • Quick search        │   │   ──────────         │   │
+│      • Tree navigation     │   │   • Item 1     €50   │   │
+│                            │   │   • Item 2     €30   │   │
+│  [2] Sconti Vendita        │   │                      │   │
+│      • % globale           │   │   RIEPILOGO IVA      │   │
+│      • € globale           │   │   ──────────         │   │
+│                            │   │   Imp. 22%:  €65.57  │   │
+│  [3] Pagamenti             │   │   IVA 22%:   €14.43  │   │
+│      • Condizione (req)    │   │   Imp. 10%:  €9.09   │   │
+│      • Metodo              │   │   IVA 10%:   €0.91   │   │
+│      • Risorsa             │   │   ──────────         │   │
+│      • Rate table          │   │   TOTALE:    €90.00  │   │
+│                            │   │                      │   │
+│                            │   │   [COMPLETA VENDITA] │   │
+│                            │   │   [SALVA BOZZA]      │   │
+│                            │   └──────────────────────┘   │
+│                            │                              │
+└────────────────────────────┴──────────────────────────────┘
+```
+
+**Vantaggi**:
+- Carrello e totali IVA sempre visibili
+- Flusso lineare: cliente → prodotti → sconti → pagamenti
+- Nessuno stepper, tutto in una schermata
+- Ottimizzato per tastiera: F2 (cliente), F3 (prodotto), Tab/Enter (navigazione)
+
+### Struttura File Proposta
+
+```
+resources/js/pages/sales/
+  ├── sale-create.tsx              (Main page - sidebar layout)
+  └── components/
+      ├── SaleHeader.tsx           (Cliente + Progressivo + Data)
+      ├── ProductSearch.tsx        (Quick search + Tree)
+      ├── DiscountsSection.tsx     (Sconti globali vendita)
+      ├── PaymentsSection.tsx      (Condizioni + Metodi + Rate)
+      └── CartSidebar.tsx          (Carrello + Totali IVA + Actions)
+```
+
+### API Endpoints Vendite
+
+**POST /app/sales/quick-calculate** - Calcolo real-time totali/IVA:
+```typescript
+Request: {
+  rows: [
+    {
+      unit_price: 100,
+      quantity: 1,
+      percentage_discount: 10,
+      absolute_discount: 0,
+      vat_rate_percentage: 22
+    }
+  ],
+  sale_percentage_discount: 5,
+  sale_absolute_discount: 0
+}
+
+Response: {
+  subtotal: 85.5,          // Dopo sconti
+  tax_total: 18.81,        // IVA totale
+  total: 104.31,           // Lordo finale
+  vat_breakdown: [         // Per riepilogo FatturaPA
+    {
+      rate: 22,
+      taxable_amount: 85.5,
+      tax_amount: 18.81
+    }
+  ]
+}
+```
+
+**POST /app/sales/calculate-installments** - Generazione rate:
+```typescript
+Request: {
+  total_amount: 100,
+  installments_count: 3,
+  first_due_date: "2025-01-15",
+  days_between_installments: 30
+}
+
+Response: {
+  installments: [
+    {
+      installment_number: 1,
+      amount: 33.34,
+      due_date: "2025-01-15",
+      payed_at: null
+    },
+    // ...
+  ]
+}
+```
+
+**POST /app/sales/store** - Salvataggio vendita:
+```typescript
+Request: {
+  progressive_number: "0001",
+  customer_id: 123,
+  date: "2025-11-10",
+  document_type_id: 1,
+  payment_condition_id: 5,
+  financial_resource_id: 2,
+  discount_percentage: 5,
+  discount_absolute: 0,
+  sale_rows: [
+    {
+      price_list_id: 10,
+      quantity: 1,
+      unit_price: 100,
+      percentage_discount: 0,
+      absolute_discount: 0,
+      total: 95,  // Dopo sconti
+      start_date: "2025-11-10",  // Per abbonamenti
+      subscription_selected_content: [...]  // Content IDs opzionali
+    }
+  ],
+  payments: [
+    {
+      payment_method_id: 2,
+      amount: 95,
+      due_date: "2025-12-10",
+      payed_at: null
+    }
+  ]
+}
+```
+
+### Stati Vendita
+
+```php
+'status' => [
+  'draft',      // Bozza salvata, non completata
+  'completed',  // Vendita completata
+  'cancelled'   // Annullata
+],
+'payment_status' => [
+  'not_paid',   // Non pagato
+  'partial',    // Parzialmente pagato
+  'paid'        // Completamente pagato
+],
+'accounting_status' => [
+  'not_accounted',  // Non contabilizzato
+  'accounted'       // Contabilizzato
+],
+'exported_status' => [
+  'not_exported',   // Non esportato a SDI
+  'exported'        // Esportato a SDI
+]
+```
+
+### Generazione Abbonamento Cliente
+
+Quando viene completata una vendita con un abbonamento:
+1. Sistema crea record `CustomerSubscription`
+2. Calcola tutte le scadenze dei contenuti dalla data inizio
+3. Collega abbonamento al cliente
+4. Abbonamento visibile nella scheda cliente per gestione (freeze, rinnovo, etc.)
+
+### Note Implementazione
+
+**Keyboard Shortcuts Esistenti**:
+- `F2`: Focus campo cliente
+- `F3`: Focus ricerca prodotto
+- `F4`: Vai a sezione pagamenti
+- `F9`: Vai a riepilogo finale
+
+**Calcoli Real-time**:
+- Usa `useQuickCalculate` hook con debounce 300ms
+- Chiamata API ad ogni modifica carrello/sconti
+- Mostra skeleton durante calcolo
+
+**Validazione**:
+- Cliente obbligatorio
+- Almeno 1 prodotto nel carrello
+- Condizione pagamento obbligatoria
+- Se rate manuali: somma rate = totale vendita
 
 ## Note Finali
 

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Application\PriceLists;
 
 use App\Http\Controllers\Controller;
 use App\Models\PriceList\Token;
-use App\Services\PriceList\SubscriptionPriceListService;
+use App\Services\PriceList\PriceListService;
 use App\Support\Color;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,13 +16,16 @@ class TokenController extends Controller
      */
     public function create()
     {
+        $token = new Token([
+            'color' => Color::randomHex(),
+            'token_quantity' => 10,
+            'validity_days' => 365,
+        ]);
+        $token->type = 'token';
+
         return Inertia::render('price-lists/price-lists', [
-            ...SubscriptionPriceListService::getViewAttributes(),
-            'priceList' => new Token([
-                'color' => Color::randomHex(),
-                'token_quantity' => 10,
-                'validity_days' => 365,
-            ]),
+            ...PriceListService::getViewAttributes(),
+            'priceList' => $token,
         ]);
     }
 
@@ -33,7 +36,7 @@ class TokenController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:price_lists,id',
+            'parent_id' => 'nullable|integer|exists:price_lists,id',
             'color' => 'required|string|max:7',
             'price' => 'required|numeric|min:0',
             'vat_rate_id' => 'required|exists:vat_rates,id',
@@ -48,6 +51,11 @@ class TokenController extends Controller
             'applicable_products.*' => 'exists:products,id',
             'all_products' => 'nullable|boolean',
         ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($data['parent_id']) && $data['parent_id'] === '') {
+            $data['parent_id'] = null;
+        }
 
         // Auto-inherit booking rules from BookableService(s) if applicable
         $bookingDefaults = $this->extractBookingDefaultsFromProducts($data['applicable_products'] ?? []);
@@ -134,7 +142,7 @@ class TokenController extends Controller
         }
 
         return Inertia::render('price-lists/price-lists', [
-            ...SubscriptionPriceListService::getViewAttributes(),
+            ...PriceListService::getViewAttributes(),
             'priceList' => $token,
         ]);
     }
@@ -146,7 +154,7 @@ class TokenController extends Controller
     {
         $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'parent_id' => 'nullable|exists:price_lists,id',
+            'parent_id' => 'nullable|integer|exists:price_lists,id',
             'color' => 'sometimes|required|string|max:7',
             'price' => 'sometimes|required|numeric|min:0',
             'vat_rate_id' => 'sometimes|required|exists:vat_rates,id',
@@ -176,6 +184,11 @@ class TokenController extends Controller
             'applicable_products.*' => 'exists:products,id',
             'all_products' => 'nullable|boolean',
         ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($data['parent_id']) && $data['parent_id'] === '') {
+            $data['parent_id'] = null;
+        }
 
         // Check if settings are sent directly (from BookingTab)
         if (isset($data['settings'])) {

@@ -31,7 +31,7 @@ class SaleController extends Controller
     {
         $props = $saleService->create($request->get('customer_id'));
 
-        return Inertia::render('sales/sales', [
+        return Inertia::render('sales/sale-create', [
             ...$props,
         ]);
     }
@@ -73,7 +73,7 @@ class SaleController extends Controller
             // Add other validation rules as necessary
         ]);
 
-        //dd($validated);
+        // dd($validated);
 
         $totalAmount = 0;
 
@@ -99,7 +99,7 @@ class SaleController extends Controller
                 break;
         }
 
-        //dd($validated['sale_rows']);
+        // dd($validated['sale_rows']);
 
         $rows = [];
 
@@ -108,15 +108,12 @@ class SaleController extends Controller
             $priceList = \App\Models\PriceList\PriceList::find($row['price_list_id']);
 
             if ($selectedContent) {
-                if (!$priceList) {
+                if (! $priceList) {
                     throw new \Exception('Price list not found for the selected content.');
                 }
 
-                // ??????????????????????????????
-                $startDate = null;
-                if ($priceList instanceof \App\Models\PriceList\Subscription) {
-                    $startDate = Carbon::parse($priceList->start_date);
-                }
+                // Get start date from row (user selected)
+                $startDate = isset($row['start_date']) ? Carbon::parse($row['start_date']) : now();
 
                 $innerRows = collect($selectedContent)->map(function ($content) use ($row, $startDate, $priceList) {
                     $absoluteDiscount = ($content['price'] * $row['quantity'] * ($row['percentage_discount'] ?? 0) / 100) ?? 0;
@@ -131,7 +128,7 @@ class SaleController extends Controller
                         'price_list_id' => $row['price_list_id'],
                         'entitable_type' => SubscriptionContent::class,
                         'entitable_id' => $content['id'],
-                        'description' => $content['price_listable']['selling_description'] . ' - ' . $priceList->name . ($startDate ? ' (dal ' . $startDate->format('d/m/Y') . ($endDate ? ' al ' . $endDate->format('d/m/Y') : '') . ')' : ''),
+                        'description' => $content['price_listable']['selling_description'].' - '.$priceList->name.($startDate ? ' (dal '.$startDate->format('d/m/Y').($endDate ? ' al '.$endDate->format('d/m/Y') : '').')' : ''),
                         'quantity' => $row['quantity'],
                         'unit_price' => $content['price'],
                         'percentage_discount' => $row['percentage_discount'] ?? 0,
@@ -159,7 +156,7 @@ class SaleController extends Controller
 
             $priceList = \App\Models\PriceList\PriceList::with(['vat_rate'])->find($row['price_list_id']);
             $absoluteDiscount = ($row['unit_price'] * $row['quantity'] * ($row['percentage_discount'] ?? 0) / 100) ?? 0;
-            $hasDuration = $priceList->type === \App\Enums\PriceListItemTypeEnum::MEMBERSHIP->value;;
+            $hasDuration = $priceList->type === \App\Enums\PriceListItemTypeEnum::MEMBERSHIP->value;
 
             $data = [
                 'price_list_id' => $row['price_list_id'],
@@ -181,13 +178,13 @@ class SaleController extends Controller
                     ->addDays($priceList->days_duration ?? 0);
                 $data['start_date'] = $startDate;
                 $data['end_date'] = $endDate;
-                $data['description'] .= ' (dal ' . $startDate->format('d/m/Y') . ' al ' . $endDate->format('d/m/Y') . ')';
+                $data['description'] .= ' (dal '.$startDate->format('d/m/Y').' al '.$endDate->format('d/m/Y').')';
             }
 
             $rows[] = $data;
         })->toArray();
 
-        //dd($rows);
+        // dd($rows);
 
         $sale = DB::transaction(function () use ($validated, $paymentStatus, $rows) {
             // Check if the sale already exists
@@ -208,7 +205,7 @@ class SaleController extends Controller
                 'customer_id' => $validated['customer_id'],
                 'payment_condition_id' => $validated['payment_condition_id'],
                 'financial_resource_id' => $validated['financial_resource_id'],
-                //'promotion_id' => $validated['promotion_id'],
+                // 'promotion_id' => $validated['promotion_id'],
                 'discount_percentage' => $validated['discount_percentage'],
                 'discount_absolute' => $validated['discount_absolute'],
                 'status' => $validated['status'],
@@ -251,7 +248,7 @@ class SaleController extends Controller
 
         return to_route('app.sales.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'sale' => $sale->id
+            'sale' => $sale->id,
         ])
             ->with('status', 'Sale created successfully.');
     }
@@ -303,5 +300,66 @@ class SaleController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Quick calculate totals for UI display (real-time calculation)
+     */
+    public function quickCalculate(Request $request, SaleService $saleService)
+    {
+        $data = $request->validate([
+            'rows' => 'required|array',
+            'rows.*.unit_price' => 'required|numeric|min:0',
+            'rows.*.quantity' => 'required|numeric|min:0',
+            'rows.*.percentage_discount' => 'nullable|numeric|min:0|max:100',
+            'rows.*.absolute_discount' => 'nullable|numeric|min:0',
+            'rows.*.vat_rate_percentage' => 'nullable|numeric|min:0',
+            'sale_percentage_discount' => 'nullable|numeric|min:0|max:100',
+            'sale_absolute_discount' => 'nullable|numeric|min:0',
+        ]);
+
+        return response()->json($saleService->quickCalculate($data));
+    }
+
+    /**
+     * Calculate installments for flexible payments
+     */
+    public function calculateInstallments(Request $request, SaleService $saleService)
+    {
+        $data = $request->validate([
+            'total_amount' => 'required|integer|min:1',
+            'installments_count' => 'required|integer|min:1|max:12',
+            'first_due_date' => 'required|date',
+            'days_between_installments' => 'nullable|integer|min:1',
+        ]);
+
+        $installments = $saleService->calculateInstallments(
+            $data['total_amount'],
+            $data['installments_count'],
+            \Carbon\Carbon::parse($data['first_due_date']),
+            $data['days_between_installments'] ?? 30
+        );
+
+        return response()->json(['installments' => $installments]);
+    }
+
+    /**
+     * Get subscription contents (standard + selected optional)
+     */
+    public function getSubscriptionContents(Request $request, SaleService $saleService)
+    {
+        $data = $request->validate([
+            'subscription_id' => 'required|exists:price_lists,id',
+            'selected_optional_ids' => 'nullable|array',
+            'selected_optional_ids.*' => 'exists:subscription_contents,id',
+        ]);
+
+        $subscription = \App\Models\PriceList\Subscription::findOrFail($data['subscription_id']);
+        $contents = $saleService->getSubscriptionContents(
+            $subscription,
+            $data['selected_optional_ids'] ?? []
+        );
+
+        return response()->json(['contents' => $contents]);
     }
 }

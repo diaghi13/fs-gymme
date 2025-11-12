@@ -56,7 +56,7 @@ export default function TokenPriceListCard({
       bgColor={priceList.color}
       action={
         <PriceListCardActions
-          priceListId={priceList.id}
+          //priceListId={priceList.id}
           priceListType={priceList.type}
           tenantId={currentTenantId}
           onUndo={handleUndo}

@@ -179,6 +179,19 @@ class PriceList extends Model implements PriceListContract, VatRateable
         return $this->morphOne(\App\Models\Sale\SaleRow::class, 'enitable');
     }
 
+    // Subscription content relations (only used when type is SUBSCRIPTION)
+    public function standard_content()
+    {
+        return $this->hasMany(SubscriptionContent::class, 'subscription_id')
+            ->where('is_optional', false);
+    }
+
+    public function optional_content()
+    {
+        return $this->hasMany(SubscriptionContent::class, 'subscription_id')
+            ->where('is_optional', true);
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

@@ -1,45 +1,43 @@
 import React from "react";
 import {Button, Table, TableBody, TableCell, TableHead, TableRow} from "@mui/material";
 import {FieldArray, useFormikContext} from "formik";
-import { AutocompleteOptions, BookableService, PriceListArticle, PriceListMembershipFee, Product, VatRate } from '@/types';
-import SubscriptionTableRow from "@/components/price-list/subscription/content-table/SubscriptionTableRow";
-import SubscriptionAddContentDialog from "@/components/price-list/subscription/SubscriptionAddContentDialog";
-import SubscriptionTableFormRow from "@/components/price-list/subscription/content-table/form/SubscriptionTableFormRow";
-import { ARTICLE, MEMBERSHIP, PriceListPageProps } from '@/pages/price-lists/price-lists';
+import { BookableService, PriceListArticle, PriceListMembershipFee, PriceListToken, PriceListGiftCard, PriceListDayPass, Product } from '@/types';
+import { MEMBERSHIP, ARTICLE, TOKEN, GIFT_CARD, DAY_PASS } from '@/pages/price-lists/price-lists';
+import { SubscriptionGeneralFormValuesWithContent, SubscriptionGeneralFormValues } from '@/components/price-list/subscription/tabs/SubscriptionGeneralTab';
 import { usePage } from '@inertiajs/react';
-import {
-  SubscriptionGeneralFormValues,
-  SubscriptionGeneralFormValuesWithContent
-} from '@/components/price-list/subscription/tabs/SubscriptionGeneralTab';
+import { PriceListPageProps } from '@/pages/price-lists/price-lists';
+import SubscriptionTableRow from '@/components/price-list/subscription/content-table/SubscriptionTableRow';
+import SubscriptionTableFormRow from '@/components/price-list/subscription/content-table/form/SubscriptionTableFormRow';
+import SubscriptionAddContentDialog from '@/components/price-list/subscription/SubscriptionAddContentDialog';
 
-const createRow = (entity: Product | BookableService | PriceListMembershipFee | PriceListArticle | any, vatRateOptions: any, isOptional: boolean = false): SubscriptionGeneralFormValuesWithContent | undefined => {
+const createRow = (entity: Product | BookableService | PriceListMembershipFee | PriceListArticle | PriceListToken | PriceListGiftCard | PriceListDayPass | any, vatRateOptions: any, isOptional: boolean = false): SubscriptionGeneralFormValuesWithContent | undefined => {
   if (!entity.id) {
+    console.error('createRow: entity has no id', entity);
     return;
   }
 
-  // Check if it's a Product (BaseProduct, CourseProduct, or BookableService)
-  // Types can be: "base", "course", "bookable_service", or full class names
+  // Check if it's a Product (BaseProduct or CourseProduct)
+  // Types can be: "base", "course", "base_product", "course_product", or full class names
   const isProduct = entity.type === "base" ||
-                    entity.type === "course" ||
-                    entity.type === "bookable_service" ||
                     entity.type === "base_product" ||
+                    entity.type === "course" ||
                     entity.type === "course_product" ||
+                    entity.type === "bookable_service" ||
                     entity.type === "App\\Models\\Product\\BaseProduct" ||
                     entity.type === "App\\Models\\Product\\CourseProduct" ||
                     entity.type === "App\\Models\\Product\\BookableService";
 
-  if (isProduct) {
-    // Extract booking rules from product settings if available (for bookable services)
-    const bookingSettings = entity.settings?.booking;
+  // Extract booking rules from product settings if available (for bookable services)
+  const bookingSettings = entity.settings?.booking;
 
+  if (isProduct) {
     return {
       id: undefined,
       days_duration: null,
       months_duration: null,
       price: null,
-      vat_rate_id: entity.vat_rate_id ?? null,
+      vat_rate_id: entity.vat_rate_id,
       vat_rate: vatRateOptions.find((option: any) => option.value === entity.vat_rate_id) ?? null,
-      entrances: null,
       is_optional: isOptional,
       price_listable_id: entity.id,
       price_listable_type: 'App\\Models\\Product\\Product',
@@ -89,25 +87,24 @@ const createRow = (entity: Product | BookableService | PriceListMembershipFee | 
       daily_reservation_limit: null,
 
       isDirty: true
-    }
+    };
   }
 
-  if (entity.type === MEMBERSHIP || entity.type === ARTICLE) {
+  if (entity.type === MEMBERSHIP || entity.type === ARTICLE || entity.type === TOKEN || entity.type === GIFT_CARD || entity.type === DAY_PASS) {
     return {
       id: undefined,
       days_duration: null,
-      months_duration: entity.type === MEMBERSHIP ? (entity as any).months_duration : null,
-      price: (entity as any).price,
-      vat_rate_id: entity.vat_rate_id ?? null,
+      months_duration: entity.type === MEMBERSHIP ? entity.months_duration : null,
+      price: entity.price,
+      vat_rate_id: entity.vat_rate_id,
       vat_rate: vatRateOptions.find((option: any) => option.value === entity.vat_rate_id) ?? null,
-      entrances: null,
       is_optional: isOptional,
-      price_listable_id: entity.id as number,
+      price_listable_id: entity.id,
       price_listable_type: 'App\\Models\\PriceList\\PriceList',
       price_listable: entity,
 
       // Access rules
-      unlimited_entries: true, // Default to unlimited if entrances not specified
+      unlimited_entries: true,
       total_entries: null,
       daily_entries: null,
       weekly_entries: null,
@@ -137,8 +134,6 @@ const createRow = (entity: Product | BookableService | PriceListMembershipFee | 
       service_access_type: 'all',
       services: [],
 
-      // Benefits
-
       // Metadata
       sort_order: 0,
       settings: null,
@@ -150,7 +145,7 @@ const createRow = (entity: Product | BookableService | PriceListMembershipFee | 
       daily_reservation_limit: null,
 
       isDirty: true
-    }
+    };
   }
 
   // If we get here, the entity type is not recognized
@@ -165,10 +160,13 @@ export default function ({contentType}: SubscriptionTableProps) {
   const {
     baseProducts,
     courseProducts,
-    bookableServices,
     articles,
     membershipFees,
-    vatRateOptions
+    bookableServices,
+    tokens,
+    giftCards,
+    dayPasses,
+    vatRateOptions,
   } = usePage<PriceListPageProps>().props;
   const {values} = useFormikContext<SubscriptionGeneralFormValues>();
   const [openContentDialog, setOpenContentDialog] = React.useState<boolean>(false);
@@ -230,20 +228,21 @@ export default function ({contentType}: SubscriptionTableProps) {
                 </TableCell>
               </TableRow>
               <SubscriptionAddContentDialog
-                courseProducts={courseProducts!}
-                baseProducts={baseProducts!}
-                bookableServices={bookableServices!}
-                articles={articles!}
-                membershipFees={membershipFees!}
-                dayPasses={[]}
-                tokens={[]}
-                giftCards={[]}
+                courseProducts={courseProducts || []}
+                baseProducts={baseProducts || []}
+                articles={articles || []}
+                membershipFees={membershipFees || []}
+                bookableServices={bookableServices || []}
+                tokens={tokens || []}
+                giftCards={giftCards || []}
+                dayPasses={dayPasses || []}
                 onClose={toggleOpenContentDialog}
-                onSelect={(entity) => {
-                  const newRow = createRow(entity, vatRateOptions!, contentType === "optional");
+                onAdd={(entity: any) => {
+                  const newRow = createRow(entity, vatRateOptions || [], contentType === "optional");
                   if (newRow) {
                     push(newRow);
                   }
+                  toggleOpenContentDialog();
                 }}
                 open={openContentDialog}
               />
