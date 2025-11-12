@@ -170,7 +170,6 @@ class SaleController extends Controller
         $sale->load([
             'customer',
             'rows.vat_rate',
-            'rows.entitable',
             'document_type_electronic_invoice',
             'payment_condition',
             'financial_resource',

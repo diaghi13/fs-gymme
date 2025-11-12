@@ -185,26 +185,28 @@ const SaleShow: React.FC<SaleShowProps> = ({ auth, sale, currentTenantId }) => {
             <SaleRowsCard sale={sale} />
           </Grid>
 
-          {/* Payments Section */}
-          <Grid size={12}>
-            <SalePaymentsCard sale={sale} />
+          {/* Left Column: Payments & VAT Breakdown */}
+          <Grid size={{ xs: 12, md: sale.electronic_invoice ? 8 : 12 }}>
+            <Stack spacing={3}>
+              {/* Payments Section */}
+              <SalePaymentsCard sale={sale} />
+
+              {/* VAT Breakdown */}
+              <SaleVatBreakdownCard
+                vatBreakdown={sale.sale_summary.vat_breakdown}
+                totalNet={sale.sale_summary.net_price}
+                totalVat={sale.sale_summary.total_tax}
+                totalGross={sale.sale_summary.gross_price}
+              />
+            </Stack>
           </Grid>
 
-          {/* Electronic Invoice Status & VAT Breakdown - Side by Side */}
+          {/* Right Column: Electronic Invoice Status (if exists) */}
           {sale.electronic_invoice && (
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <SaleElectronicInvoiceStatusCard sale={sale} />
             </Grid>
           )}
-
-          <Grid size={{ xs: 12, md: sale.electronic_invoice ? 6 : 12 }}>
-            <SaleVatBreakdownCard
-              vatBreakdown={sale.sale_summary.vat_breakdown}
-              totalNet={sale.sale_summary.net_price}
-              totalVat={sale.sale_summary.total_tax}
-              totalGross={sale.sale_summary.gross_price}
-            />
-          </Grid>
         </Grid>
       </Box>
     </AppLayout>
