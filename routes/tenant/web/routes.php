@@ -26,12 +26,12 @@ Route::middleware([])->group(function () {
         ->name('app.dashboard');
 
     Route::resource('sales', \App\Http\Controllers\Application\Sales\SaleController::class)
-        ->except(['edit'])
         ->names([
             'index' => 'app.sales.index',
             'create' => 'app.sales.create',
             'store' => 'app.sales.store',
             'show' => 'app.sales.show',
+            'edit' => 'app.sales.edit',
             'update' => 'app.sales.update',
             'destroy' => 'app.sales.destroy',
         ]);

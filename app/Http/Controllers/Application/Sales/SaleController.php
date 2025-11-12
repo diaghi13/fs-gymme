@@ -164,17 +164,90 @@ class SaleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Sale $sale, SaleService $saleService): Response
     {
-        //
+        // Load all relationships needed for editing
+        $sale->load([
+            'customer',
+            'rows.vat_rate',
+            'rows.entitable',
+            'document_type_electronic_invoice',
+            'payment_condition',
+            'financial_resource',
+            'promotion',
+            'payments.payment_method',
+            'structure',
+        ]);
+
+        // Get initial data (customers, payment conditions, etc.)
+        $props = $saleService->create($sale->customer_id);
+
+        // Override sale with existing data
+        $props['sale'] = $sale;
+
+        // Format sale rows for the form
+        $props['sale']['sale_rows'] = $sale->rows->map(function ($row) {
+            return [
+                'id' => $row->id,
+                'price_list_id' => $row->price_list_id,
+                'description' => $row->description,
+                'quantity' => $row->quantity,
+                'unit_price' => $row->unit_price_gross,
+                'percentage_discount' => $row->percentage_discount,
+                'absolute_discount' => $row->absolute_discount,
+                'vat_rate_id' => $row->vat_rate_id,
+                'total_price' => $row->total_gross,
+                'start_date' => $row->start_date,
+                'end_date' => $row->end_date,
+            ];
+        })->toArray();
+
+        // Format payments for the form
+        $props['sale']['payments'] = $sale->payments->map(function ($payment) {
+            return [
+                'due_date' => $payment->due_date,
+                'amount' => $payment->amount,
+                'payment_method' => $payment->payment_method,
+                'payed_at' => $payment->payed_at,
+            ];
+        })->toArray();
+
+        return Inertia::render('sales/sale-create', $props);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StoreSaleRequest $request, Sale $sale, SaleService $saleService): RedirectResponse
     {
-        //
+        // Delete existing rows and payments
+        $sale->rows()->delete();
+        $sale->payments()->delete();
+
+        // Update sale with new data
+        $sale->update([
+            'document_type_electronic_invoice_id' => $request->input('document_type_id'),
+            'progressive_number' => $request->input('progressive_number'),
+            'date' => $request->input('date'),
+            'year' => $request->input('year'),
+            'customer_id' => $request->input('customer_id'),
+            'payment_condition_id' => $request->input('payment_condition_id'),
+            'financial_resource_id' => $request->input('financial_resource_id'),
+            'promotion_id' => $request->input('promotion_id'),
+            'discount_percentage' => $request->input('discount_percentage', 0),
+            'discount_absolute' => $request->input('discount_absolute', 0),
+            'status' => $request->input('status'),
+            'tax_included' => $request->input('tax_included', true),
+            'notes' => $request->input('notes'),
+        ]);
+
+        // Re-create rows and payments using the same logic as store
+        $saleService->store($request->validated());
+
+        return to_route('app.sales.show', [
+            'tenant' => $request->session()->get('current_tenant_id'),
+            'sale' => $sale->id,
+        ])->with('status', 'Vendita aggiornata con successo.');
     }
 
     /**

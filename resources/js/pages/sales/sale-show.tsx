@@ -72,15 +72,15 @@ const SaleShow: React.FC<SaleShowProps> = ({ auth, sale, currentTenantId }) => {
               </Typography>
             </Box>
             <Stack direction="row" spacing={1}>
-              {/* TODO: Implement edit functionality */}
-              {/* <Tooltip title="Modifica vendita">
+              <Tooltip title="Modifica vendita">
                 <IconButton
                   size="small"
                   sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.2)' }}
+                  href={route('app.sales.edit', { tenant: currentTenantId, sale: sale.id! })}
                 >
                   <EditIcon />
                 </IconButton>
-              </Tooltip> */}
+              </Tooltip>
             </Stack>
           </Stack>
         </Paper>
@@ -169,13 +169,6 @@ const SaleShow: React.FC<SaleShowProps> = ({ auth, sale, currentTenantId }) => {
         )}
 
         <Grid container spacing={3}>
-          {/* Electronic Invoice Status - Compact */}
-          {sale.electronic_invoice && (
-            <Grid size={12}>
-              <SaleElectronicInvoiceStatusCard sale={sale} />
-            </Grid>
-          )}
-
           {/* Summary Cards Row: Header, Customer, Totals */}
           <Grid size={{ xs: 12, md: 4 }}>
             <SaleHeaderCard sale={sale} />
@@ -187,18 +180,24 @@ const SaleShow: React.FC<SaleShowProps> = ({ auth, sale, currentTenantId }) => {
             <SaleTotalsCard sale={sale} />
           </Grid>
 
-          {/* Payments Section */}
-          <Grid size={12}>
-            <SalePaymentsCard sale={sale} />
-          </Grid>
-
           {/* Products Table */}
           <Grid size={12}>
             <SaleRowsCard sale={sale} />
           </Grid>
 
-          {/* VAT Breakdown */}
+          {/* Payments Section */}
           <Grid size={12}>
+            <SalePaymentsCard sale={sale} />
+          </Grid>
+
+          {/* Electronic Invoice Status & VAT Breakdown - Side by Side */}
+          {sale.electronic_invoice && (
+            <Grid size={{ xs: 12, md: 6 }}>
+              <SaleElectronicInvoiceStatusCard sale={sale} />
+            </Grid>
+          )}
+
+          <Grid size={{ xs: 12, md: sale.electronic_invoice ? 6 : 12 }}>
             <SaleVatBreakdownCard
               vatBreakdown={sale.sale_summary.vat_breakdown}
               totalNet={sale.sale_summary.net_price}
