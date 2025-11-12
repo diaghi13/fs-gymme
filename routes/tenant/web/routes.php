@@ -49,6 +49,28 @@ Route::middleware([])->group(function () {
     Route::post('sales/subscription-contents', [\App\Http\Controllers\Application\Sales\SaleController::class, 'getSubscriptionContents'])
         ->name('app.sales.subscription-contents');
 
+    // Electronic Invoice routes
+    Route::prefix('sales/{sale}/electronic-invoice')->group(function () {
+        Route::post('/generate', \App\Http\Controllers\Application\Sales\ElectronicInvoice\GenerateController::class)
+            ->name('app.sales.electronic-invoice.generate');
+
+        Route::post('/send', \App\Http\Controllers\Application\Sales\ElectronicInvoice\SendController::class)
+            ->name('app.sales.electronic-invoice.send');
+
+        Route::get('/download-xml', \App\Http\Controllers\Application\Sales\ElectronicInvoice\DownloadXmlController::class)
+            ->name('app.sales.electronic-invoice.download-xml');
+
+        Route::get('/download-pdf', \App\Http\Controllers\Application\Sales\ElectronicInvoice\DownloadPdfController::class)
+            ->name('app.sales.electronic-invoice.download-pdf');
+
+        Route::post('/generate-credit-note', \App\Http\Controllers\Application\Sales\ElectronicInvoice\GenerateCreditNoteController::class)
+            ->name('app.sales.electronic-invoice.generate-credit-note');
+    });
+
+    // Debug route (temporary - remove in production)
+    Route::get('sales/{sale}/debug-status', \App\Http\Controllers\Application\Sales\DebugSaleStatusController::class)
+        ->name('app.sales.debug-status');
+
     Route::get('subscription-plan', \App\Http\Controllers\Application\SubscriptionPlanChoiceController::class)
         ->withoutMiddleware(\App\Http\Middleware\HasActiveSubscriptionPlan::class)
         ->name('app.subscription-plans.index');
