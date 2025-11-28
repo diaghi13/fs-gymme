@@ -4,9 +4,11 @@ namespace App\Models\Sale;
 
 use App\Casts\MoneyCast;
 use App\Models\PriceList\PriceList;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+#[ObservedBy([\App\Observers\SaleRowObserver::class])]
 class SaleRow extends Model
 {
     /** @use HasFactory<\Database\Factories\Support\SaleRowFactory> */
@@ -44,13 +46,6 @@ class SaleRow extends Model
         'start_date' => 'date',
         'end_date' => 'date',
     ];
-
-    public static function boot()
-    {
-        parent::boot();
-
-        parent::observe(\App\Observers\SaleRowObserver::class);
-    }
 
     public function sale()
     {

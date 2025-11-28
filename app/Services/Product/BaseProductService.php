@@ -32,8 +32,10 @@ class BaseProductService
                 'vat_rate',
             ]);
 
-        // $vatRates = VatRateService::toOptions();
-        $vatRates = VatRate::all('id', 'code', 'description');
+        // Only load active VAT rates
+        $vatRates = VatRate::where('is_active', true)
+            ->orderBy('percentage', 'desc')
+            ->get(['id', 'code', 'description']);
 
         return [
             'product' => $product,

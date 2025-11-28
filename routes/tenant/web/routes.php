@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware([])->group(function () {
 
+    // Storage - serve files from tenant's public storage
+    Route::get('storage/{path}', [\App\Http\Controllers\Application\StorageController::class, 'show'])
+        ->where('path', '.*')
+        ->name('app.storage');
+
     // Onboarding
     Route::post('onboarding/complete', [\App\Http\Controllers\Tenant\OnboardingController::class, 'complete'])
         ->name('app.onboarding.complete');
@@ -39,6 +44,9 @@ Route::middleware([])->group(function () {
     Route::get('sales/{sale}/export-xml', \App\Http\Controllers\Application\Sales\ExportXml::class)
         ->name('app.sales.export-xml');
 
+    Route::post('sales/{sale}/credit-note', \App\Http\Controllers\Application\Sales\CreditNoteController::class)
+        ->name('app.sales.credit-note');
+
     // Sales API endpoints for real-time calculations
     Route::post('sales/quick-calculate', [\App\Http\Controllers\Application\Sales\SaleController::class, 'quickCalculate'])
         ->name('app.sales.quick-calculate');
@@ -48,6 +56,13 @@ Route::middleware([])->group(function () {
 
     Route::post('sales/subscription-contents', [\App\Http\Controllers\Application\Sales\SaleController::class, 'getSubscriptionContents'])
         ->name('app.sales.subscription-contents');
+
+    // Renewal routes - prepare sales for renewals
+    Route::get('renewal/membership-fee/{membershipFee}', [\App\Http\Controllers\Application\Sales\RenewalController::class, 'renewMembershipFee'])
+        ->name('app.renewal.membership-fee');
+
+    Route::get('renewal/subscription/{subscription}', [\App\Http\Controllers\Application\Sales\RenewalController::class, 'renewSubscription'])
+        ->name('app.renewal.subscription');
 
     // Electronic Invoice routes
     Route::prefix('sales/{sale}/electronic-invoice')->group(function () {
@@ -63,8 +78,29 @@ Route::middleware([])->group(function () {
         Route::get('/download-pdf', \App\Http\Controllers\Application\Sales\ElectronicInvoice\DownloadPdfController::class)
             ->name('app.sales.electronic-invoice.download-pdf');
 
-        Route::post('/generate-credit-note', \App\Http\Controllers\Application\Sales\ElectronicInvoice\GenerateCreditNoteController::class)
+        Route::post('/generate-credit-note', \App\Http\Controllers\Application\Sales\CreditNoteController::class)
             ->name('app.sales.electronic-invoice.generate-credit-note');
+    });
+
+    // Electronic Invoice Preservation routes
+    Route::prefix('electronic-invoices')->name('app.electronic-invoices.')->group(function () {
+        Route::get('/preservation', function () {
+            $service = app(\App\Services\Sale\ElectronicInvoicePreservationService::class);
+            $stats = $service->getStatistics();
+
+            return \Inertia\Inertia::render('electronic-invoice/preservation', [
+                'stats' => $stats,
+            ]);
+        })->name('preservation');
+
+        Route::get('/preservation/stats', [\App\Http\Controllers\Application\ElectronicInvoice\PreservationController::class, 'stats'])
+            ->name('preservation.stats');
+
+        Route::get('/preservation/export', [\App\Http\Controllers\Application\ElectronicInvoice\PreservationController::class, 'export'])
+            ->name('export-preservation');
+
+        Route::post('/preservation/run', [\App\Http\Controllers\Application\ElectronicInvoice\PreservationController::class, 'runManual'])
+            ->name('run-preservation');
     });
 
     // Debug route (temporary - remove in production)
@@ -72,7 +108,7 @@ Route::middleware([])->group(function () {
         ->name('app.sales.debug-status');
 
     Route::get('subscription-plan', \App\Http\Controllers\Application\SubscriptionPlanChoiceController::class)
-        ->withoutMiddleware(\App\Http\Middleware\HasActiveSubscriptionPlan::class)
+        //->withoutMiddleware(\App\Http\Middleware\HasActiveSubscriptionPlan::class)
         ->name('app.subscription-plans.index');
 
     Route::get('subscription-plan-payment/{subscriptionPlan}', \App\Http\Controllers\Application\SubscriptionPlanPaymentController::class)
@@ -92,3 +128,4 @@ require __DIR__.'/price-lists.php';
 require __DIR__.'/configurations.php';
 require __DIR__.'/settings.php';
 require __DIR__.'/customers.php';
+require __DIR__.'/users.php';

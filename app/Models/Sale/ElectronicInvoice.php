@@ -30,6 +30,17 @@ class ElectronicInvoice extends Model
         'preservation_reference_id',
         'send_attempts',
         'last_send_attempt_at',
+        // New preservation fields (13 Gen 2025)
+        'preservation_expires_at',
+        'preservation_metadata',
+        'xml_hash',
+        'pdf_path',
+        'pdf_hash',
+        'receipt_path',
+        'receipt_hash',
+        // GDPR compliance fields (14 Nov 2025)
+        'anonymized_at',
+        'anonymized_by',
     ];
 
     protected function casts(): array
@@ -39,13 +50,21 @@ class ElectronicInvoice extends Model
             'sdi_status_updated_at' => 'datetime',
             'preserved_at' => 'datetime',
             'last_send_attempt_at' => 'datetime',
+            'preservation_expires_at' => 'datetime',
+            'preservation_metadata' => 'array',
             'send_attempts' => 'integer',
+            'anonymized_at' => 'datetime',
         ];
     }
 
     public function sale()
     {
         return $this->belongsTo(Sale::class);
+    }
+
+    public function sendAttempts()
+    {
+        return $this->hasMany(ElectronicInvoiceSendAttempt::class)->orderByDesc('sent_at');
     }
 
     public function isPreserved(): bool

@@ -86,6 +86,8 @@ class Sale extends Model
 
     protected $appends = [
         'summary',
+        'sale_summary',
+        'display_name',
     ];
 
     protected static function boot()
@@ -133,12 +135,12 @@ class Sale extends Model
         return $this->hasOne(ElectronicInvoice::class);
     }
 
-    public function originalSale()
+    public function original_sale()
     {
         return $this->belongsTo(Sale::class, 'original_sale_id');
     }
 
-    public function creditNotes()
+    public function credit_notes()
     {
         return $this->hasMany(Sale::class, 'original_sale_id')->where('type', 'credit_note');
     }
@@ -321,5 +323,14 @@ class Sale extends Model
             'percentage_discount' => round($this->discount_percentage ?? 0, 2),
             'vat_breakdown' => $vatBreakdown,  // Scorporo IVA per aliquota
         ];
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->progressive_number) {
+            return 'Vendita #'.$this->progressive_number;
+        }
+
+        return 'Vendita';
     }
 }

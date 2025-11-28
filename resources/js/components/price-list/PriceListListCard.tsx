@@ -42,17 +42,32 @@ export default function PriceListListCard({onSelect, canCreate}: PriceListListCa
     }
 
     if (filter !== "") {
-      const filtered = priceLists.filter((item) =>
-        item.name.toLowerCase().includes(filter.toLowerCase())
-      );
-      /*const filtered = priceLists.filter(function f(o) {
-        if (o.name.toLowerCase().includes(filter)) return true
+      // Recursive filter that searches in folders and their children
+      const filterRecursive = (items: AllPriceLists[]): AllPriceLists[] => {
+        return items.reduce<AllPriceLists[]>((acc, item) => {
+          const matchesFilter = item.name.toLowerCase().includes(filter.toLowerCase());
 
-        if (o.children) {
-          return (o.children = o.children.filter(f)).length
-        }
-      })*/
-      setFilteredPrPriceLists(filtered);
+          // Check if item is a folder with children
+          if ('children' in item && item.children) {
+            const filteredChildren = filterRecursive(item.children);
+
+            // Include folder if it matches OR has matching children
+            if (matchesFilter || filteredChildren.length > 0) {
+              acc.push({
+                ...item,
+                children: filteredChildren.length > 0 ? filteredChildren : item.children
+              });
+            }
+          } else if (matchesFilter) {
+            // It's a product and it matches
+            acc.push(item);
+          }
+
+          return acc;
+        }, []);
+      };
+
+      setFilteredPrPriceLists(filterRecursive(priceLists));
     } else {
       setFilteredPrPriceLists(priceLists);
     }

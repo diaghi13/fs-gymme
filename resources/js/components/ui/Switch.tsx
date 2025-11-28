@@ -1,27 +1,47 @@
 import * as React from 'react';
-import { Switch as MuiSwitch, SwitchProps as MuiSwitchProps } from '@mui/material';
+import { Switch as MuiSwitch } from '@mui/material';
 import { FieldHookConfig, useField } from 'formik';
-import { FormControlLabel } from '@mui/material';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
-export type SwitchProps = {
+export type SwitchProps = FieldHookConfig<boolean> & {
   label?: string;
   labelPlacement?: 'start' | 'end' | 'top' | 'bottom';
-} & MuiSwitchProps & FieldHookConfig<boolean>;
+  helperText?: string;
+};
 
 const Switch: React.FC<SwitchProps> = (props: SwitchProps) => {
-  const [field, meta, helpers] = useField({ ...props, type: 'switch' });
+  const { helperText, label, labelPlacement = 'start', ...fieldConfig } = props;
+
+  // useField requires a `name` in the config
+  const [field, meta, helpers] = useField<boolean>(fieldConfig as FieldHookConfig<boolean>);
 
   return (
-    <FormControlLabel
-      control={<MuiSwitch />}
-      label="Oscura anagrafica"
-      {...field}
-      onChange={(_, checked) => helpers.setValue(checked)}
-      error={Boolean(meta.touched && meta.error)}
-      helperText={meta.touched && meta.error ? meta.error : undefined}
-      labelPlacement={props.labelPlacement || 'start'}
-      {...props}
-    />
+    <div>
+      <FormControlLabel
+        control={
+          <MuiSwitch
+            {...field}
+            checked={!!field.value}
+            onChange={(_, checked) => helpers.setValue(checked)}
+          />
+        }
+        label={label || ''}
+        labelPlacement={labelPlacement}
+      />
+
+      {(helperText || (meta.touched && meta.error)) && (
+        <div
+          style={{
+            fontSize: '0.75rem',
+            color: meta.touched && meta.error ? '#d32f2f' : 'rgba(0, 0, 0, 0.6)',
+            marginTop: '3px',
+            marginLeft: labelPlacement === 'start' ? '0' : '14px',
+          }}
+        >
+          {meta.touched && meta.error ? meta.error : helperText}
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -3,8 +3,8 @@ import { useTheme } from '@mui/material/styles';
 import { Chip, IconButton, ListItem, ListItemText, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import { Payment, Sale } from '@/types';
-import format from '@/support/format';
 import { Str } from '@/support/Str';
+import FormattedDate from '@/components/ui/FormattedDate';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RegisterPaymentDialog from '@/components/customers/dialogs/RegisterPaymentDialog';
@@ -31,11 +31,11 @@ const PaymentRow = ({ payment, index, sale }: PaymentRowProps) => {
     <>
       <ListItem sx={{ borderBottom: `1px solid ${theme.palette.grey['300']}` }}>
         <ListItemText>{`# ${index + 1}`}</ListItemText>
-        <ListItemText primary={'Scadenza'} secondary={format(payment.due_date, 'dd/MM/yyyy')} />
+        <ListItemText primary={'Scadenza'} secondary={<FormattedDate value={payment.due_date} />} />
         <ListItemText primary={'Importo'} secondary={Str.EURO(payment.amount).format()} />
         <ListItemText primary={'Metodo pagamento'} secondary={payment.payment_method?.description} />
         <ListItemText primary={'Data pagamento'}
-                      secondary={payment.payed_at ? format(payment.payed_at, 'dd/MM/yyyy') : '---'} />
+                      secondary={payment.payed_at ? <FormattedDate value={payment.payed_at} /> : '---'} />
         <ListItemText sx={{ width: 50 }}>
           {payment.status === 'payed' && <Chip label="Pagato" color="success" />}
           {payment.status === 'pending' && <Chip label="Non pagato" color="warning" />}

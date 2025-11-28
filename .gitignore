@@ -22,3 +22,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# not load all folders that word starts with tenant
+/storage/tenant*/

@@ -54,6 +54,8 @@ class FatturaElettronicaApiService
      */
     public function send(ElectronicInvoice $electronicInvoice): array
     {
+        $attemptNumber = ($electronicInvoice->send_attempts ?? 0) + 1;
+
         try {
             // Secondo la doc ufficiale: inviare XML direttamente con Content-Type: application/xml
             $response = $this->createHttpClient()
@@ -72,7 +74,7 @@ class FatturaElettronicaApiService
                     'external_id' => $data['id'] ?? null,
                     'sdi_status' => $this->mapSdiStatus($data['sdi_stato'] ?? 'INVI'),
                     'sdi_sent_at' => now(),
-                    'send_attempts' => ($electronicInvoice->send_attempts ?? 0) + 1,
+                    'send_attempts' => $attemptNumber,
                     'last_send_attempt_at' => now(),
                 ]);
 
@@ -83,6 +85,18 @@ class FatturaElettronicaApiService
                         ['tenant_id' => tenant('id')]
                     );
                 }
+
+                // Register successful attempt
+                \App\Models\Sale\ElectronicInvoiceSendAttempt::create([
+                    'electronic_invoice_id' => $electronicInvoice->id,
+                    'attempt_number' => $attemptNumber,
+                    'status' => 'sent',
+                    'request_payload' => ['endpoint' => "{$this->endpoint}/fatture"],
+                    'response_payload' => $data,
+                    'external_id' => $data['id'] ?? null,
+                    'sent_at' => now(),
+                    'user_id' => auth()->id(),
+                ]);
 
                 Log::info('Electronic invoice sent successfully', [
                     'transmission_id' => $electronicInvoice->transmission_id,
@@ -110,9 +124,21 @@ class FatturaElettronicaApiService
             throw new \Exception($errorMessage);
         } catch (\Exception $e) {
             $electronicInvoice->update([
-                'send_attempts' => ($electronicInvoice->send_attempts ?? 0) + 1,
+                'send_attempts' => $attemptNumber,
                 'last_send_attempt_at' => now(),
                 'sdi_error_messages' => $e->getMessage(),
+            ]);
+
+            // Register failed attempt
+            \App\Models\Sale\ElectronicInvoiceSendAttempt::create([
+                'electronic_invoice_id' => $electronicInvoice->id,
+                'attempt_number' => $attemptNumber,
+                'status' => 'failed',
+                'request_payload' => ['endpoint' => "{$this->endpoint}/fatture"],
+                'response_payload' => isset($response) ? $response->json() : null,
+                'error_messages' => $e->getMessage(),
+                'sent_at' => now(),
+                'user_id' => auth()->id(),
             ]);
 
             Log::error('Failed to send electronic invoice', [

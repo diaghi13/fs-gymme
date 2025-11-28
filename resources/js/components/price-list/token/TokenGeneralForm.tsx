@@ -28,7 +28,7 @@ export type FormikValues = {
   parent_id: number | string | null;
   vat_rate: number | { value: number; label: string } | null;
   price: string | number;
-  token_quantity: number;
+  entrances: number;  // Renamed from token_quantity
   validity_days: number | null;
   applicable_products: number[];
   all_products: boolean;
@@ -63,7 +63,7 @@ export default function TokenGeneralForm({
       parent_id: priceList.parent_id ?? null,
       vat_rate: priceList.vat_rate_id ? vatCodes.find(item => item.value === priceList.vat_rate_id)! : null,
       price: priceList.price ?? '',
-      token_quantity: priceList.token_quantity ?? 10,
+      entrances: priceList.entrances ?? 10,  // Renamed from token_quantity
       validity_days: priceList.validity_days ?? 365,
       applicable_products: priceList.settings?.usage?.applicable_to ?? [],
       all_products: priceList.settings?.usage?.all_products ?? false
@@ -74,7 +74,8 @@ export default function TokenGeneralForm({
         : values.vat_rate;
 
       // Omit vat_rate from values to avoid type mismatch
-      const { vat_rate: _vat_rate, ...submitValues } = values;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { vat_rate, ...submitValues } = values;
 
       if (!priceList.id) {
         router.post(
@@ -151,8 +152,8 @@ export default function TokenGeneralForm({
               <Grid size={6} />
               <Grid size={6}>
                 <TextField
-                  label={'Quantità token/ingressi'}
-                  name={'token_quantity'}
+                  label={'Numero ingressi'}
+                  name={'entrances'}
                   type={'number'}
                 />
               </Grid>

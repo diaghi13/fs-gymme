@@ -6,10 +6,23 @@ import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { AppBar, Box, Button, Stack, Tab, Typography } from '@mui/material';
 import GeneralTab from '@/components/customers/tabs/GeneralTab';
 import SalesTab from '@/components/customers/tabs/SalesTab';
+import SubscriptionsTab from '@/components/customers/tabs/SubscriptionsTab';
+import ExtensionsTab from '@/components/customers/tabs/ExtensionsTab';
+import DocumentsTab from '@/components/customers/tabs/DocumentsTab';
+import MeasurementsTab from '@/components/customers/tabs/MeasurementsTab';
+import AlertsCard from '@/components/customers/cards/AlertsCard';
 
 export interface CustomerShowProps extends PageProps {
   customer: Customer;
   payment_methods: PaymentMethod[];
+  price_lists: Array<{
+    id: number;
+    name: string;
+    price: number;
+    entrances?: number;
+    days_duration?: number;
+    months_duration?: number;
+  }>;
 }
 
 const CustomerShow: React.FC<CustomerShowProps> = ({ auth, customer }) => {
@@ -51,29 +64,36 @@ const CustomerShow: React.FC<CustomerShowProps> = ({ auth, customer }) => {
             >
               <Tab label="Scheda cliente" value="general" />
               <Tab label="Vendite e pagamenti" value="sales" />
+              <Tab label="Abbonamenti" value="subscriptions" />
               <Tab label="Sospensioni e proroghe" value="extensions" />
               <Tab label="Documenti" value="documents" />
               <Tab label="Misurazioni" value="measures" />
             </TabList>
           </AppBar>
         </Box>
-        {/* Tab Panels can be added here */}
-        {/* Example: */}
-        {/* <TabPanel value="general">General Content</TabPanel> */}
+
+        {/* Alert Card - Visible across all tabs */}
+        <Box sx={{ p: 2, pb: 0 }}>
+          <AlertsCard />
+        </Box>
+
         <TabPanel value="general" sx={{ p: 0 }}>
           <GeneralTab />
         </TabPanel>
         <TabPanel value="sales" sx={{ p: 0 }}>
           <SalesTab />
         </TabPanel>
+        <TabPanel value="subscriptions" sx={{ p: 0 }}>
+          <SubscriptionsTab />
+        </TabPanel>
         <TabPanel value="extensions" sx={{ p: 0 }}>
-          Extensions and Suspensions
+          <ExtensionsTab />
         </TabPanel>
         <TabPanel value="documents" sx={{ p: 0 }}>
-          Documents
+          <DocumentsTab />
         </TabPanel>
         <TabPanel value="measures" sx={{ p: 0 }}>
-          Measures
+          <MeasurementsTab />
         </TabPanel>
       </TabContext>
     </AppLayout>

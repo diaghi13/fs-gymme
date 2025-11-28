@@ -2382,5 +2382,53 @@
         "ApplicaCasse": true,
         "ApplicaRitenutaAcconto": true,
         "ApplicaRitenutaPrevidenziale": true
+    },
+    {
+        "CodiceIvaId": 201,
+        "Codice": "FC01",
+        "TipoCodiceIvaId": 1,
+        "TipoCodiceIva": "Fuori campo IVA",
+        "Descrizione": "Quota corso sportivo (fuori campo IVA ex art. 4 DPR 633/72)",
+        "Percentuale": 0.00,
+        "Ordine": 1001,
+        "GruppoCodiceIvaId": 358,
+        "GruppoCodiceIva": "Altri esenti",
+        "Natura": "N2.1",
+        "VisibileInAttivita": true,
+        "ApplicaCasse": false,
+        "ApplicaRitenutaAcconto": false,
+        "ApplicaRitenutaPrevidenziale": false
+    },
+    {
+        "CodiceIvaId": 202,
+        "Codice": "ES01",
+        "TipoCodiceIvaId": 2,
+        "TipoCodiceIva": "Esente",
+        "Descrizione": "Quota corso sportivo (esente IVA ex art. 10 n.20 DPR 633/72)",
+        "Percentuale": 0.00,
+        "Ordine": 1002,
+        "GruppoCodiceIvaId": 358,
+        "GruppoCodiceIva": "Altri esenti",
+        "Natura": "N4",
+        "VisibileInAttivita": true,
+        "ApplicaCasse": false,
+        "ApplicaRitenutaAcconto": false,
+        "ApplicaRitenutaPrevidenziale": false
+    },
+    {
+        "CodiceIvaId": 203,
+        "Codice": "FC02",
+        "TipoCodiceIvaId": 1,
+        "TipoCodiceIva": "Fuori campo IVA",
+        "Descrizione": "Affitto campo sportivo a soci (fuori campo IVA ex art. 4 DPR 633/72)",
+        "Percentuale": 0.00,
+        "Ordine": 1003,
+        "GruppoCodiceIvaId": 358,
+        "GruppoCodiceIva": "Altri esenti",
+        "Natura": "N2.1",
+        "VisibileInAttivita": true,
+        "ApplicaCasse": false,
+        "ApplicaRitenutaAcconto": false,
+        "ApplicaRitenutaPrevidenziale": false
     }
 ]

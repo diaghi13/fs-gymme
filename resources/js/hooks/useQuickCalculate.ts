@@ -10,9 +10,11 @@ interface QuickCalculateRow {
   percentage_discount?: number | null;
   absolute_discount?: number | null;
   vat_rate_percentage?: number | Array<number> | null;
+  vat_rate_nature?: string | Array<string | null> | null;
   vat_breakdown?: {
     subtotal: number;
     vat_rate: number;
+    vat_nature?: string | null;
   }[];
 }
 

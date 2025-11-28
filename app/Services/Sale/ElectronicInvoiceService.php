@@ -177,7 +177,7 @@ class ElectronicInvoiceService
         // Anagrafica (usa nome del tenant)
         $anagrafica = $xml->createElement('Anagrafica');
         $datiAnagrafici->appendChild($anagrafica);
-        $anagrafica->appendChild($xml->createElement('Denominazione', $tenant->name));
+        $anagrafica->appendChild($this->createElementSafe($xml, 'Denominazione', $tenant->name));
 
         // RegimeFiscale (dal tenant o default)
         $datiAnagrafici->appendChild($xml->createElement('RegimeFiscale', $tenant->fiscal_regime ?? 'RF01'));
@@ -185,9 +185,9 @@ class ElectronicInvoiceService
         // Sede (usa indirizzo tenant o structure come fallback)
         $sede = $xml->createElement('Sede');
         $cedente->appendChild($sede);
-        $sede->appendChild($xml->createElement('Indirizzo', $tenant->address ?? ($structure->address ?? '')));
+        $sede->appendChild($this->createElementSafe($xml, 'Indirizzo', $tenant->address ?? ($structure->address ?? '')));
         $sede->appendChild($xml->createElement('CAP', $tenant->postal_code ?? ($structure->postal_code ?? '')));
-        $sede->appendChild($xml->createElement('Comune', $tenant->city ?? ($structure->city ?? '')));
+        $sede->appendChild($this->createElementSafe($xml, 'Comune', $tenant->city ?? ($structure->city ?? '')));
         $sede->appendChild($xml->createElement('Provincia', $tenant->province ?? ($structure->province ?? '')));
         $sede->appendChild($xml->createElement('Nazione', $tenant->country ?? 'IT'));
 
@@ -200,11 +200,11 @@ class ElectronicInvoiceService
             $cedente->appendChild($contatti);
 
             if ($phone) {
-                $contatti->appendChild($xml->createElement('Telefono', $phone));
+                $contatti->appendChild($this->createElementSafe($xml, 'Telefono', $phone));
             }
 
             if ($email) {
-                $contatti->appendChild($xml->createElement('Email', $email));
+                $contatti->appendChild($this->createElementSafe($xml, 'Email', $email));
             }
         }
     }
@@ -244,10 +244,10 @@ class ElectronicInvoiceService
 
         if ($isCompany) {
             $companyName = $customer->company_name ?? ($customer->first_name.' '.$customer->last_name);
-            $anagrafica->appendChild($xml->createElement('Denominazione', $companyName));
+            $anagrafica->appendChild($this->createElementSafe($xml, 'Denominazione', $companyName));
         } else {
-            $anagrafica->appendChild($xml->createElement('Nome', $customer->first_name ?? ''));
-            $anagrafica->appendChild($xml->createElement('Cognome', $customer->last_name ?? ''));
+            $anagrafica->appendChild($this->createElementSafe($xml, 'Nome', $customer->first_name ?? ''));
+            $anagrafica->appendChild($this->createElementSafe($xml, 'Cognome', $customer->last_name ?? ''));
         }
 
         // Sede - construct address from street + number or fallback
@@ -257,9 +257,9 @@ class ElectronicInvoiceService
 
         $sede = $xml->createElement('Sede');
         $cessionario->appendChild($sede);
-        $sede->appendChild($xml->createElement('Indirizzo', $address));
+        $sede->appendChild($this->createElementSafe($xml, 'Indirizzo', $address));
         $sede->appendChild($xml->createElement('CAP', $customer->zip ?? $customer->postal_code ?? ''));
-        $sede->appendChild($xml->createElement('Comune', $customer->city ?? ''));
+        $sede->appendChild($this->createElementSafe($xml, 'Comune', $customer->city ?? ''));
 
         if ($customer->province) {
             $sede->appendChild($xml->createElement('Provincia', $customer->province));
@@ -314,7 +314,12 @@ class ElectronicInvoiceService
 
         // Causale (Invoice reason)
         if ($sale->causale) {
-            $datiGeneraliDocumento->appendChild($xml->createElement('Causale', substr($sale->causale, 0, 200)));
+            $datiGeneraliDocumento->appendChild($this->createElementSafe($xml, 'Causale', substr($sale->causale, 0, 200)));
+        }
+
+        // DatiFattureCollegate (Related invoices) - Required for credit notes (TD04)
+        if ($sale->type === 'credit_note' && $sale->original_sale_id) {
+            $this->buildDatiFattureCollegate($xml, $datiGenerali, $sale);
         }
     }
 
@@ -374,6 +379,29 @@ class ElectronicInvoiceService
     }
 
     /**
+     * Build DatiFattureCollegate (Related invoices)
+     * Required for credit notes (TD04) to reference original invoice
+     */
+    protected function buildDatiFattureCollegate(\DOMDocument $xml, \DOMElement $datiGenerali, Sale $sale): void
+    {
+        // Load original sale
+        $originalSale = Sale::find($sale->original_sale_id);
+
+        if (! $originalSale) {
+            return;
+        }
+
+        $datiFattureCollegate = $xml->createElement('DatiFattureCollegate');
+        $datiGenerali->appendChild($datiFattureCollegate);
+
+        // IdDocumento: progressive number of original invoice
+        $datiFattureCollegate->appendChild($xml->createElement('IdDocumento', $originalSale->progressive_number));
+
+        // Data: date of original invoice
+        $datiFattureCollegate->appendChild($xml->createElement('Data', $originalSale->date->format('Y-m-d')));
+    }
+
+    /**
      * Build DatiBeniServizi (Goods and services)
      */
     protected function buildDatiBeniServizi(\DOMDocument $xml, \DOMElement $body, Sale $sale): void
@@ -399,7 +427,7 @@ class ElectronicInvoiceService
         $parent->appendChild($dettaglioLinee);
 
         $dettaglioLinee->appendChild($xml->createElement('NumeroLinea', $lineNumber));
-        $dettaglioLinee->appendChild($xml->createElement('Descrizione', substr($row->description ?? 'Servizio', 0, 1000)));
+        $dettaglioLinee->appendChild($this->createElementSafe($xml, 'Descrizione', substr($row->description ?? 'Servizio', 0, 1000)));
         $dettaglioLinee->appendChild($xml->createElement('Quantita', number_format($row->quantity, 2, '.', '')));
         $dettaglioLinee->appendChild($xml->createElement('UnitaMisura', $row->unit ?? 'PZ'));
 
@@ -538,7 +566,7 @@ class ElectronicInvoiceService
     /**
      * Calculate total amount including all charges
      */
-    protected function calculateTotalAmount(Sale $sale): int
+    protected function calculateTotalAmount(Sale $sale): float
     {
         $total = $sale->total_price;
 
@@ -547,8 +575,9 @@ class ElectronicInvoiceService
             $total += $sale->welfare_fund_amount;
         }
 
-        // Add stamp duty if applicable
-        if ($sale->stamp_duty_amount) {
+        // Add stamp duty ONLY if charged to customer
+        $chargeStampToCustomer = \App\Models\TenantSetting::get('invoice.stamp_duty.charge_customer', true);
+        if ($chargeStampToCustomer && $sale->stamp_duty_amount) {
             $total += $sale->stamp_duty_amount;
         }
 
@@ -557,7 +586,7 @@ class ElectronicInvoiceService
             $total -= $sale->withholding_tax_amount;
         }
 
-        return $total;
+        return round($total, 2);
     }
 
     /**
@@ -668,5 +697,23 @@ class ElectronicInvoiceService
         $electronicInvoice->update([
             'xml_file_path' => $filename,
         ]);
+    }
+
+    /**
+     * Create XML element with proper escaping for special characters
+     * Prevents "unterminated entity reference" errors
+     */
+    protected function createElementSafe(\DOMDocument $xml, string $name, ?string $value = null): \DOMElement
+    {
+        $element = $xml->createElement($name);
+
+        if ($value !== null && $value !== '') {
+            // Escape special XML characters: & < > " '
+            $escapedValue = htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+            $textNode = $xml->createTextNode($escapedValue);
+            $element->appendChild($textNode);
+        }
+
+        return $element;
     }
 }

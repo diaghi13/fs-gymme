@@ -45,14 +45,42 @@ class DownloadPdfController extends Controller
         }
 
         try {
-            //            return view('pdf.electronic-invoice', [
-            //                'sale' => $sale,
-            //                'tenant' => $tenant,
-            //            ]);
-            // Generate PDF from Blade template
-            $pdf = Pdf::loadView('pdf.electronic-invoice', [
+            // Get PDF settings from tenant configuration
+            $pdfSettings = [
+                'logo_path' => \App\Models\TenantSetting::get('invoice.pdf_logo_path', ''),
+                'footer' => \App\Models\TenantSetting::get('invoice.pdf_footer', ''),
+                'show_stamp' => \App\Models\TenantSetting::get('invoice.pdf_show_stamp', true),
+                'legal_notes' => \App\Models\TenantSetting::get('invoice.pdf_legal_notes', ''),
+            ];
+
+            // Get selected template (classic, modern, minimal)
+            $template = \App\Models\TenantSetting::get('invoice.pdf_template', null);
+
+            // Use main template if no custom template is selected
+            if (! $template) {
+                $viewName = 'pdf.electronic-invoice';
+            } else {
+                // Validate template exists
+                $validTemplates = ['classic', 'modern', 'minimal'];
+                if (! in_array($template, $validTemplates)) {
+                    $template = 'classic';
+                }
+
+                // Check if template file exists
+                $templatePath = resource_path("views/pdf/electronic-invoice-{$template}.blade.php");
+                if (! file_exists($templatePath)) {
+                    \Log::warning("Template {$template} not found, falling back to main template");
+                    $viewName = 'pdf.electronic-invoice';
+                } else {
+                    $viewName = "pdf.electronic-invoice-{$template}";
+                }
+            }
+
+            // Generate PDF from selected Blade template
+            $pdf = Pdf::loadView($viewName, [
                 'sale' => $sale,
                 'tenant' => $tenant,
+                'pdfSettings' => $pdfSettings,
             ]);
 
             // Set PDF options

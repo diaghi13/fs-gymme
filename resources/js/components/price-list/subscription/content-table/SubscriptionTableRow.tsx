@@ -6,12 +6,13 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { usePage } from '@inertiajs/react';
-import { MEMBERSHIP, PriceListPageProps } from '@/pages/price-lists/price-lists';
+import { PriceListPageProps } from '@/pages/price-lists/price-lists';
 import {
   SubscriptionGeneralFormValuesWithContent
 } from '@/components/price-list/subscription/tabs/SubscriptionGeneralTab';
 import DeleteDialog from '@/components/ui/DeleteDialog';
 import ExtraContentRow from '@/components/price-list/subscription/content-table/ExtraContentRow';
+import { SUBSCRIPTION_CONTENT_TYPES } from '@/constants/subscriptionContentTypes';
 
 interface TableRowProps {
   content: SubscriptionGeneralFormValuesWithContent;
@@ -26,8 +27,15 @@ export default function({ content, onUpdate, onRemove }: TableRowProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState<boolean>(false);
   const menuOpen = Boolean(anchorEl);
 
-  const isProduct = content.price_listable_type === 'App\\Models\\Product\\Product';
-  const isMembership = content.price_listable.type === MEMBERSHIP
+  // Check if it's a Product (includes BaseProduct, CourseProduct, BookableService)
+  const isProduct = content.price_listable_type?.includes('Product\\');
+  const isMembership = content.price_listable_type === SUBSCRIPTION_CONTENT_TYPES.MEMBERSHIP;
+  const isToken = content.price_listable_type === SUBSCRIPTION_CONTENT_TYPES.TOKEN;
+  const isGiftCard = content.price_listable_type === SUBSCRIPTION_CONTENT_TYPES.GIFT_CARD;
+
+  // Token and GiftCard show duration + entrances (for token)
+  const showDuration = isProduct || isMembership || isToken || isGiftCard;
+  const showEntrances = isProduct || isToken;
 
   const handleExpand = () => {
     setExpanded(!expanded);
@@ -53,21 +61,20 @@ export default function({ content, onUpdate, onRemove }: TableRowProps) {
   return (
     <>
       <TableRow>
-        <TableCell colSpan={(!isProduct && !isMembership) ? 3 : 1}>
+        <TableCell colSpan={showDuration ? 1 : 3}>
           {content.price_listable.name}
         </TableCell>
-        {(isProduct || isMembership) && (
-          <>
-            <TableCell colSpan={isMembership ? 2 : 1}>
-              {content.days_duration && `${content.days_duration} giorni `}
-              {content.months_duration && `${content.months_duration} ${content.months_duration === 1 ? 'Mese' : 'Mesi'}`}
-            </TableCell>
-            {isProduct && (
-              <TableCell>
-                {content.entrances || 'Illimitati'}
-              </TableCell>
-            )}
-          </>
+        {showDuration && (
+          <TableCell colSpan={showEntrances ? 1 : 2}>
+            {content.days_duration ? `${content.days_duration} giorni ` : ''}
+            {content.months_duration ? `${content.months_duration} ${content.months_duration === 1 ? 'Mese' : 'Mesi'}` : ''}
+            {!content.days_duration && !content.months_duration && '—'}
+          </TableCell>
+        )}
+        {showEntrances && (
+          <TableCell>
+            {content.entrances || 'Illimitati'}
+          </TableCell>
         )}
         <TableCell sx={{ maxWidth: 100 }}>
           <Typography noWrap>

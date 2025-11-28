@@ -8,6 +8,7 @@ import { PageProps, PriceList } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import { format } from "date-fns/format";
 import StorefrontIcon from '@mui/icons-material/Storefront';
+import { FormattedDate } from '@/components/ui/FormattedDate';
 
 interface SaleFormProps {
   priceList: PriceList;
@@ -102,15 +103,15 @@ export default function SaleForm({priceList}: SaleFormProps) {
                     </Typography>
                     {values.saleable_from && values.saleable_to ? (
                       <Typography variant="body2" color="text.secondary">
-                        Vendibile dal <strong>{format(new Date(values.saleable_from), 'dd/MM/yyyy')}</strong> al <strong>{format(new Date(values.saleable_to), 'dd/MM/yyyy')}</strong>
+                        Vendibile dal <strong><FormattedDate value={values.saleable_from} /></strong> al <strong><FormattedDate value={values.saleable_to} /></strong>
                       </Typography>
                     ) : values.saleable_from ? (
                       <Typography variant="body2" color="text.secondary">
-                        Vendibile dal <strong>{format(new Date(values.saleable_from), 'dd/MM/yyyy')}</strong> in poi
+                        Vendibile dal <strong><FormattedDate value={values.saleable_from} /></strong> in poi
                       </Typography>
                     ) : (
                       <Typography variant="body2" color="text.secondary">
-                        Vendibile fino al <strong>{format(new Date(values.saleable_to!), 'dd/MM/yyyy')}</strong>
+                        Vendibile fino al <strong><FormattedDate value={values.saleable_to!} /></strong>
                       </Typography>
                     )}
                   </Box>

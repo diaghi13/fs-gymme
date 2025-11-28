@@ -14,7 +14,18 @@
       "mcp__laravel-boost__last-error",
       "mcp__laravel-boost__database-query",
       "Bash(cat:*)",
-      "mcp__laravel-boost__list-available-config-keys"
+      "mcp__laravel-boost__list-available-config-keys",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint:*)",
+      "mcp__laravel-boost__list-routes",
+      "Bash(wait)",
+      "WebSearch",
+      "mcp__laravel-boost__list-artisan-commands",
+      "mcp__laravel-boost__search-docs",
+      "mcp__laravel-boost__read-log-entries",
+      "WebFetch(domain:apiscontrino.com)",
+      "WebFetch(domain:effatta.it)",
+      "WebFetch(domain:code.claude.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

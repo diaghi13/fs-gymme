@@ -24,17 +24,34 @@ interface QuickProductSearchProps {
 export default function QuickProductSearch({ onSelect, disabled = false }: QuickProductSearchProps) {
   const { priceLists } = usePage<SalePageProps>().props;
   const [searchValue, setSearchValue] = useState('');
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Debounce search value to avoid too many re-renders
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchValue(searchValue);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchValue]);
 
   // Flatten price lists tree for search
   const flattenPriceLists = useCallback((items: AllPriceLists[]): Exclude<AllPriceLists, PriceListFolder>[] => {
+    if (!items || !Array.isArray(items)) {
+      return [];
+    }
+
     const result: Exclude<AllPriceLists, PriceListFolder>[] = [];
 
     const flatten = (list: AllPriceLists[]) => {
       list.forEach(item => {
-        if ('children' in item && item.children) {
-          // It's a folder, recurse into children
-          flatten(item.children);
+        // Check if it's a folder by checking the type property
+        if (item.type === 'folder') {
+          // It's a folder, recurse into children if they exist and have items
+          if ('children' in item && item.children && Array.isArray(item.children) && item.children.length > 0) {
+            flatten(item.children);
+          }
         } else {
           // It's a product, add to results
           result.push(item as Exclude<AllPriceLists, PriceListFolder>);
@@ -46,12 +63,12 @@ export default function QuickProductSearch({ onSelect, disabled = false }: Quick
     return result;
   }, []);
 
-  const allProducts = flattenPriceLists(priceLists);
+  const allProducts = flattenPriceLists(priceLists || []);
 
-  // Filter products based on search
-  const filteredProducts = searchValue
+  // Filter products based on debounced search value
+  const filteredProducts = debouncedSearchValue
     ? allProducts.filter(product =>
-        product.name.toLowerCase().includes(searchValue.toLowerCase())
+        product.name.toLowerCase().includes(debouncedSearchValue.toLowerCase())
       )
     : [];
 
@@ -99,7 +116,10 @@ export default function QuickProductSearch({ onSelect, disabled = false }: Quick
     }
   };
 
-  const formatPrice = (euros: number) => {
+  const formatPrice = (euros: number | null) => {
+    if (euros === null || euros === undefined) {
+      return 'Prezzo variabile';
+    }
     return `€ ${euros.toFixed(2).replace('.', ',')}`;
   };
 
@@ -163,7 +183,7 @@ export default function QuickProductSearch({ onSelect, disabled = false }: Quick
       }}
       PaperComponent={(props) => <Paper {...props} elevation={8} />}
       noOptionsText={
-        searchValue
+        debouncedSearchValue
           ? 'Nessun prodotto trovato'
           : 'Inizia a digitare per cercare...'
       }

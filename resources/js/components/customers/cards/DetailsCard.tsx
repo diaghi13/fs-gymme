@@ -14,19 +14,43 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import PhoneIphoneIcon from '@mui/icons-material/PhoneIphone';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import PlaceIcon from '@mui/icons-material/Place';
-import format from '@/support/format';
 import { Str } from '@/support/Str';
 import EditCustomerDialog from '@/components/customers/dialogs/EditCustomerDialog';
+import AvatarUploadDialog from '@/components/customers/dialogs/AvatarUploadDialog';
+import FormattedDate from '@/components/ui/FormattedDate';
+
+// SVG placeholder inline for better performance (no external request)
+const UserAvatarPlaceholder = () => (
+  <svg
+    width="100%"
+    height="100%"
+    viewBox="0 0 200 200"
+    xmlns="http://www.w3.org/2000/svg"
+    style={{ display: 'block' }}
+  >
+    <circle cx="100" cy="100" r="100" fill="#e0e0e0" />
+    <circle cx="100" cy="75" r="35" fill="#bdbdbd" />
+    <path
+      d="M 30 180 Q 30 130 100 130 Q 170 130 170 180"
+      fill="#bdbdbd"
+    />
+  </svg>
+);
 
 const DetailsCard = () => {
   const [openEditDialog, setOpenEditDialog] = React.useState(false);
+  const [openAvatarDialog, setOpenAvatarDialog] = React.useState(false);
   const { customer } = usePage<CustomerShowProps>().props;
   const theme = useTheme();
   const [blurRegistry] = useLocalStorage('blur_customer', false);
 
   const toggleEditCustomerDialog = () => {
     setOpenEditDialog(!openEditDialog);
-  }
+  };
+
+  const toggleAvatarDialog = () => {
+    setOpenAvatarDialog(!openAvatarDialog);
+  };
 
   return (
     <Card
@@ -45,21 +69,25 @@ const DetailsCard = () => {
                 justifyContent: 'space-between'
               }}
             >
-              <IconButton onClick={() => {
-              }}>
+              <IconButton onClick={toggleAvatarDialog} title="Carica avatar">
                 <AddAPhotoIcon />
               </IconButton>
-              <IconButton onClick={toggleEditCustomerDialog}>
+              <IconButton onClick={toggleEditCustomerDialog} title="Modifica">
                 <FilterNoneIcon />
               </IconButton>
               <EditCustomerDialog open={openEditDialog} onClose={toggleEditCustomerDialog} customer={customer} />
+              <AvatarUploadDialog open={openAvatarDialog} onClose={toggleAvatarDialog} customer={customer} />
             </Box>
             <Box sx={{ paddingLeft: 10, paddingRight: 10 }}>
-              <img
-                src={`/assets/img/user.png`}
-                alt="user"
-                style={{ width: '100%', height: 'auto' }}
-              />
+              {customer.avatar_url ? (
+                <img
+                  src={customer.avatar_url}
+                  alt={`${customer.first_name} ${customer.last_name}`}
+                  style={{ width: '100%', height: 'auto', borderRadius: '50%' }}
+                />
+              ) : (
+                <UserAvatarPlaceholder />
+              )}
             </Box>
             <Typography align="center" variant="h5" color="white">
               {`${customer.first_name} ${customer.last_name}`}
@@ -85,7 +113,7 @@ const DetailsCard = () => {
                 <Box>
                   {customer.birth_date && (
                     <Typography variant="body2">
-                      {format(new Date(customer.birth_date), 'dd/MM/yyyy')}
+                      <FormattedDate value={customer.birth_date} />
                     </Typography>
                   )}
                   {customer.birthplace && (

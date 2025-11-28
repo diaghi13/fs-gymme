@@ -40,8 +40,206 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - Stick to existing directory structure - don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
 
+## Multi-Tenant Storage
+This application uses `stancl/tenancy` package with isolated tenant storage. Follow these patterns for handling tenant-specific files:
+
+### Storage Architecture
+- Each tenant has isolated storage at `storage/tenant{id}/app/public/`
+- The `FilesystemTenancyBootstrapper` is enabled in `config/tenancy.php`
+- Use `Storage::disk('public')` to automatically use tenant-specific storage
+- Standard Laravel `storage:link` symlink points to main storage, not tenant storage
+
+### File Path Storage Pattern
+- **Always store relative paths** in the database, never full URLs
+- Use accessor methods to dynamically generate tenant-aware URLs
+- This ensures paths remain valid across different environments and tenant contexts
+
+<code-snippet name="Model with Storage Accessor" lang="php">
+class Customer extends Model
+{
+    protected $fillable = [
+        'avatar_path',  // Store relative path: 'avatars/filename.jpg'
+    ];
+
+    protected $appends = [
+        'avatar_url',   // Computed attribute for frontend
+    ];
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        return route('app.storage', [
+            'tenant' => session('current_tenant_id'),
+            'path' => $this->avatar_path,
+        ]);
+    }
+}
+</code-snippet>
+
+### Custom Storage Routes
+- Create custom storage routes under tenant context for serving tenant-specific files
+- These routes leverage existing tenant middleware for automatic tenant resolution
+- Do not use standard `/storage/` URLs as they bypass tenant isolation
+
+<code-snippet name="Custom Storage Route" lang="php">
+// routes/tenant/web/routes.php
+Route::get('storage/{path}', [StorageController::class, 'show'])
+    ->where('path', '.*')
+    ->name('app.storage');
+
+// app/Http/Controllers/Application/StorageController.php
+public function show(Request $request, string $path): Response
+{
+    $disk = \Storage::disk('public');
+
+    if (! $disk->exists($path)) {
+        abort(404);
+    }
+
+    $file = $disk->get($path);
+    $mimeType = $disk->mimeType($path);
+
+    return response($file, 200)
+        ->header('Content-Type', $mimeType)
+        ->header('Cache-Control', 'public, max-age=31536000');
+}
+</code-snippet>
+
+### File Upload Pattern
+- Use `Storage::disk('public')->store()` for uploads - automatically tenant-scoped
+- Delete old files before saving new ones to prevent orphaned files
+- Store only the relative path returned by the `store()` method
+
+<code-snippet name="File Upload Controller" lang="php">
+public function uploadAvatar(Request $request, Customer $customer): RedirectResponse
+{
+    $request->validate([
+        'avatar' => ['required', 'image', 'max:2048'],
+    ]);
+
+    // Delete old file if exists
+    if ($customer->avatar_path) {
+        \Storage::disk('public')->delete($customer->avatar_path);
+    }
+
+    // Store returns relative path: 'avatars/xyz.jpg'
+    $path = $request->file('avatar')->store('avatars', 'public');
+
+    // Save relative path, not full URL
+    $customer->update([
+        'avatar_path' => $path,
+    ]);
+
+    return redirect()->back();
+}
+</code-snippet>
+
 ## Frontend Bundling
 - If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
+
+## Currency and Money Fields
+This application stores monetary values in cents (integers) in the database but displays them as euros (decimals) in the UI.
+
+### Critical Pattern: Avoid Double Conversion
+- **Backend**: Always stores amounts in cents (e.g., 200 = 2.00€)
+- **Frontend**: Receives cents, divides by 100 for display, sends euros back
+- **Backend**: Receives euros, multiplies by 100 to store as cents
+- **Never multiply on both frontend and backend** - this causes exponential growth
+
+<code-snippet name="Correct Currency Conversion Pattern" lang="typescript">
+// In Formik initialValues - Convert cents to euros for display
+const formik: FormikConfig<FormValues> = {
+  initialValues: {
+    amount: settings.amount / 100, // Backend sends 200 cents, display as 2 euros
+  },
+  onSubmit: (values, { setSubmitting }) => {
+    const payload = {
+      // Send euros directly - backend will convert to cents
+      amount: Number(values.amount), // Send 2 (euros), NOT 200
+    };
+
+    router.patch(route('update'), payload, {
+      onFinish: () => setSubmitting(false),
+    });
+  },
+};
+</code-snippet>
+
+<code-snippet name="Backend Conversion" lang="php">
+// Controller - receives euros, stores cents
+public function update(Request $request)
+{
+    $validated = $request->validate([
+        'amount' => 'required|numeric|min:0',
+    ]);
+
+    // Convert euros to cents for storage
+    TenantSetting::set('amount', (int) ($validated['amount'] * 100));
+}
+</code-snippet>
+
+### Use FormattedCurrency Component
+Always use the `FormattedCurrency` component for displaying monetary values to respect regional settings.
+
+<code-snippet name="FormattedCurrency Usage" lang="typescript">
+import FormattedCurrency from '@/components/ui/FormattedCurrency';
+
+// Display currency with regional formatting (decimal separator, symbol)
+<FormattedCurrency value={amount} showSymbol={true} />
+</code-snippet>
+
+## Formik + Inertia Integration
+When using Formik with Inertia's router for form submissions, follow this pattern:
+
+### Enable Form Reinitialization
+Add `enableReinitialize: true` to allow Formik to update when backend props change after save.
+
+<code-snippet name="Formik with Inertia Pattern" lang="typescript">
+const formik: FormikConfig<FormValues> = {
+  enableReinitialize: true, // Critical: allows form to reset after successful save
+  initialValues: {
+    // Values from backend props
+  },
+  onSubmit: (values, { setSubmitting }) => {
+    router.patch(route('update'), values, {
+      onFinish: () => setSubmitting(false), // Critical: reset loading state
+      preserveScroll: true,
+    });
+  },
+};
+</code-snippet>
+
+### Why This Matters
+- **enableReinitialize**: Updates form values when props change, disables submit button when no changes
+- **setSubmitting callback**: Prevents infinite loading state
+- **onFinish**: Runs after Inertia completes the request (success or error)
+
+## Flash Messages and Snackbar
+Flash messages are passed via `page.props.flash.status` and `page.props.flash.message` from Laravel.
+
+### Update Snackbar State on Flash Changes
+The AppLayout manages Snackbar display. Ensure `useEffect` monitors flash prop changes:
+
+<code-snippet name="Snackbar Flash Pattern" lang="typescript">
+const status = page.props.flash.status;
+const message = page.props.flash.message;
+const [openAlert, setOpenAlert] = useState<boolean>(false);
+
+useEffect(() => {
+  // Update openAlert when flash message changes
+  if (status) {
+    setOpenAlert(true);
+  }
+}, [page.props.flash.message, page.props.flash.status, status]);
+</code-snippet>
+
+### Backend Flash Message Pattern
+<code-snippet name="Backend Flash" lang="php">
+return redirect()->back()->with('success', 'Impostazioni salvate con successo');
+</code-snippet>
 
 ## Replies
 - Be concise in your explanations - focus on what's important rather than explaining obvious details.
@@ -401,10 +599,83 @@ return (
 | decoration-clone | box-decoration-clone |
 
 
-=== tests rules ===
+=== roles-permissions rules ===
 
-## Test Enforcement
+## Roles and Permissions Management
 
-- Every change must be programmatically tested. Write a new test or update an existing test, then run the affected tests to make sure they pass.
-- Run the minimum number of tests needed to ensure code quality and speed. Use `php artisan test` with a specific filename or filter.
+This application uses Spatie Permission with a multi-tenant architecture and custom features for user role and permission management.
+
+### Roles System
+- **Standard Roles**: owner, manager, back_office, staff, trainer, receptionist, customer
+- **Custom Role Model**: `App\Models\Role` extends Spatie's Role to handle tenant context dynamically
+- **Tenant-aware**: Role model switches between `User` and `CentralUser` based on tenant context
+
+### Permissions System
+- **Role Permissions**: Inherited from assigned role (via `role_has_permissions`)
+- **Extra Permissions**: Direct permissions assigned to users (via `model_has_permissions`)
+- **Total Permissions**: Combination of role permissions + extra permissions
+
+### Translation Hook
+Always use the `useRolePermissionLabels` hook for displaying roles and permissions in human-readable Italian:
+
+<code-snippet name="Role Permission Labels Hook" lang="typescript">
+import { useRolePermissionLabels } from '@/hooks/useRolePermissionLabels';
+
+const MyComponent = () => {
+  const { getRoleLabel, getCategoryLabel, getPermissionLabel, formatPermission } = useRolePermissionLabels();
+
+  // Translate role names
+  getRoleLabel('owner'); // => 'Proprietario'
+  getRoleLabel('trainer'); // => 'Trainer'
+
+  // Translate permission categories
+  getCategoryLabel('sales'); // => 'Vendite'
+  getCategoryLabel('customers'); // => 'Clienti'
+
+  // Translate full permission names
+  getPermissionLabel('sales.view'); // => 'Visualizza vendite'
+  getPermissionLabel('customers.edit'); // => 'Modifica clienti'
+
+  // Get structured permission data
+  const formatted = formatPermission('sales.view');
+  // => { category: 'sales', action: 'view', categoryLabel: 'Vendite', actionLabel: 'Visualizza', fullLabel: 'Visualizza vendite' }
+};
+</code-snippet>
+
+### Extra Permissions Feature
+Users can have additional permissions beyond their role:
+
+**Backend**: `UserPermissionController@update` syncs direct permissions excluding role permissions
+**Frontend**: `user-show.tsx` provides a dialog for managing extra permissions with:
+- Category-based accordion view
+- Exclusion of permissions already in role
+- Real-time preview of selected permissions
+
+<code-snippet name="Extra Permissions Usage" lang="typescript">
+// In user-show.tsx, extra permissions are displayed and manageable
+{user.extra_permissions.length > 0 && (
+  <Stack direction="row" spacing={0.5} flexWrap="wrap">
+    {user.extra_permissions.map((permission) => (
+      <Chip
+        key={permission}
+        label={getPermissionLabel(permission)}
+        size="small"
+        color="secondary"
+      />
+    ))}
+  </Stack>
+)}
+</code-snippet>
+
+### Best Practices
+- **Always use the hook**: Never hardcode role/permission labels - always use `useRolePermissionLabels`
+- **Consistent naming**: Backend sends permission names (e.g., `sales.view`), frontend translates them
+- **RoleBadge component**: Already uses the hook internally - no need to translate when using it
+- **Category grouping**: Group permissions by category (sales, customers, etc.) for better UX
+
+### Available Translations
+- **Roles**: owner, manager, back_office, staff, trainer, receptionist, customer, super-admin, admin, instructor
+- **Categories**: sales, customers, products, pricelists, reports, settings, users, training, checkin
+- **Actions**: view, create, edit, delete, manage, view_all, view_assigned, etc.
+
 </laravel-boost-guidelines>

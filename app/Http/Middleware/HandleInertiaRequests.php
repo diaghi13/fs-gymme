@@ -20,6 +20,17 @@ class HandleInertiaRequests extends Middleware
     protected $rootView = 'app';
 
     /**
+     * Map subscription to active features
+     * TODO: Implement based on your subscription plans
+     */
+    protected function getSubscriptionFeatures($subscription): array
+    {
+        // For now, return empty array
+        // This will be populated based on subscription plan tiers
+        return [];
+    }
+
+    /**
      * Determines the current asset version.
      *
      * @see https://inertiajs.com/asset-versioning
@@ -40,20 +51,40 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        //        if (Auth::check()) {
-        //            $request->user()->load([
-        //                'tenants',
-        //                'roles.permissions',
-        //                'permissions',
-        //            ]);
-        //        }
-
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? function () use ($request) {
+                    // If tenancy is initialized, get user from tenant database
+                    // Otherwise, use the central database user
+                    $user = $request->user();
+
+                    if (tenancy()->initialized && $user->global_id) {
+                        // Get the synced user from tenant database
+                        $tenantUser = \App\Models\User::where('global_id', $user->global_id)->first();
+                        if ($tenantUser) {
+                            $user = $tenantUser;
+                        }
+                    }
+
+                    return [
+                        'id' => $user->id,
+                        'first_name' => $user->first_name,
+                        'last_name' => $user->last_name,
+                        'email' => $user->email,
+                        'roles' => $user->roles()->pluck('name')->toArray(),
+                        'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                        // DEBUG: check tenancy and connection
+                        '_debug' => [
+                            'tenancy_initialized' => tenancy()->initialized,
+                            'tenant_id' => tenancy()->tenant ? tenancy()->tenant->id : null,
+                            'user_connection' => $user->getConnectionName(),
+                            'global_id' => $user->global_id ?? null,
+                        ],
+                    ];
+                } : null,
             ],
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
@@ -72,12 +103,36 @@ class HandleInertiaRequests extends Middleware
                     return null;
                 }
 
-                return tenancy()->tenant ? [
-                    'id' => tenancy()->tenant->id,
-                    'name' => tenancy()->tenant->name,
-                    'onboarding_completed_at' => tenancy()->tenant->onboarding_completed_at?->toISOString(),
-                    'trial_ends_at' => tenancy()->tenant->trial_ends_at?->toISOString(),
-                ] : null;
+                if (! tenancy()->tenant) {
+                    return null;
+                }
+
+                $tenant = tenancy()->tenant;
+
+                // Get active subscription plan and features
+                $subscriptionPlan = null;
+                $activeFeatures = [];
+
+                if ($tenant->subscribed('default')) {
+                    $subscription = $tenant->subscription('default');
+                    $subscriptionPlan = [
+                        'name' => $subscription->stripe_price,
+                        'status' => $subscription->stripe_status,
+                    ];
+
+                    // TODO: Map subscription plan to features
+                    // This will be implemented based on your subscription plans
+                    $activeFeatures = $this->getSubscriptionFeatures($subscription);
+                }
+
+                return [
+                    'id' => $tenant->id,
+                    'name' => $tenant->name,
+                    'onboarding_completed_at' => $tenant->onboarding_completed_at?->toISOString(),
+                    'trial_ends_at' => $tenant->trial_ends_at?->toISOString(),
+                    'subscription_plan' => $subscriptionPlan,
+                    'active_features' => $activeFeatures,
+                ];
             },
             'structures' => function () use ($request) {
                 // Only load structures if we're in a tenant context
@@ -103,6 +158,22 @@ class HandleInertiaRequests extends Middleware
                 return [
                     'list' => $structures,
                     'current_id' => $request->cookie('current_structure_id') ? (int) $request->cookie('current_structure_id') : null,
+                ];
+            },
+            'regional_settings' => function () {
+                // Only load regional settings if tenancy is initialized
+                if (! tenancy()->initialized) {
+                    return null;
+                }
+
+                return [
+                    'language' => \App\Models\TenantSetting::get('regional.language', 'it'),
+                    'timezone' => \App\Models\TenantSetting::get('regional.timezone', 'Europe/Rome'),
+                    'date_format' => \App\Models\TenantSetting::get('regional.date_format', 'd/m/Y'),
+                    'time_format' => \App\Models\TenantSetting::get('regional.time_format', 'H:i'),
+                    'currency' => \App\Models\TenantSetting::get('regional.currency', 'EUR'),
+                    'decimal_separator' => \App\Models\TenantSetting::get('regional.decimal_separator', ','),
+                    'thousands_separator' => \App\Models\TenantSetting::get('regional.thousands_separator', '.'),
                 ];
             },
         ];

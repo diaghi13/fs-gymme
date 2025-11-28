@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\Sales\ElectronicInvoice;
 
+use App\Enums\ElectronicInvoiceStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Sale\Sale;
 use App\Services\Sale\ElectronicInvoiceService;
@@ -21,7 +22,11 @@ class GenerateCreditNoteController extends Controller
             ]);
         }
 
-        if ($sale->electronic_invoice->sdi_status !== 'accepted') {
+        $sdiStatus = $sale->electronic_invoice->sdi_status instanceof ElectronicInvoiceStatusEnum
+            ? $sale->electronic_invoice->sdi_status->value
+            : $sale->electronic_invoice->sdi_status;
+
+        if ($sdiStatus !== 'accepted') {
             return redirect()->back()->withErrors([
                 'credit_note' => 'Puoi creare una nota di credito solo per fatture accettate dal SDI',
             ]);

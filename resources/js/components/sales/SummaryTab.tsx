@@ -12,15 +12,16 @@ import {
   Typography
 } from '@mui/material';
 import MyCard from '@/components/ui/MyCard';
-import { Str } from '@/support/Str';
 import React, { useEffect } from 'react';
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
 import { usePage } from '@inertiajs/react';
 import { SaleFormValues, SalePageProps } from '@/pages/sales/sales';
-import format, { itNumberForma } from '@/support/format';
+import { itNumberForma } from '@/support/format';
 import { useSaleContext } from '@/Contexts/Sale/SaleContext';
 import { ARTICLE, MEMBERSHIP, SUBSCRIPTION } from '@/pages/price-lists/price-lists';
 import { expiryDateCalculator } from '@/components/sales/CartItem';
+import FormattedDate from '@/components/ui/FormattedDate';
+import FormattedCurrency from '@/components/ui/FormattedCurrency';
 //import { useFormikContext } from 'formik';
 
 interface SummaryTabProps {
@@ -42,7 +43,7 @@ export default function SummaryTab({ sale }: SummaryTabProps) {
       <Grid size={8}>
         <MyCard sx={{ height: '100%' }} title={'Testata'}>
           <Stack spacing={4}>
-            <Typography>Data inserimento: {format(sale.date, 'dd/MM/yyyy')}</Typography>
+            <Typography>Data inserimento: <FormattedDate value={sale.date} /></Typography>
             <Typography>Struttura: La mia palestra</Typography>
             <Typography>Cliente: {sale.customer?.option_label}</Typography>
           </Stack>
@@ -52,7 +53,7 @@ export default function SummaryTab({ sale }: SummaryTabProps) {
         <MyCard title={'Totali'}>
           <Stack direction={'row'} justifyContent={'space-between'}>
             <Typography>Prezzo base: </Typography>
-            <Typography fontWeight={800}>{Str.EURO(sale_price).format()}</Typography>
+            <Typography fontWeight={800}><FormattedCurrency value={sale_price} /></Typography>
           </Stack>
           <Stack direction={'row'} justifyContent={'space-between'}>
             <Typography>Sconto %: </Typography>
@@ -60,11 +61,11 @@ export default function SummaryTab({ sale }: SummaryTabProps) {
           </Stack>
           <Stack direction={'row'} justifyContent={'space-between'}>
             <Typography>Sconto assoluto: </Typography>
-            <Typography fontWeight={800}>{Str.EURO(sale.discount_absolute).format()}</Typography>
+            <Typography fontWeight={800}><FormattedCurrency value={sale.discount_absolute} /></Typography>
           </Stack>
           <Stack direction={'row'} justifyContent={'space-between'}>
             <Typography>Prezzo totale: </Typography>
-            <Typography fontWeight={800}>{Str.EURO(total_price).format()}</Typography>
+            <Typography fontWeight={800}><FormattedCurrency value={total_price} /></Typography>
           </Stack>
           <Stack direction={'row'} justifyContent={'space-between'}>
             <Typography>Q.tà prodotti: </Typography>
@@ -78,7 +79,7 @@ export default function SummaryTab({ sale }: SummaryTabProps) {
           </Stack>
           <Stack direction={'row'} justifyContent={'space-between'}>
             {/*<Typography>Rateizzato: </Typography>*/}
-            {/*<Typography fontWeight={800}>{Str.EURO(total_price - Number(sale.payments[0].amount)).format()}</Typography>*/}
+            {/*<Typography fontWeight={800}><FormattedCurrency value={total_price - Number(sale.payments[0].amount)} /></Typography>*/}
           </Stack>
         </MyCard>
       </Grid>
@@ -100,11 +101,11 @@ export default function SummaryTab({ sale }: SummaryTabProps) {
                 <React.Fragment key={index}>
                   <TableRow>
                     <TableCell>{saleContent.price_list.name}</TableCell>
-                    <TableCell>{Str.EURO(sale_rows[index].unit_price).format()}</TableCell>
+                    <TableCell><FormattedCurrency value={sale_rows[index].unit_price} /></TableCell>
                     <TableCell>{saleContent.price_list.type === ARTICLE || saleContent.price_list.type === MEMBERSHIP ? saleContent.price_list.vat_rate?.percentage : '0'}</TableCell>
                     <TableCell>{saleContent.percentage_discount}</TableCell>
-                    <TableCell>{Str.EURO(saleContent.absolute_discount).format()}</TableCell>
-                    <TableCell>{Str.EURO(sale_rows[index].total).format()}</TableCell>
+                    <TableCell><FormattedCurrency value={saleContent.absolute_discount} /></TableCell>
+                    <TableCell><FormattedCurrency value={sale_rows[index].total} /></TableCell>
                   </TableRow>
                   {saleContent.price_list.type === SUBSCRIPTION && saleContent.subscription_selected_content && (
                     <TableRow>
@@ -153,9 +154,9 @@ export default function SummaryTab({ sale }: SummaryTabProps) {
                   <TableCell>{vatRate.code}</TableCell>
                   <TableCell>{vatRate.description}</TableCell>
                   <TableCell>{vatRate.nature}</TableCell>
-                  <TableCell>{Str.EURO(vatRate.taxable).format()}</TableCell>
+                  <TableCell><FormattedCurrency value={vatRate.taxable} /></TableCell>
                   <TableCell>{vatRate.percentage}</TableCell>
-                  <TableCell>{Str.EURO(vatRate.tax).format()}</TableCell>
+                  <TableCell><FormattedCurrency value={vatRate.tax} /></TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -176,16 +177,13 @@ export default function SummaryTab({ sale }: SummaryTabProps) {
                       sx={{ background: color }}
                     >
                       <ListItemText>
-                        {`${index + 1}# - ${format(
-                          installment.due_date!,
-                          'dd/MM/yyyy'
-                        )}`}
+                        {`${index + 1}# - `}<FormattedDate value={installment.due_date!} />
                       </ListItemText>
                       <ListItemText>
                         {`${
                           paymentMethods.find(p => p.id === installment.payment_method.id)
                             ?.label
-                        } - €${parseFloat(String(installment.amount)).toFixed(2).replace('.', ',')}`}
+                        } - `}<FormattedCurrency value={parseFloat(String(installment.amount))} />
                       </ListItemText>
                       {installment.payed_at && <ListItemText>Pagato</ListItemText>}
                       {!installment.payed_at && <ListItemText></ListItemText>}

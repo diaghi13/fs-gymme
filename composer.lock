@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "815b550e1bfd6109f076e04f57e4971f",
+    "content-hash": "5df7ade2d733f5b9e02f1c56471f7eb5",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -5067,6 +5067,62 @@
                 }
             ],
             "time": "2024-06-11T12:45:25+00:00"
+        },
+        {
+            "name": "robertogallea/laravel-codicefiscale",
+            "version": "2.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/robertogallea/laravel-codicefiscale.git",
+                "reference": "c1460962277470a3dcc75af241fabe4439eceae6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/robertogallea/laravel-codicefiscale/zipball/c1460962277470a3dcc75af241fabe4439eceae6",
+                "reference": "c1460962277470a3dcc75af241fabe4439eceae6",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.3",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "orchestra/testbench": "^10.1",
+                "phpunit/phpunit": ">=9.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "robertogallea\\LaravelCodiceFiscale\\CodiceFiscaleServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "robertogallea\\LaravelCodiceFiscale\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Roberto Gallea",
+                    "email": "write@robertogallea.com"
+                }
+            ],
+            "description": "Codice fiscale validation for php/laravel",
+            "support": {
+                "issues": "https://github.com/robertogallea/laravel-codicefiscale/issues",
+                "source": "https://github.com/robertogallea/laravel-codicefiscale/tree/2.3.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/robertogallea",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-09-04T06:59:50+00:00"
         },
         {
             "name": "sabberworm/php-css-parser",

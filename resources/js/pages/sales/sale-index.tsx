@@ -27,10 +27,11 @@ import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ReceiptIcon from '@mui/icons-material/Receipt';
-import DescriptionIcon from '@mui/icons-material/Description';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { format } from 'date-fns';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import FormattedDate from '@/components/ui/FormattedDate';
+import FormattedCurrency from '@/components/ui/FormattedCurrency';
 
 interface SaleIndexProps extends PageProps {
   sales: {
@@ -99,17 +100,10 @@ export default function SaleIndex({ auth, sales, filters, stats, currentTenantId
   const [showFilters, setShowFilters] = useState(false);
   const [localFilters, setLocalFilters] = useState(filters);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('it-IT', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
-  };
-
   const handleSearch = () => {
     router.get(
       route('app.sales.index', { tenant: currentTenantId }),
-      localFilters as any,
+      localFilters as Record<string, string>,
       {
         preserveState: true,
         preserveScroll: true,
@@ -146,31 +140,55 @@ export default function SaleIndex({ auth, sales, filters, stats, currentTenantId
       field: 'progressive_number',
       headerName: 'Numero',
       width: 120,
-      renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
-          <ReceiptIcon fontSize="small" color="action" />
-          <Typography variant="body2" fontWeight="medium">
-            {params.value}
-          </Typography>
-        </Box>
-      ),
+      renderCell: (params: GridRenderCellParams) => {
+        const isCreditNote = params.row.type === 'credit_note';
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+            {isCreditNote ? (
+              <CreditCardIcon fontSize="small" sx={{ color: 'error.main' }} />
+            ) : (
+              <ReceiptIcon fontSize="small" color="action" />
+            )}
+            <Typography variant="body2" fontWeight="medium">
+              {params.value}
+            </Typography>
+          </Box>
+        );
+      },
+    },
+    {
+      field: 'type',
+      headerName: 'Tipo',
+      width: 130,
+      renderCell: (params: GridRenderCellParams) => {
+        const isCreditNote = params.value === 'credit_note';
+        return (
+          <Chip
+            label={isCreditNote ? 'Nota di Credito' : 'Fattura'}
+            color={isCreditNote ? 'error' : 'default'}
+            size="small"
+            variant={isCreditNote ? 'filled' : 'outlined'}
+          />
+        );
+      },
     },
     {
       field: 'date',
       headerName: 'Data',
       width: 110,
-      valueFormatter: (params) => format(new Date(params), 'dd/MM/yyyy'),
+      renderCell: (params: GridRenderCellParams) => (
+        <FormattedDate value={params.value} />
+      ),
     },
     {
       field: 'customer',
       headerName: 'Cliente',
       flex: 1,
       minWidth: 200,
-      valueGetter: (params) => params.full_name,
       renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
           <Typography variant="body2" noWrap>
-            {params.row.customer.full_name}
+            {params.row.customer?.full_name || '-'}
           </Typography>
         </Box>
       ),
@@ -184,7 +202,7 @@ export default function SaleIndex({ auth, sales, filters, stats, currentTenantId
       renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', height: '100%', width: '100%' }}>
           <Typography variant="body2" fontWeight="medium">
-            {formatCurrency(params.value)}
+            <FormattedCurrency value={params.value} />
           </Typography>
         </Box>
       ),
@@ -402,7 +420,7 @@ export default function SaleIndex({ auth, sales, filters, stats, currentTenantId
                   Valore Totale
                 </Typography>
                 <Typography variant="h5" fontWeight="bold" color="primary">
-                  {formatCurrency(stats.total_amount)}
+                  <FormattedCurrency value={stats.total_amount} />
                 </Typography>
               </CardContent>
             </Card>

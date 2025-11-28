@@ -7,10 +7,17 @@ import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import StoreIcon from '@mui/icons-material/Store';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import StorageIcon from '@mui/icons-material/Storage';
-import NewReleasesIcon from '@mui/icons-material/NewReleases';
-import WorkIcon from '@mui/icons-material/Work';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import LanguageIcon from '@mui/icons-material/Language';
+import PercentIcon from '@mui/icons-material/Percent';
+import PaymentIcon from '@mui/icons-material/Payment';
+import EmailIcon from '@mui/icons-material/Email';
+import ArchiveIcon from '@mui/icons-material/Archive';
+import SecurityIcon from '@mui/icons-material/Security';
+import WorkIcon from '@mui/icons-material/Work';
+import NewReleasesIcon from '@mui/icons-material/NewReleases';
+import StorageIcon from '@mui/icons-material/Storage';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 export const productType = {
   baseProduct: 'BASE_PRODUCT',
@@ -21,27 +28,25 @@ export const menuList = (tenant: string) => ([
   {
     name: 'Dashboard',
     href: route('app.dashboard', { tenant }),
-    Icon: DashboardIcon
+    Icon: DashboardIcon,
   },
   {
     name: 'Clienti',
-    //href: '/customer',
     Icon: PeopleIcon,
     items: [
       {
         name: 'Aggiungi',
-        //href: '/customers/create'
-        href: route('app.customers.create', { tenant })
+        href: route('app.customers.create', { tenant }),
       },
       {
         name: 'Attivi',
-        href: route('app.customers.index', { tenant, active: 'true' })
+        href: route('app.customers.index', { tenant, active: 'true' }),
       },
       {
         name: 'Tutti',
-        href: route('app.customers.index', { tenant })
-      }
-    ]
+        href: route('app.customers.index', { tenant }),
+      },
+    ],
   },
   {
     name: 'Attività',
@@ -49,34 +54,21 @@ export const menuList = (tenant: string) => ([
     items: [
       {
         name: 'Prodotti Base',
-        //href: "/products?type=" + productType.baseProduct,
-        href: route('app.base-products.index', { tenant })
+        href: route('app.base-products.index', { tenant }),
       },
       {
         name: 'Corsi',
-        href: route('app.course-products.index', { tenant })
+        href: route('app.course-products.index', { tenant }),
       },
       {
         name: 'Servizi Prenotabili',
-        href: route('app.bookable-services.index', { tenant })
+        href: route('app.bookable-services.index', { tenant }),
       },
-      /*{
-        name: "Multi Attività",
-        href: "/multi-activities",
-      },*/
       {
         name: 'Listini',
-        href: route('app.price-lists.index', { tenant })
-      }
-      /*{
-        name: "Corsi",
-        href: "/activities/course-product",
+        href: route('app.price-lists.index', { tenant }),
       },
-      {
-        name: "Appuntamenti",
-        href: "/activities/date-product",
-      },*/
-    ]
+    ],
   },
   {
     name: 'Vendite',
@@ -84,13 +76,13 @@ export const menuList = (tenant: string) => ([
     items: [
       {
         name: 'Nuova Vendita',
-        href: route('app.sales.create', { tenant })
+        href: route('app.sales.create', { tenant }),
       },
       {
         name: 'Effettuate',
-        href: route('app.sales.index', { tenant })
-      }
-    ]
+        href: route('app.sales.index', { tenant }),
+      },
+    ],
   },
   {
     name: 'Contabilità',
@@ -98,136 +90,135 @@ export const menuList = (tenant: string) => ([
     items: [
       {
         name: 'Prima Nota',
-        href: '/accounting/journal-entries'
+        href: '/accounting/journal-entries',
       },
       {
         name: 'Pagamenti In Sospeso',
-        href: '/accounting/pending-payments'
-      }
-    ]
+        href: '/accounting/pending-payments',
+      },
+    ],
   },
   {
-    name: 'Utenti',
-    Icon: PersonIcon,
-    href: '/users'
-  }
-  // {
-  //   name: "Statitiche",
-  //   href: "/statistics",
-  //   Icon: QueryStatsIcon,
-  // },
-  // {
-  //   name: "Contabilità",
-  //   Icon: MonetizationOnIcon,
-  //   items: [
-  //     {
-  //       name: "Prima Nota",
-  //       href: "/statistics",
-  //     },
-  //     {
-  //       name: "Pagamenti In Sospeso",
-  //       href: "/statistics",
-  //     },
-  //   ],
-  // },
-  // {
-  //   name: "Dipendenti",
-  //   Icon: PeopleIcon,
-  //   items: [
-  //     {
-  //       name: "Attivi",
-  //       href: "/statistics",
-  //     },
-  //     {
-  //       name: "Nuovo Dipendente",
-  //       href: "/statistics",
-  //     },
-  //     {
-  //       name: "Riepilogo",
-  //       href: "/statistics",
-  //     },
-  //     {
-  //       name: "Gestione",
-  //       href: "/statistics",
-  //     },
-  //   ],
-  // },
-  // {
-  //   name: "Calendario",
-  //   href: "/calendar",
-  //   Icon: ScheduleIcon,
-  // },
-  // {
-  //   name: "Report",
-  //   href: "/report",
-  //   Icon: AssessmentIcon,
-  // },
-  // {
-  //   name: "Utenti",
-  //   Icon: PersonIcon,
-  //   items: [
-  //     {
-  //       name: "Lista Utenti",
-  //       href: "/statistics",
-  //     },
-  //     {
-  //       name: "Attività",
-  //       href: "/statistics",
-  //     },
-  //   ],
-  // },
+    name: 'Gestione Utenti',
+    Icon: AdminPanelSettingsIcon,
+    permission: 'users.manage',
+    items: [
+      {
+        name: 'Tutti gli utenti',
+        href: route('app.users.index', { tenant }),
+      },
+      {
+        name: 'Invita utente',
+        href: route('app.users.create', { tenant }),
+      },
+      {
+        name: 'Ruoli e permessi',
+        href: route('app.roles.index', { tenant }),
+      },
+    ],
+  },
 ]);
 
 export const subMenuList = [
   {
     name: 'Impostazioni Privacy e Sicurezza',
     href: '#',
-    Icon: DashboardIcon
+    Icon: DashboardIcon,
   },
   {
     name: 'Il Centro',
     href: '#',
-    Icon: DashboardIcon
+    Icon: DashboardIcon,
   },
   {
     name: 'Amministrazione',
     href: '#',
-    Icon: DashboardIcon
+    Icon: DashboardIcon,
   },
   {
     name: 'Attività Del Centro',
     href: '#',
-    Icon: DashboardIcon
+    Icon: DashboardIcon,
   },
   {
     name: 'Listini',
     href: '#',
-    Icon: DashboardIcon
-  }
+    Icon: DashboardIcon,
+  },
 ];
 
 export const configurationMenuList = (tenant: string) => ([
   {
     name: 'Azienda',
     href: route('app.configurations.company', { tenant }),
-    Icon: ApartmentIcon
+    Icon: ApartmentIcon,
   },
   {
     name: 'Struttura',
     href: route('app.configurations.structure', { tenant }),
-    Icon: StoreIcon
+    Icon: StoreIcon,
   },
   {
-    name: 'Risorse finanziarie',
-    href: route('app.configurations.financial-resources', { tenant }),
-    Icon: AccountBalanceIcon
+    name: 'Localizzazione',
+    href: route('app.configurations.regional', { tenant }),
+    Icon: LanguageIcon,
   },
   {
     name: 'Fatturazione',
     href: route('app.configurations.invoice', { tenant }),
-    Icon: ReceiptIcon
-  }
-
+    Icon: ReceiptIcon,
+  },
+  {
+    name: 'IVA e Tasse',
+    href: route('app.configurations.vat', { tenant }),
+    Icon: PercentIcon,
+  },
+  {
+    name: 'Metodi di Pagamento',
+    href: route('app.configurations.payment', { tenant }),
+    Icon: PaymentIcon,
+  },
+  {
+    name: 'Risorse Finanziarie',
+    href: route('app.configurations.financial-resources', { tenant }),
+    Icon: AccountBalanceIcon,
+  },
+  {
+    name: 'Email e Notifiche',
+    href: route('app.configurations.email', { tenant }),
+    Icon: EmailIcon,
+  },
+  {
+    name: 'Conservazione',
+    href: route('app.electronic-invoices.preservation', { tenant }),
+    Icon: ArchiveIcon,
+  },
+  {
+    name: 'GDPR Compliance',
+    href: route('app.configurations.gdpr-compliance', { tenant }),
+    Icon: SecurityIcon,
+  },
+  // Note: Le seguenti voci sono per il contesto central, non tenant
+  // Rimuovile o spostale in un menu separato se necessario
+  // {
+  //   name: 'Abbonamenti',
+  //   href: route('central.subscription-plans.index'),
+  //   Icon: WorkIcon,
+  // },
+  // {
+  //   name: 'Ruoli e Permessi',
+  //   Icon: NewReleasesIcon,
+  //   items: [
+  //     {
+  //       name: 'Ruoli',
+  //       href: route('central.roles.index'),
+  //     },
+  //     {
+  //       name: 'Permessi',
+  //       href: route('central.permissions.index'),
+  //     },
+  //   ],
+  // },
 ]);
 
 export const centralMenuList = () => ([

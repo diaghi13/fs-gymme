@@ -21,6 +21,7 @@ import {
 import { useFormikContext } from 'formik';
 import { SaleFormValues } from '../sale-create';
 import { useQuickCalculate } from '@/hooks/useQuickCalculate';
+import { useFormatCurrency, useDateFormat } from '@/hooks/useRegionalSettings';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import SaveIcon from '@mui/icons-material/Save';
@@ -36,6 +37,10 @@ export default function CartSidebar() {
   const [editingItem, setEditingItem] = useState<number | null>(null);
   const [tempPercentageDiscount, setTempPercentageDiscount] = useState<number>(0);
   const [tempAbsoluteDiscount, setTempAbsoluteDiscount] = useState<number>(0);
+
+  // Use regional settings for formatting
+  const formatCurrencyValue = useFormatCurrency();
+  const dateFormat = useDateFormat();
 
   // Handler per completare la vendita (status: saved)
   const handleCompleteSale = async () => {
@@ -61,9 +66,11 @@ export default function CartSidebar() {
       percentage_discount: content.percentage_discount || null,
       absolute_discount: content.absolute_discount || 0,
       vat_rate_percentage: content.price_list?.vat_rate?.percentage || content.subscription_selected_content?.map(selected_content => selected_content.vat_rate.percentage) || null,
-      vat_rate_breakdown: content.subscription_selected_content?.map(selected_content => ({
+      vat_rate_nature: content.price_list?.vat_rate?.nature || content.subscription_selected_content?.map(selected_content => selected_content.vat_rate.nature) || null,
+      vat_breakdown: content.subscription_selected_content?.map(selected_content => ({
         subtotal: selected_content.price,
         vat_rate: selected_content.vat_rate.percentage,
+        vat_nature: selected_content.vat_rate.nature,
       })) || undefined,
     }));
 
@@ -76,14 +83,11 @@ export default function CartSidebar() {
   }, [values.sale_contents, values.discount_percentage, values.discount_absolute, calculate, values.tax_included]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('it-IT', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
+    return formatCurrencyValue(amount);
   };
 
-  const formatDate = (date: Date) => {
-    return format(date, 'dd/MM/yyyy');
+  const formatDateValue = (date: Date) => {
+    return format(date, dateFormat);
   };
 
   const calculateExpiryDate = (startDate: Date | null | undefined, monthsDuration: number | null, daysDuration: number | null) => {
@@ -250,7 +254,7 @@ export default function CartSidebar() {
                           if (expiryInfo && !item.subscription_selected_content) {
                             return (
                               <Typography variant="caption" color="text.secondary" component="span" display="block" sx={{ mt: 0.5 }}>
-                                Inizio: {formatDate(expiryInfo.startDate)} → Scadenza: {formatDate(expiryInfo.expiryDate)}
+                                Inizio: {formatDateValue(expiryInfo.startDate)} → Scadenza: {formatDateValue(expiryInfo.expiryDate)}
                               </Typography>
                             );
                           }
@@ -283,7 +287,7 @@ export default function CartSidebar() {
                               return (
                                 <Typography key={idx} variant="caption" display="block" component="span" fontSize="0.65rem">
                                   • {content.price_listable?.name || content.name || 'N/A'}
-                                  {expiryDate && ` → ${formatDate(expiryDate)}`}
+                                  {expiryDate && ` → ${formatDateValue(expiryDate)}`}
                                 </Typography>
                               );
                             })}

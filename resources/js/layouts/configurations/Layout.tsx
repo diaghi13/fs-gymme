@@ -8,7 +8,7 @@ import { configurationMenuList } from '@/layouts';
 import DrawerItem from '@/components/layout/DrawerItem';
 import { usePage } from '@inertiajs/react';
 
-const Layout : React.FC<PropsWithChildren<{user: User}>> = ({user, children}) => {
+const Layout : React.FC<PropsWithChildren<{user?: User; title?: string;}>> = ({user, children}) => {
   const props = usePage<PageProps>().props;
 
   return (
@@ -20,18 +20,6 @@ const Layout : React.FC<PropsWithChildren<{user: User}>> = ({user, children}) =>
              {configurationMenuList(props.currentTenantId).map((item, index) => (
                <DrawerItem {...item} key={index} />
              ))}
-              {/*<ListItemButton>*/}
-              {/*  <ListItemIcon>*/}
-              {/*    <SubdirectoryArrowRightIcon />*/}
-              {/*  </ListItemIcon>*/}
-              {/*  <ListItemText primary="Azienda" />*/}
-              {/*</ListItemButton>*/}
-              {/*<ListItemButton>*/}
-              {/*  <ListItemIcon>*/}
-              {/*    <SubdirectoryArrowRightIcon />*/}
-              {/*  </ListItemIcon>*/}
-              {/*  <ListItemText primary="Struttura" />*/}
-              {/*</ListItemButton>*/}
            </List>
          </MyCard>
        </Grid>

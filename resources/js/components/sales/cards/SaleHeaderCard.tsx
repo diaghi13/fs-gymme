@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Box, Chip, Grid, Stack, Typography } from '@mui/material';
-import format from '@/support/format';
 import MyCard from '@/components/ui/MyCard';
 import { Sale } from '@/types';
 import { Calendar, FileText, Hash } from 'lucide-react';
+import FormattedDate from '@/components/ui/FormattedDate';
 
 interface SaleHeaderCardProps {
   sale: Sale;
@@ -58,7 +58,7 @@ const SaleHeaderCard: React.FC<SaleHeaderCardProps> = ({ sale }) => {
             </Typography>
           </Box>
           <Typography variant="body1" fontWeight={600}>
-            {format(sale.date, 'dd/MM/yyyy')}
+            <FormattedDate value={sale.date} />
           </Typography>
         </Grid>
 

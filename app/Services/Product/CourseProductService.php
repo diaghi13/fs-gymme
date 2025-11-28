@@ -28,7 +28,10 @@ class CourseProductService
 
         $product->load(['vat_rate', 'plannings.details']);
 
-        $vatRates = VatRate::all('id', 'code', 'description');
+        // Only load active VAT rates
+        $vatRates = VatRate::where('is_active', true)
+            ->orderBy('percentage', 'desc')
+            ->get(['id', 'code', 'description']);
 
         // Format plannings for autocomplete options
         $planningOptions = $product->plannings->map(function ($planning) {

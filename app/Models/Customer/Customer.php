@@ -3,6 +3,7 @@
 namespace App\Models\Customer;
 
 use App\Enums\GenderEnum;
+use App\Models\TenantSetting;
 use App\Models\Traits\HasStructure;
 // use App\Models\Traits\HasTenantScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -44,6 +45,15 @@ class Customer extends Model
         'photo_consent',
         'medical_data_consent',
         'data_retention_until',
+
+        // Notes and avatar
+        'notes',
+        'avatar_path',
+    ];
+
+    protected $appends = [
+        'full_name',
+        'avatar_url',
     ];
 
     protected $casts = [
@@ -72,9 +82,39 @@ class Customer extends Model
         return $this->first_name.' '.$this->last_name;
     }
 
+    /**
+     * Get the avatar URL from the avatar path
+     * This will automatically use the tenant-specific storage disk
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        // Generate URL using our custom storage route
+        // This route is under /app/{tenant}/ so tenant middleware works
+        return route('app.storage', [
+            'tenant' => session('current_tenant_id'),
+            'path' => $this->avatar_path,
+        ]);
+    }
+
     public function user()
     {
-        return $this->belongsTo(\App\Models\CentralUser::class, 'user_id');
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
+    }
+
+    public function centralUser()
+    {
+        return $this->hasOneThrough(
+            \App\Models\CentralUser::class,
+            \App\Models\User::class,
+            'id', // Foreign key on User table
+            'global_id', // Foreign key on CentralUser table
+            'user_id', // Local key on Customer table
+            'global_id' // Local key on User table
+        );
     }
 
     public function subscriptions()
@@ -132,7 +172,13 @@ class Customer extends Model
 
     public function getSalesSummaryAttribute()
     {
-        $sales = $this->sales()->with(['rows', 'payments'])->get();
+        // Use loaded relationship if available, otherwise load it
+        // This prevents N+1 queries when the relationship is already eager loaded
+        if (! $this->relationLoaded('sales')) {
+            $this->load(['sales.rows', 'sales.payments']);
+        }
+
+        $sales = $this->sales;
 
         $sale_count = $sales->count();
         $total_amount = 0;
@@ -142,8 +188,16 @@ class Customer extends Model
         $total_sale_products = 0;
 
         foreach ($sales as $sale) {
-            $sale_total = $sale->rows->sum('total');
-            $paidAmount = $sale->payments->sum('amount');
+            // Use sale_summary accessor which includes stamp duty and correct calculations
+            $summary = $sale->sale_summary;
+            $sale_total = $summary['final_total'] ?? 0;
+
+            // Only count payments that have been actually paid (payed_at is not null)
+            // Use the loaded collection (without parentheses) to ensure MoneyCast is applied
+            $paidAmount = $sale->payments
+                ->whereNotNull('payed_at')
+                ->sum('amount');
+
             $notPaidAmount = $sale_total - $paidAmount;
 
             $total_amount += $sale_total;
@@ -151,8 +205,15 @@ class Customer extends Model
             $not_payed += max(0, $notPaidAmount);
             $total_sale_products += $sale->rows->sum('quantity');
 
-            if (isset($sale->due_date) && $sale->due_date && $sale->due_date->isPast() && $notPaidAmount > 0) {
-                $expired += $notPaidAmount;
+            // Check for expired unpaid payments
+            // Use the loaded collection (without parentheses) to ensure MoneyCast is applied
+            $expiredPayments = $sale->payments
+                ->whereNull('payed_at')
+                ->filter(fn ($payment) => $payment->due_date && $payment->due_date->isPast())
+                ->sum('amount');
+
+            if ($expiredPayments > 0) {
+                $expired += $expiredPayments;
             }
         }
 
@@ -184,5 +245,235 @@ class Customer extends Model
             'medical_certifiable_type',
             'medical_certifiable_id'
         )->latest();
+    }
+
+    public function membership_fees()
+    {
+        return $this->hasMany(MembershipFee::class)->orderBy('end_date', 'desc');
+    }
+
+    public function active_membership_fee()
+    {
+        return $this->hasOne(MembershipFee::class)
+            ->where('status', 'active')
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now());
+    }
+
+    public function measurements()
+    {
+        return $this->hasMany(CustomerMeasurement::class)->orderBy('measured_at', 'desc');
+    }
+
+    public function latest_measurement()
+    {
+        return $this->hasOne(CustomerMeasurement::class)->latest('measured_at');
+    }
+
+    /**
+     * Tesseramenti enti sportivi (ASI, CONI, FIF, etc.)
+     * Per partecipazione a gare e manifestazioni sportive
+     */
+    public function sports_registrations()
+    {
+        return $this->hasMany(SportsRegistration::class)->orderBy('end_date', 'desc');
+    }
+
+    /**
+     * Tesseramento sportivo attivo corrente
+     */
+    public function active_sports_registration()
+    {
+        return $this->hasOne(SportsRegistration::class)
+            ->where('status', 'active')
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->latest('end_date');
+    }
+
+    /**
+     * Files/attachments del cliente (certificati, foto, documenti, etc.)
+     */
+    public function files()
+    {
+        return $this->morphMany(\App\Models\File::class, 'fileable')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get trainers assigned to this customer
+     */
+    public function trainers()
+    {
+        return $this->belongsToMany(
+            \App\Models\User::class,
+            'customer_trainer',
+            'customer_id',
+            'trainer_id'
+        )
+            ->withPivot(['assigned_at', 'is_active', 'notes'])
+            ->withTimestamps()
+            ->wherePivot('is_active', true);
+    }
+
+    /**
+     * Get all customer alerts for monitoring status
+     * Returns array of alerts with severity (critical, warning, info)
+     */
+    public function getCustomerAlertsAttribute(): array
+    {
+        $alerts = [];
+        $now = now();
+        $warningThreshold = TenantSetting::get('customer.warning_threshold', 7); // giorni per warning di scadenza imminente
+
+        // Check active subscriptions
+        $activeSubscriptions = $this->active_subscriptions;
+        $hasActiveSubscription = $activeSubscriptions->isNotEmpty();
+
+        if (! $hasActiveSubscription) {
+            // Check if has expired subscriptions
+            $expiredSubscriptions = $this->subscriptions()
+                ->where('end_date', '<', $now)
+                ->exists();
+
+            if ($expiredSubscriptions) {
+                $alerts[] = [
+                    'type' => 'subscription_expired',
+                    'severity' => 'critical',
+                    'message' => 'Abbonamento scaduto',
+                    'icon' => 'FitnessCenter',
+                ];
+            }
+        } else {
+            // Check for subscriptions expiring soon
+            foreach ($activeSubscriptions as $subscription) {
+                $effectiveEndDate = $subscription->effective_end_date;
+                if ($effectiveEndDate) {
+                    $daysUntilExpiry = $now->diffInDays($effectiveEndDate, false);
+                    if ($daysUntilExpiry >= 0 && $daysUntilExpiry <= $warningThreshold) {
+                        $alerts[] = [
+                            'type' => 'subscription_expiring',
+                            'severity' => 'warning',
+                            'message' => "Abbonamento in scadenza tra {$daysUntilExpiry} giorni",
+                            'icon' => 'FitnessCenter',
+                            'days' => $daysUntilExpiry,
+                        ];
+                    }
+                }
+            }
+        }
+
+        // Check membership fee (OBBLIGATORIA)
+        $activeMembershipFee = $this->active_membership_fee;
+        if (! $activeMembershipFee) {
+            $alerts[] = [
+                'type' => 'membership_fee_missing',
+                'severity' => 'critical',
+                'message' => 'Quota associativa mancante',
+                'icon' => 'CardMembership',
+            ];
+        } else {
+            // Check for membership fee expiring soon
+            $daysUntilExpiry = $now->diffInDays($activeMembershipFee->end_date, false);
+            if ($daysUntilExpiry >= 0 && $daysUntilExpiry <= $warningThreshold) {
+                $alerts[] = [
+                    'type' => 'membership_fee_expiring',
+                    'severity' => 'warning',
+                    'message' => "Quota associativa in scadenza tra {$daysUntilExpiry} giorni",
+                    'icon' => 'CardMembership',
+                    'days' => $daysUntilExpiry,
+                ];
+            }
+        }
+
+        // Check medical certification (OBBLIGATORIO)
+        $lastMedicalCertification = $this->last_medical_certification;
+        if (! $lastMedicalCertification) {
+            $alerts[] = [
+                'type' => 'medical_cert_missing',
+                'severity' => 'critical',
+                'message' => 'Certificato medico mancante',
+                'icon' => 'LocalHospital',
+            ];
+        } elseif ($lastMedicalCertification->valid_until < $now) {
+            $alerts[] = [
+                'type' => 'medical_cert_expired',
+                'severity' => 'critical',
+                'message' => 'Certificato medico scaduto',
+                'icon' => 'LocalHospital',
+            ];
+        } else {
+            $daysUntilExpiry = $now->diffInDays($lastMedicalCertification->valid_until, false);
+            if ($daysUntilExpiry <= $warningThreshold) {
+                $alerts[] = [
+                    'type' => 'medical_cert_expiring',
+                    'severity' => 'warning',
+                    'message' => "Certificato medico in scadenza tra {$daysUntilExpiry} giorni",
+                    'icon' => 'LocalHospital',
+                    'days' => $daysUntilExpiry,
+                ];
+            }
+        }
+
+        // Check sports registration
+        $activeSportsRegistration = $this->active_sports_registration;
+        if (! $activeSportsRegistration) {
+            // Check if has expired sports registration
+            $expiredSportsRegistration = $this->sports_registrations()
+                ->where('end_date', '<', $now)
+                ->exists();
+
+            if ($expiredSportsRegistration) {
+                $alerts[] = [
+                    'type' => 'sports_registration_expired',
+                    'severity' => 'warning',
+                    'message' => 'Tesseramento sportivo scaduto',
+                    'icon' => 'EmojiEvents',
+                ];
+            }
+        } else {
+            // Check for sports registration expiring soon
+            $daysUntilExpiry = $now->diffInDays($activeSportsRegistration->end_date, false);
+            if ($daysUntilExpiry >= 0 && $daysUntilExpiry <= $warningThreshold) {
+                $alerts[] = [
+                    'type' => 'sports_registration_expiring',
+                    'severity' => 'warning',
+                    'message' => "Tesseramento sportivo in scadenza tra {$daysUntilExpiry} giorni",
+                    'icon' => 'EmojiEvents',
+                    'days' => $daysUntilExpiry,
+                ];
+            }
+        }
+
+        // Check for expired payments
+        // This is already loaded in show() with sales.payments relationship
+        if ($this->relationLoaded('sales')) {
+            $expiredPaymentsCount = 0;
+            $expiredPaymentsAmount = 0;
+
+            foreach ($this->sales as $sale) {
+                if ($sale->relationLoaded('payments')) {
+                    $expiredPayments = $sale->payments
+                        ->whereNull('payed_at')
+                        ->filter(fn ($payment) => $payment->due_date && $payment->due_date->isPast());
+
+                    $expiredPaymentsCount += $expiredPayments->count();
+                    $expiredPaymentsAmount += $expiredPayments->sum('amount');
+                }
+            }
+
+            if ($expiredPaymentsCount > 0) {
+                $formattedAmount = number_format($expiredPaymentsAmount / 100, 2, ',', '.');
+                $alerts[] = [
+                    'type' => 'payments_expired',
+                    'severity' => 'critical',
+                    'message' => "{$expiredPaymentsCount} pagament".($expiredPaymentsCount > 1 ? 'i' : 'o').' scadut'.($expiredPaymentsCount > 1 ? 'i' : 'o')." (€ {$formattedAmount})",
+                    'icon' => 'Payment',
+                    'count' => $expiredPaymentsCount,
+                    'amount' => $expiredPaymentsAmount,
+                ];
+            }
+        }
+
+        return $alerts;
     }
 }

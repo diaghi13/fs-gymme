@@ -2,6 +2,7 @@ import React from 'react';
 import { Alert, Box, Chip, Grid, Typography } from '@mui/material';
 import MyCard from '@/components/ui/MyCard';
 import { Sale, ElectronicInvoiceStatus } from '@/types';
+import FormattedDate from '@/components/ui/FormattedDate';
 
 interface SaleElectronicInvoiceStatusCardProps {
   sale: Sale;
@@ -39,7 +40,7 @@ const SaleElectronicInvoiceStatusCard: React.FC<SaleElectronicInvoiceStatusCardP
       sent: 'Inviata a SDI',
       accepted: 'Accettata',
       rejected: 'Scartata',
-      delivered: 'Consegnata',
+      delivered: 'Consegnata'
     };
     return labels[status] || status;
   };
@@ -47,7 +48,7 @@ const SaleElectronicInvoiceStatusCard: React.FC<SaleElectronicInvoiceStatusCardP
   return (
     <MyCard title="Stato Fattura Elettronica">
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12 }}>
           <Typography variant="body2" color="text.secondary">
             Stato
           </Typography>
@@ -59,7 +60,7 @@ const SaleElectronicInvoiceStatusCard: React.FC<SaleElectronicInvoiceStatusCardP
           />
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <Typography variant="body2" color="text.secondary">
             Transmission ID
           </Typography>
@@ -69,7 +70,7 @@ const SaleElectronicInvoiceStatusCard: React.FC<SaleElectronicInvoiceStatusCardP
         </Grid>
 
         {sale.electronic_invoice.external_id && (
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="body2" color="text.secondary">
               API ID
             </Typography>
@@ -79,7 +80,7 @@ const SaleElectronicInvoiceStatusCard: React.FC<SaleElectronicInvoiceStatusCardP
           </Grid>
         )}
 
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Typography variant="body2" color="text.secondary">
             Formato
           </Typography>
@@ -88,22 +89,22 @@ const SaleElectronicInvoiceStatusCard: React.FC<SaleElectronicInvoiceStatusCardP
           </Typography>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12 }}>
           <Typography variant="body2" color="text.secondary">
             Generata il
           </Typography>
           <Typography variant="body1" fontWeight={600}>
-            {new Date(sale.electronic_invoice.created_at).toLocaleString('it-IT')}
+            <FormattedDate value={sale.electronic_invoice.created_at} showTime />
           </Typography>
         </Grid>
 
         {sale.electronic_invoice.sdi_sent_at && (
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid size={{ xs: 12 }}>
             <Typography variant="body2" color="text.secondary">
               Inviata il
             </Typography>
             <Typography variant="body1" fontWeight={600}>
-              {new Date(sale.electronic_invoice.sdi_sent_at).toLocaleString('it-IT')}
+              <FormattedDate value={sale.electronic_invoice.sdi_sent_at} showTime />
             </Typography>
           </Grid>
         )}

@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('electronic_invoices', function (Blueprint $table) {
+            $table->timestamp('anonymized_at')->nullable()->after('preservation_deleted_at');
+            $table->string('anonymized_by')->nullable()->after('anonymized_at')->comment('User ID or system');
+            $table->index('anonymized_at');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('electronic_invoices', function (Blueprint $table) {
+            $table->dropIndex(['anonymized_at']);
+            $table->dropColumn(['anonymized_at', 'anonymized_by']);
+        });
+    }
+};

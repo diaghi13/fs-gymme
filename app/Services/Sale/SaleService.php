@@ -40,12 +40,25 @@ class SaleService
             'sale' => $sale,
             'customers' => \App\Models\Customer\Customer::all()->append('option_label')->toArray(),
             'documentTypeElectronicInvoices' => DocumentTypeElectronicInvoice::all()->append('label')->toArray(),
-            'paymentConditions' => \App\Models\Support\PaymentCondition::with(['installments', 'payment_method'])->get()->toArray(),
-            'paymentMethods' => \App\Models\Support\PaymentMethod::all()->append('label')->toArray(),
+            'paymentConditions' => \App\Models\Support\PaymentCondition::with(['installments', 'payment_method'])
+                ->where('active', true)
+                ->whereHas('payment_method', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->get()
+                ->toArray(),
+            'paymentMethods' => \App\Models\Support\PaymentMethod::where('is_active', true)
+                ->orderBy('order')
+                ->get()
+                ->append('label')
+                ->toArray(),
             'financialResources' => \App\Models\Support\FinancialResource::with('financial_resource_type')->get()->toArray(),
             'promotions' => \App\Models\Sale\Promotion::all()->toArray(),
             'priceLists' => PriceListService::toTree()->toArray(),
-            'vatRates' => \App\Models\VatRate::all()->toArray(),
+            'vatRates' => \App\Models\VatRate::where('is_active', true)
+                ->orderBy('percentage', 'desc')
+                ->get()
+                ->toArray(),
         ];
     }
 
@@ -224,7 +237,7 @@ class SaleService
      * Quick price calculation for display (without saving)
      *
      * @param  array  $data  Array containing:
-     *                       - rows: array of sale rows with vat_rate_percentage (numeric or array) and optional vat_breakdown
+     *                       - rows: array of sale rows with vat_rate_percentage (numeric or array), vat_rate_nature, and optional vat_breakdown
      *                       - sale_percentage_discount: optional percentage discount on total
      *                       - sale_absolute_discount: optional absolute discount on total
      *                       - tax_included: bool - true if prices are gross (VAT included), false if net
@@ -243,6 +256,9 @@ class SaleService
         $taxTotal = 0;
         $hasExemptOperation = false;
         $netTotal = 0;
+
+        // Exempt/non-taxable nature codes that require stamp duty
+        $exemptNatures = ['N2.1', 'N2.2', 'N3.5', 'N3.6', 'N4'];
 
         foreach ($data['rows'] ?? [] as $row) {
             // Calculate row subtotal with discounts
@@ -272,8 +288,9 @@ class SaleService
                     $netTotal += $rowNet;
                     $taxTotal += $rowVat;
 
-                    // Check for exempt operations (VAT = 0%)
-                    if ($vatRate == 0) {
+                    // Check for exempt operations by nature code
+                    $nature = $row['vat_rate_nature'] ?? null;
+                    if ($nature && in_array($nature, $exemptNatures)) {
                         $hasExemptOperation = true;
                     }
                 }
@@ -296,19 +313,23 @@ class SaleService
                         $netTotal += $breakdownNet;
                         $taxTotal += $breakdownVat;
 
-                        // Check for exempt operations in breakdown
-                        if ($breakdownVatRate == 0) {
+                        // Check for exempt operations in breakdown by nature
+                        $breakdownNature = $breakdown['vat_nature'] ?? null;
+                        if ($breakdownNature && in_array($breakdownNature, $exemptNatures)) {
                             $hasExemptOperation = true;
                         }
                     }
                 }
-                // Case 3: Array of VAT rates without vat_breakdown (fallback - check for exempt)
+                // Case 3: Array of VAT rates without vat_breakdown (fallback - check for exempt by nature)
                 elseif (is_array($row['vat_rate_percentage'])) {
-                    // Per compatibilità: verifica se c'è almeno uno 0 nell'array per imposta di bollo
-                    foreach ($row['vat_rate_percentage'] as $vatRate) {
-                        if ($vatRate == 0) {
-                            $hasExemptOperation = true;
-                            break;
+                    // Check natures if available
+                    $natures = $row['vat_rate_nature'] ?? [];
+                    if (is_array($natures)) {
+                        foreach ($natures as $nature) {
+                            if ($nature && in_array($nature, $exemptNatures)) {
+                                $hasExemptOperation = true;
+                                break;
+                            }
                         }
                     }
 
@@ -323,8 +344,11 @@ class SaleService
                     }
                 }
             } elseif (is_null($row['vat_rate_percentage'])) {
-                // No VAT rate means exempt/non-taxable
-                $hasExemptOperation = true;
+                // Check nature if available
+                $nature = $row['vat_rate_nature'] ?? null;
+                if ($nature && in_array($nature, $exemptNatures)) {
+                    $hasExemptOperation = true;
+                }
                 $netTotal += $rowSubtotal;
             } else {
                 // Fallback: no VAT info
@@ -347,27 +371,27 @@ class SaleService
 
         // Calculate stamp duty (Imposta di Bollo)
         $stampDutyApplied = false;
-        $stampDutyAmountCents = 0;
+        $stampDutyAmountEuro = 0;
 
         $stampDutyChargeCustomer = \App\Models\TenantSetting::get('invoice.stamp_duty.charge_customer', true);
         $stampDutyThreshold = \App\Models\TenantSetting::get('invoice.stamp_duty.threshold', 77.47);
-        $stampDutyDefaultCents = \App\Models\TenantSetting::get('invoice.stamp_duty.amount', 200); // 200 centesimi = 2.00 euro
-        $stampDutyDefaultCents = $stampDutyDefaultCents / 100; // Converti in centesimi
+        $stampDutyAmountCents = \App\Models\TenantSetting::get('invoice.stamp_duty.amount', 200); // 200 centesimi dal setting
 
         // Apply stamp duty if:
         // 1. Total exceeds threshold (77.47€)
         // 2. There's at least one exempt/non-taxable operation (VAT = 0%)
         if ($grossTotal > $stampDutyThreshold && $hasExemptOperation) {
             $stampDutyApplied = true;
-            $stampDutyAmountCents = $stampDutyChargeCustomer ? $stampDutyDefaultCents : 0;
+            $stampDutyAmountEuro = $stampDutyAmountCents / 100; // Converti in euro (2.00)
+            $stampDutyAmountEuro = $stampDutyChargeCustomer ? $stampDutyAmountEuro : 0;
         }
 
         return [
             'subtotal' => $netTotal,
             'tax_total' => $taxTotal,
             'stamp_duty_applied' => $stampDutyApplied,
-            'stamp_duty_amount' => $stampDutyAmountCents,
-            'total' => $grossTotal + $stampDutyAmountCents,
+            'stamp_duty_amount' => $stampDutyAmountEuro,
+            'total' => $grossTotal + $stampDutyAmountEuro,
         ];
     }
 
@@ -403,9 +427,12 @@ class SaleService
             // per il refactoring completo pianificato.
             $documentTypeElectronicInvoiceId = $validated['document_type_id'];
 
+            // Map electronic invoice code to document_type_id
+            $documentTypeId = $this->mapElectronicInvoiceToDocumentType($documentTypeElectronicInvoiceId);
+
             // Create the sale con tutti i campi progressivo
             $sale = Sale::query()->create([
-                'document_type_id' => null, // Temporaneamente NULL, vedi SALES_DOCUMENT_TYPE_REFACTORING.md
+                'document_type_id' => $documentTypeId,
                 'document_type_electronic_invoice_id' => $documentTypeElectronicInvoiceId,
                 'progressive_number' => $progressiveNumber,
                 'progressive_number_value' => $progressiveValue,
@@ -424,17 +451,128 @@ class SaleService
                 'exported_status' => SaleExportedStatusEnum::NOT_EXPORTED->value,
                 'currency' => 'EUR',
                 'tax_included' => $validated['tax_included'] ?? true,  // Default: IVA inclusa (Italia)
-                'notes' => $validated['notes'] ?? null,
+                'notes' => $validated['notes'] ?? \App\Models\TenantSetting::get('invoice.default_notes'),
             ]);
 
             // Create sale rows
             $this->createSaleRows($sale, $preparedRows);
+
+            // Refresh sale to load relationships for stamp duty calculation
+            $sale->refresh();
+            $sale->load('rows.vat_rate');
 
             // Calculate and apply stamp duty (imposta di bollo)
             $this->applyStampDuty($sale);
 
             // Create payments
             $this->createPayments($sale, $validated['payments']);
+
+            // Recalculate payment status AFTER stamp duty is applied
+            // This ensures the comparison uses the final total (with stamp duty)
+            $sale->refresh();
+            $finalTotal = $sale->sale_summary['final_total'] ?? $sale->sale_summary['gross_price'];
+
+            $correctPaymentStatus = $this->determinePaymentStatusFromSale($sale, $finalTotal);
+
+            if ($correctPaymentStatus !== $sale->payment_status) {
+                $sale->update(['payment_status' => $correctPaymentStatus]);
+            }
+
+            return $sale;
+        });
+    }
+
+    /**
+     * Update an existing sale with all related data
+     */
+    public function update(Sale $sale, array $validated): Sale
+    {
+        return DB::transaction(function () use ($sale, $validated) {
+            // Estrai il valore numerico dal progressive_number
+            // Es: "0004" → 4, "FAT0005" → 5
+            $progressiveNumber = $validated['progressive_number'];
+            preg_match('/\d+$/', $progressiveNumber, $matches);
+            $progressiveValue = isset($matches[0]) ? (int) $matches[0] : 0;
+
+            // Estrai eventuale prefix (lettere all'inizio)
+            preg_match('/^([A-Z]*)/', $progressiveNumber, $prefixMatches);
+            $progressivePrefix = $prefixMatches[1] ?: null;
+
+            // Verifica duplicato (escludi la vendita corrente)
+            $existingSale = Sale::query()
+                ->where('progressive_number', $progressiveNumber)
+                ->where('year', $validated['year'])
+                ->where('id', '!=', $sale->id)
+                ->first();
+
+            if ($existingSale) {
+                throw new \Exception("Esiste già una vendita con progressivo {$progressiveNumber} nell'anno {$validated['year']}");
+            }
+
+            // Delete existing rows and payments
+            $sale->rows()->delete();
+            $sale->payments()->delete();
+
+            // Prepare sale rows from raw data (passando il flag tax_included dalla vendita)
+            $taxIncluded = $validated['tax_included'] ?? true;
+            $preparedRows = $this->prepareSaleRows($validated['sale_rows'], $taxIncluded);
+
+            // Calculate payment status
+            $totalAmount = $this->calculateTotalAmount($preparedRows, $validated);
+            $paymentStatus = $this->determinePaymentStatus($validated['payments'], $totalAmount);
+
+            // NOTE: document_type_id dal frontend è in realtà document_type_electronic_invoice_id
+            // Questo è un quick fix temporaneo. Vedi docs/SALES_DOCUMENT_TYPE_REFACTORING.md
+            // per il refactoring completo pianificato.
+            $documentTypeElectronicInvoiceId = $validated['document_type_id'];
+
+            // Map electronic invoice code to document_type_id
+            $documentTypeId = $this->mapElectronicInvoiceToDocumentType($documentTypeElectronicInvoiceId);
+
+            // Update the sale with new data
+            $sale->update([
+                'document_type_id' => $documentTypeId,
+                'document_type_electronic_invoice_id' => $documentTypeElectronicInvoiceId,
+                'progressive_number' => $progressiveNumber,
+                'progressive_number_value' => $progressiveValue,
+                'progressive_number_prefix' => $progressivePrefix,
+                'date' => $validated['date'],
+                'year' => $validated['year'],
+                'customer_id' => $validated['customer_id'],
+                'payment_condition_id' => $validated['payment_condition_id'],
+                'financial_resource_id' => $validated['financial_resource_id'] ?? null,
+                'promotion_id' => $validated['promotion_id'] ?? null,
+                'discount_percentage' => $validated['discount_percentage'] ?? 0,
+                'discount_absolute' => $validated['discount_absolute'] ?? 0,
+                'status' => $validated['status'],
+                'payment_status' => $paymentStatus,
+                'tax_included' => $validated['tax_included'] ?? true,
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            // Create sale rows
+            $this->createSaleRows($sale, $preparedRows);
+
+            // Refresh sale to load relationships for stamp duty calculation
+            $sale->refresh();
+            $sale->load('rows.vat_rate');
+
+            // Calculate and apply stamp duty (imposta di bollo)
+            $this->applyStampDuty($sale);
+
+            // Create payments
+            $this->createPayments($sale, $validated['payments']);
+
+            // Recalculate payment status AFTER stamp duty is applied
+            // This ensures the comparison uses the final total (with stamp duty)
+            $sale->refresh();
+            $finalTotal = $sale->sale_summary['final_total'] ?? $sale->sale_summary['gross_price'];
+
+            $correctPaymentStatus = $this->determinePaymentStatusFromSale($sale, $finalTotal);
+
+            if ($correctPaymentStatus !== $sale->payment_status) {
+                $sale->update(['payment_status' => $correctPaymentStatus]);
+            }
 
             return $sale;
         });
@@ -468,7 +606,7 @@ class SaleService
             $priceList = PriceList::with(['vat_rate'])->find($row['price_list_id']);
 
             if (! $priceList) {
-                throw new \Exception('Lista prezzi non trovata.');
+                throw new \Exception('Listino non trovata.');
             }
 
             $selectedContent = $row['subscription_selected_content'] ?? null;
@@ -713,15 +851,10 @@ class SaleService
             $totalNet += $row['total_net'];
         }
 
-        // Calcola IVA totale (arrotondamento per ogni riga)
+        // Calcola IVA totale usando vat_amount già calcolato nelle righe preparate
         $totalVat = 0;
         foreach ($preparedRows as $row) {
-            if (isset($row['vat_rate_id'])) {
-                // Simula il VAT rate per calcolare l'IVA
-                // Nota: In contesto reale, dovremmo caricare il vat_rate dal DB
-                // Per ora assumiamo che sia già stato calcolato correttamente
-                $totalVat += round($row['total_net'] * 0.22, 2); // TODO: usare vat_rate reale
-            }
+            $totalVat += $row['vat_amount'] ?? 0;
         }
 
         // Totale LORDO = Netto + IVA
@@ -731,7 +864,13 @@ class SaleService
         $discountAmount = round(($validated['discount_percentage'] ?? 0) / 100 * $totalGross, 2);
         $discountAmount += ($validated['discount_absolute'] ?? 0);
 
-        return max(0, round($totalGross - $discountAmount, 2));
+        $finalTotal = max(0, round($totalGross - $discountAmount, 2));
+
+        // NOTA: NON aggiungiamo stamp duty qui!
+        // Lo stamp duty viene calcolato e applicato DOPO tramite applyStampDuty()
+        // che aggiorna direttamente il record Sale
+
+        return $finalTotal;
     }
 
     /**
@@ -751,8 +890,44 @@ class SaleService
             return SalePaymentStatusEnum::NOT_PAIED->value;
         }
 
-        if ($totalPaid < $totalAmount) {
+        // Tolleriamo una differenza di 0.01€ per arrotondamenti
+        if ($totalPaid < ($totalAmount - 0.01)) {
             return SalePaymentStatusEnum::PARTIAL->value;
+        }
+
+        // Se pagato più del dovuto (con tolleranza), consideriamo overpaid
+        if ($totalPaid > ($totalAmount + 0.01)) {
+            return SalePaymentStatusEnum::OVERPAID->value;
+        }
+
+        return SalePaymentStatusEnum::PAID->value;
+    }
+
+    /**
+     * Determine payment status from existing Sale model
+     * Uses actual payments from DB and final total (including stamp duty)
+     */
+    protected function determinePaymentStatusFromSale(Sale $sale, float $finalTotal): string
+    {
+        // IMPORTANTE: sum('amount') restituisce centesimi dal DB, dobbiamo convertire in euro
+        $totalPaidCents = $sale->payments()
+            ->whereNotNull('payed_at')
+            ->sum('amount');
+
+        $totalPaid = $totalPaidCents / 100; // Converti da centesimi a euro
+
+        if ($totalPaid === 0) {
+            return SalePaymentStatusEnum::NOT_PAIED->value;
+        }
+
+        // Tolleriamo una differenza di 0.01€ per arrotondamenti
+        if ($totalPaid < ($finalTotal - 0.01)) {
+            return SalePaymentStatusEnum::PARTIAL->value;
+        }
+
+        // Se pagato più del dovuto (con tolleranza), consideriamo overpaid
+        if ($totalPaid > ($finalTotal + 0.01)) {
+            return SalePaymentStatusEnum::OVERPAID->value;
         }
 
         return SalePaymentStatusEnum::PAID->value;
@@ -791,12 +966,12 @@ class SaleService
      * - E almeno una riga ha Nature: N2.1, N2.2, N3.5, N3.6, N4 (non soggette/non imponibili/esenti IVA)
      * - Importo fisso: 2€
      */
-    protected function applyStampDuty(Sale $sale): void
+    public function applyStampDuty(Sale $sale): void
     {
         // Get settings
         $threshold = \App\Models\TenantSetting::get('invoice.stamp_duty.threshold', 77.47);
-        $stampAmount = \App\Models\TenantSetting::get('invoice.stamp_duty.amount', 200); // centesimi
-        $stampAmount = $stampAmount / 100; // Converti in euro
+        $stampAmountCents = \App\Models\TenantSetting::get('invoice.stamp_duty.amount', 200); // centesimi dal setting (RAW)
+        $stampAmountEuro = $stampAmountCents / 100; // Converti in euro per salvare nel DB (MoneyCast farà poi la conversione in centesimi)
 
         // Calculate sale total (gross price)
         $saleSummary = $sale->sale_summary;
@@ -832,7 +1007,36 @@ class SaleService
         // Apply stamp duty
         $sale->update([
             'stamp_duty_applied' => true,
-            'stamp_duty_amount' => $stampAmount, // in centesimi, convertito automaticamente da MoneyCast
+            'stamp_duty_amount' => $stampAmountEuro, // in euro, MoneyCast lo convertirà in centesimi nel DB
         ]);
+    }
+
+    /**
+     * Map document_type_electronic_invoice_id to document_type_id
+     * Based on TD code mapping to document types
+     */
+    private function mapElectronicInvoiceToDocumentType(?int $documentTypeElectronicInvoiceId): ?int
+    {
+        if (! $documentTypeElectronicInvoiceId) {
+            return null;
+        }
+
+        $electronicInvoice = DocumentTypeElectronicInvoice::find($documentTypeElectronicInvoiceId);
+
+        if (! $electronicInvoice) {
+            return null;
+        }
+
+        // Mapping TD codes to document_types
+        return match ($electronicInvoice->code) {
+            'TD01' => 1, // Fattura
+            'TD02', 'TD03' => 6, // Fattura d'acconto
+            'TD04' => 4, // Nota di credito
+            'TD05' => 5, // Nota di debito
+            'TD06' => 7, // Ricevuta fiscale
+            'TD21' => 9, // Autofattura per splafonamento
+            'TD24', 'TD25' => 2, // Fattura differita
+            default => 1, // Default: Fattura
+        };
     }
 }

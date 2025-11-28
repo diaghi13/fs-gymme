@@ -19,14 +19,23 @@ class ServeStaticAssets
     {
         $path = $request->path();
 
-        // Check if the request is for a build asset
-        // Handle /tenancy/.../build/..., /app/{tenant}/build/..., or just /build/...
-        if (preg_match('#(?:tenancy|app/[^/]+)/.*?build/(.+)$#', $path, $matches) ||
-            preg_match('#^build/(.+)$#', $path, $matches)) {
+        // Check if request contains build/assets but with wrong prefix
+        // Examples: /app/{tenant}/build/assets/..., /tenant{uuid}/build/assets/...
+        if (preg_match('#^(.+?)/build/(.+)$#', $path, $matches)) {
+            $prefix = $matches[1]; // e.g. "app/tenant-id" or "tenant60876..."
+            $assetPath = $matches[2]; // e.g. "assets/app.js"
 
+            // If there's a prefix before /build/, redirect to the correct path
+            if (! empty($prefix)) {
+                return redirect('/build/'.$assetPath, 301);
+            }
+        }
+
+        // Serve assets directly if requested at correct path
+        if (preg_match('#^build/(.+)$#', $path, $matches)) {
             $assetPath = public_path('build/'.$matches[1]);
 
-            if (file_exists($assetPath) && is_file($assetPath)) {
+            if (is_file($assetPath)) {
                 return new BinaryFileResponse($assetPath);
             }
         }
@@ -40,10 +49,10 @@ class ServeStaticAssets
             $content = $response->getContent();
 
             if ($content) {
-                // Fix any /tenancy/assets/build/ or /app/{tenant}/build/ to /build/
+                // Force any src/href with prefixed build/ to use absolute /build/
                 $content = preg_replace(
-                    '#(["\'])(?:/tenancy(?:/assets)?|/app/[^/]+)(/build/[^"\']+)#',
-                    '$1$2',
+                    '#((?:src|href)=["\'])[^"\']*?/build/#',
+                    '$1/build/',
                     $content
                 );
 

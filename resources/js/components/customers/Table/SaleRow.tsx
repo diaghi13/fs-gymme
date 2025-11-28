@@ -14,10 +14,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Sale } from '@/types';
-import format from '@/support/format';
 import { Str } from '@/support/Str';
 import PaymentRow from '@/components/customers/Table/PaymentRow';
 import PaymentDialog from '@/components/customers/dialogs/PaymentDialog';
+import FormattedDate from '@/components/ui/FormattedDate';
 
 interface SaleRowProps {
   sale: Sale;
@@ -63,7 +63,7 @@ const SaleRow : React.FC<SaleRowProps> = ({sale}) => {
           {sale.progressive_number}
         </TableCell>
         <TableCell sx={{borderBottom: 'unset', fontWeight: 500}}>
-          {format(sale.date, "dd/MM/yyyy HH:mm:ss")}
+          <FormattedDate value={sale.date} showTime />
         </TableCell>
         <TableCell sx={{borderBottom: 'unset'}}>{Str.EURO(sale.summary.total_gross).format()}</TableCell>
         <TableCell sx={{borderBottom: 'unset'}}>{Str.EURO(sale.discount_absolute).format()}</TableCell>

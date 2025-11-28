@@ -19,7 +19,7 @@ class TokenService
             'saleable_to' => $dto->saleable_to,
             'price' => $dto->price,
             'vat_rate_id' => $dto->vat_rate_id,
-            'token_quantity' => $dto->token_quantity,
+            'entrances' => $dto->entrances,
             'validity_days' => $dto->validity_days,
         ]);
     }
@@ -35,7 +35,7 @@ class TokenService
             'saleable_to' => $dto->saleable_to,
             'price' => $dto->price,
             'vat_rate_id' => $dto->vat_rate_id,
-            'token_quantity' => $dto->token_quantity,
+            'entrances' => $dto->entrances,
             'validity_days' => $dto->validity_days,
         ]);
 

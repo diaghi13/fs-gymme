@@ -76,6 +76,20 @@ export default function SaleCreate({
   documentTypeElectronicInvoices,
   currentTenantId,
 }: SalePageProps) {
+  // Transform sale_rows from backend to SaleRowFormValues format if present
+  const initialSaleContents: SaleRowFormValues[] = sale.sale_rows
+    ? sale.sale_rows.map((row: any) => ({
+        price_list: row.price_list,
+        quantity: row.quantity,
+        unit_price: row.unit_price,
+        percentage_discount: row.percentage_discount || 0,
+        absolute_discount: row.absolute_discount || 0,
+        total: row.total,
+        start_date: row.start_date ? new Date(row.start_date) : null,
+        subscription_selected_content: row.subscription_selected_content || [],
+      }))
+    : [];
+
   const formik: FormikConfig<SaleFormValues> = {
     initialValues: {
       progressive_number: sale.progressive_number, // Usa sempre il progressivo generato dal backend
@@ -96,7 +110,7 @@ export default function SaleCreate({
       currency: 'EUR',
       tax_included: true, // Default: prezzi IVA inclusa (standard Italia)
       notes: '',
-      sale_contents: [],
+      sale_contents: initialSaleContents,
       payments: [],
     },
     validationSchema,

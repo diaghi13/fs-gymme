@@ -3,6 +3,7 @@
 namespace App\Models\PriceList;
 
 use App\Casts\MoneyCast;
+use App\Enums\SubscriptionContentType;
 use App\Models\Product\Product;
 use App\Models\VatRate;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,7 +32,7 @@ class SubscriptionContent extends Model
         'is_optional',
         'days_duration',
         'months_duration',
-        'entrances',
+        'entrances',  // Standard field: total number of entries/uses allowed (used for access control)
         'price',
         'vat_rate_id',
 
@@ -209,25 +210,62 @@ class SubscriptionContent extends Model
     public function hasBookingLimits(): bool
     {
         return $this->max_concurrent_bookings !== null ||
-            $this->daily_bookings !== null ||
-            $this->weekly_bookings !== null;
+               $this->daily_bookings !== null ||
+               $this->weekly_bookings !== null ||
+               $this->advance_booking_days !== null ||
+               $this->cancellation_hours !== null;
     }
 
     /**
-     * Check if this content has time restrictions
+     * Get the content type enum
      */
-    public function hasTimeRestrictions(): bool
+    public function getContentType(): ?SubscriptionContentType
     {
-        return $this->has_time_restrictions && $this->timeRestrictions()->exists();
+        if (empty($this->price_listable_type)) {
+            return null;
+        }
+
+        return SubscriptionContentType::tryFrom($this->price_listable_type);
     }
 
     /**
-     * Check if this content includes service-specific access control
+     * Check if this content is a membership fee
      */
-    public function hasServiceRestrictions(): bool
+    public function isMembershipFee(): bool
     {
-        return in_array($this->service_access_type, ['included', 'excluded']) &&
-            $this->services()->exists();
+        $type = $this->getContentType();
+
+        return $type?->isMembership() ?? false;
+    }
+
+    /**
+     * Check if this content type requires duration
+     */
+    public function requiresDuration(): bool
+    {
+        $type = $this->getContentType();
+
+        return $type?->requiresDuration() ?? false;
+    }
+
+    /**
+     * Check if this content type supports entrances
+     */
+    public function supportsEntrances(): bool
+    {
+        $type = $this->getContentType();
+
+        return $type?->supportsEntrances() ?? false;
+    }
+
+    /**
+     * Get human-readable content type label
+     */
+    public function getContentTypeLabel(): string
+    {
+        $type = $this->getContentType();
+
+        return $type?->label() ?? 'Sconosciuto';
     }
 
     /**

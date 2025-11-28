@@ -1,6 +1,16 @@
 import { LucideIcon } from 'lucide-react';
 import type { Config } from 'ziggy-js';
 
+export interface RegionalSettings {
+  language: string;
+  timezone: string;
+  date_format: string;
+  time_format: string;
+  currency: string;
+  decimal_separator: string;
+  thousands_separator: string;
+}
+
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
   auth: {
     user: User;
@@ -19,6 +29,11 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     name: string;
     onboarding_completed_at: string | null;
     trial_ends_at: string | null;
+    subscription_plan?: {
+      name: string;
+      features: string[];
+    };
+    active_features: string[];
   };
   structures?: {
     list: Array<{
@@ -28,6 +43,7 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     }>;
     current_id: number | null;
   } | null;
+  regional_settings?: RegionalSettings | null;
 };
 
 export type AutocompleteOption<T = any> = {
@@ -78,16 +94,18 @@ export interface User {
   email_verified_at: string | null;
   created_at: string;
   updated_at: string;
-  roles: {
-    id: number;
-    name: string;
-    guard_name: string;
-  }[];
-  permissions: {
-    id: number;
-    name: string;
-    guard_name: string;
-  }[];
+  // roles: {
+  //   id: number;
+  //   name: string;
+  //   guard_name: string;
+  // }[];
+  roles: string[]; // Simplified roles as array of strings
+  // permissions: {
+  //   id: number;
+  //   name: string;
+  //   guard_name: string;
+  // }[];
+  permissions: string[]; // Simplified permissions as array of strings
   tenants?: {
     id: string;
   }[]
@@ -476,12 +494,13 @@ export interface PriceListDayPass extends PriceList {
 }
 
 export interface PriceListToken extends PriceList {
+  entrances: number;
   color: string;
   type: 'token';
   price: number;
   vat_rate_id: number | null;
   vat_rate: VatRate | null;
-  token_quantity: number;
+  entrances: number;  // Total number of entries/uses allowed
   validity_days: number | null;
   validity_months?: number | null;
   saleable: boolean;
@@ -641,6 +660,7 @@ export interface Sale {
   tax_included: boolean;
   notes: string;
   rows: SaleRow[];
+  sale_rows?: any[]; // For pre-populating sale creation from renewals
   payments: Payment[];
   electronic_invoice?: ElectronicInvoice;
   electronic_invoice_status?: ElectronicInvoiceStatus;
@@ -653,6 +673,7 @@ export interface Sale {
   }
 
   sale_summary: {
+    final_total: number;
     gross_price: number;
     net_price: number;
     total_tax: number;
@@ -700,6 +721,24 @@ export interface ElectronicInvoice {
   signed_pdf_path?: string | null;
   send_attempts: number;
   last_send_attempt_at: string | null;
+  preservation_path?: string | null;
+  preservation_hash?: string | null;
+  preserved_at?: string | null;
+  send_attempts_list?: Array<{
+    id: number;
+    attempt_number: number;
+    status: 'sent' | 'failed' | 'accepted' | 'rejected';
+    request_payload?: Record<string, unknown>;
+    response_payload?: Record<string, unknown>;
+    error_messages?: string;
+    external_id?: string;
+    sent_at: string;
+    user?: {
+      id: number;
+      name: string;
+      avatar?: string;
+    };
+  }>;
   created_at: string;
   updated_at: string;
 }
@@ -820,6 +859,7 @@ export interface Customer {
   active_subscriptions?: Subscription[];
   membership?: Membership | null;
   last_membership?: Membership | null;
+  active_membership_fee?: MembershipFee | null;
   sales_summary?: {
     sale_count: number;
     total_amount: number;
@@ -828,6 +868,7 @@ export interface Customer {
     expired: number;
     total_sale_products: number;
   }
+  customer_alerts?: CustomerAlert[];
   last_medical_certification?: MedicalCertification;
 
   gdpr_consent: boolean | null;
@@ -838,7 +879,11 @@ export interface Customer {
   medical_data_consent: boolean | null;
   data_retention_until: Date | null;
 
+  notes: string | null;
+  avatar_url: string | null;
+
   sales?: Sale[];
+  files?: File[];
 }
 
 export interface Subscription {
@@ -852,9 +897,59 @@ export interface Subscription {
   start_date: Date;
   end_date: Date | null;
   notes: string | null;
+  status?: 'active' | 'suspended' | 'expired' | 'cancelled';
+  suspended_days?: number;
+  extended_days?: number;
+  effective_end_date?: Date | string | null;
   entity?: BaseProduct | CourseProduct | PriceListMembershipFee;
   price_list?: PriceListMembershipFee | PriceListSubscription;
   sale_row?: SaleRow;
+  suspensions?: CustomerSubscriptionSuspension[];
+  extensions?: CustomerSubscriptionExtension[];
+}
+
+export interface CustomerSubscriptionSuspension {
+  id: number;
+  customer_subscription_id: number;
+  start_date: Date | string;
+  end_date: Date | string;
+  days_suspended: number;
+  reason: string | null;
+  created_by: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerSubscriptionExtension {
+  id: number;
+  customer_subscription_id: number;
+  days_extended: number;
+  reason: string | null;
+  extended_at: Date | string;
+  new_end_date: Date | string | null;
+  created_by: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerMeasurement {
+  id: number;
+  customer_id: number;
+  measured_at: Date | string;
+  weight: number | null;
+  height: number | null;
+  bmi: number | null;
+  chest_circumference: number | null;
+  waist_circumference: number | null;
+  hips_circumference: number | null;
+  arm_circumference: number | null;
+  thigh_circumference: number | null;
+  body_fat_percentage: number | null;
+  lean_mass_percentage: number | null;
+  notes: string | null;
+  measured_by: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Membership extends Subscription{
@@ -866,6 +961,68 @@ export interface MedicalCertification {
   certification_date: Date | null;
   valid_until: Date | null;
   notes: string | null;
+}
+
+export interface CustomerAlert {
+  type: string;
+  severity: 'critical' | 'warning' | 'info';
+  message: string;
+  icon: string;
+  days?: number;
+  count?: number;
+  amount?: number;
+}
+
+export interface MembershipFee {
+  id: number;
+  customer_id: number;
+  sale_row_id: number | null;
+  organization: string;
+  membership_number: string | null;
+  start_date: Date | string;
+  end_date: Date | string;
+  amount: number;
+  status: 'active' | 'expired' | 'suspended';
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SportsRegistration {
+  id: number;
+  customer_id: number;
+  organization: string; // ASI, CONI, FIF, FIPE, etc.
+  membership_number: string | null;
+  start_date: Date | string;
+  end_date: Date | string;
+  status: 'active' | 'expired';
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface File {
+  id: number;
+  fileable_type: string;
+  fileable_id: number;
+  type: string; // medical_certificate, photo, contract, id_card, etc.
+  name: string; // Original filename
+  file_name: string; // Stored filename
+  path: string;
+  disk: string;
+  mime_type: string | null;
+  size: number | null;
+  description: string | null;
+  metadata: Record<string, any> | null;
+  uploaded_by: number | null;
+  expires_at: Date | string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  // Appended attributes
+  url?: string;
+  is_expired?: boolean;
+  human_readable_size?: string;
 }
 
 export interface PrivacyConsent {

@@ -64,6 +64,24 @@ class BookableServiceController extends Controller
                     ],
                 ],
             ],
+            'customers' => \App\Models\Customer\Customer::all()->append('option_label')->toArray(),
+            'paymentConditions' => \App\Models\Support\PaymentCondition::with(['installments', 'payment_method'])
+                ->where('active', true)
+                ->whereHas('payment_method', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->get()
+                ->toArray(),
+            'paymentMethods' => \App\Models\Support\PaymentMethod::where('is_active', true)
+                ->orderBy('order')
+                ->get()
+                ->append('label')
+                ->toArray(),
+            'financialResources' => \App\Models\Support\FinancialResource::with('financial_resource_type')->get()->toArray(),
+            'vatRateOptions' => \App\Models\VatRate::where('is_active', true)
+                ->orderBy('percentage', 'desc')
+                ->get()
+                ->toArray(),
         ]);
     }
 
@@ -121,6 +139,24 @@ class BookableServiceController extends Controller
         return Inertia::render('products/bookable-services', [
             'services' => $this->services,
             'service' => $bookableService->load(['vat_rate']),
+            'customers' => \App\Models\Customer\Customer::all()->append('option_label')->toArray(),
+            'paymentConditions' => \App\Models\Support\PaymentCondition::with(['installments', 'payment_method'])
+                ->where('active', true)
+                ->whereHas('payment_method', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->get()
+                ->toArray(),
+            'paymentMethods' => \App\Models\Support\PaymentMethod::where('is_active', true)
+                ->orderBy('order')
+                ->get()
+                ->append('label')
+                ->toArray(),
+            'financialResources' => \App\Models\Support\FinancialResource::with('financial_resource_type')->get()->toArray(),
+            'vatRateOptions' => \App\Models\VatRate::where('is_active', true)
+                ->orderBy('percentage', 'desc')
+                ->get()
+                ->toArray(),
         ]);
     }
 

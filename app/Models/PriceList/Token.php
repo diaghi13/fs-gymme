@@ -32,7 +32,7 @@ class Token extends PriceList implements VatRateable
         'saleable_to',
         'price',
         'vat_rate_id',
-        'token_quantity',
+        'entrances',  // Standard field name (renamed from max_uses)
         'validity_days',
         'validity_months',
         'settings',
@@ -45,7 +45,7 @@ class Token extends PriceList implements VatRateable
         'saleable_to' => 'date',
         'vat_rate_id' => 'integer',
         'parent_id' => 'integer',
-        'token_quantity' => 'integer',
+        'entrances' => 'integer',
         'validity_days' => 'integer',
         'validity_months' => 'integer',
         'settings' => 'array',
@@ -59,7 +59,7 @@ class Token extends PriceList implements VatRateable
     /**
      * Default settings for tokens/carnets
      */
-    protected function getTypeSpecificSettingsDefaults(): array
+    public function getTypeSpecificSettingsDefaults(): array
     {
         return [
             'usage' => [

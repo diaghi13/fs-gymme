@@ -61,9 +61,11 @@ export default function PaymentsSection({
       percentage_discount: content.percentage_discount || null,
       absolute_discount: content.absolute_discount || 0,
       vat_rate_percentage: content.price_list?.vat_rate?.percentage || content.subscription_selected_content?.map(selected_content => selected_content.vat_rate.percentage) || null,
+      vat_rate_nature: content.price_list?.vat_rate?.nature || content.subscription_selected_content?.map(selected_content => selected_content.vat_rate.nature) || null,
       vat_breakdown: content.subscription_selected_content?.map(selected_content => ({
         subtotal: selected_content.price,
         vat_rate: selected_content.vat_rate.percentage,
+        vat_nature: selected_content.vat_rate.nature,
       })) || undefined,
     }));
 
@@ -122,12 +124,14 @@ export default function PaymentsSection({
         // Set available financial resources
         setAvailableFinancialResources(financialResources);
         const defaultFinancialResource = financialResources.find((f) => f.default) || null;
-        await setFieldValue('financial_resource', defaultFinancialResource);
 
-        // Trigger full form validation to update isValid and enable submit button
-        if (defaultFinancialResource) {
-          await validateForm();
-        }
+        // Set field value with validation enabled
+        await setFieldValue('financial_resource', defaultFinancialResource, true);
+
+        // Small delay to ensure Formik state is updated, then validate
+        setTimeout(() => {
+          validateForm();
+        }, 0);
 
         const totalAmount = calculateTotal();
 
@@ -143,7 +147,7 @@ export default function PaymentsSection({
             payment_method: paymentMethods.find((p) => p.id === resData.payment_method?.id) || paymentMethods[0],
             payed_at: new Date(),
           },
-        ]);
+        ], true);
         return;
       }
 
@@ -165,7 +169,7 @@ export default function PaymentsSection({
         };
       });
 
-        await setFieldValue('payments', payments);
+        await setFieldValue('payments', payments, true);
       } finally {
         setCalculatingInstallments(false);
       }
@@ -346,6 +350,7 @@ export default function PaymentsSection({
                   <TableCell>Data Scadenza</TableCell>
                   <TableCell>Importo</TableCell>
                   <TableCell>Metodo</TableCell>
+                  <TableCell>Data Pagamento</TableCell>
                   {!installmentsLocked && <TableCell></TableCell>}
                 </TableRow>
               </TableHead>
@@ -371,6 +376,12 @@ export default function PaymentsSection({
                               disabled={installmentsLocked}
                             />
                           </TableCell>
+                          <TableCell sx={{ maxWidth: 150 }}>
+                            <DatePicker
+                              name={`payments[${index}].payed_at`}
+                              label="Pagato il"
+                            />
+                          </TableCell>
                           {!installmentsLocked && (
                             <TableCell sx={{ width: 10, padding: 0 }}>
                               <IconButton onClick={() => arrayHelpers.remove(index)} size="small">
@@ -382,7 +393,7 @@ export default function PaymentsSection({
                       ))}
                       {!installmentsLocked && (
                         <TableRow>
-                          <TableCell colSpan={5} sx={{ textAlign: 'center' }}>
+                          <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
                             <Button
                               variant="outlined"
                               size="small"

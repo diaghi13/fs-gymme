@@ -41,7 +41,7 @@ class TokenDto extends Data
         public int $vat_rate_id,
 
         #[Required, Integer, Between(1, 1000)]
-        public int $token_quantity,
+        public int $entrances,
 
         #[Nullable, Integer, Between(1, 3650)]
         public ?int $validity_days,
@@ -58,7 +58,7 @@ class TokenDto extends Data
             'saleable_to' => ['nullable', 'date', 'after_or_equal:saleable_from'],
             'price' => ['required', 'integer', 'min:0'],
             'vat_rate_id' => ['required', 'integer', 'exists:vat_rates,id'],
-            'token_quantity' => ['required', 'integer', 'between:1,1000'],
+            'entrances' => ['required', 'integer', 'between:1,1000'],
             'validity_days' => ['nullable', 'integer', 'between:1,3650'],
         ];
     }

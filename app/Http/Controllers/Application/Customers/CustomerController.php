@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Application\Customers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\CustomerStoreRequest;
 use App\Models\Customer\Customer;
+use App\Services\Customer\CustomerService;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -41,9 +42,9 @@ class CustomerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CustomerStoreRequest $request)
+    public function store(CustomerStoreRequest $request, CustomerService $customerService)
     {
-        $customer = Customer::create($request->validated());
+        $customer = $customerService->createWithUser($request->validated());
 
         return redirect()->route('app.customers.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
@@ -56,31 +57,31 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Customer $customer)
+    public function show(Customer $customer, CustomerService $service)
     {
-        $customer->load([
-            'active_subscriptions' => function (HasMany $query) {
-                $query->with(['entity', 'price_list', 'sale_row' => ['entity']]);
-            },
-            'active_membership',
-            'last_membership',
-            'last_medical_certification',
-            'sales' => function (HasMany $query) {
-                $query->with(['payment_condition', 'financial_resource', 'promotion', 'rows' => function (HasMany $query) {
-                    $query->with(['entity', 'price_list']);
-                }])->orderBy('sale_date', 'desc')
-                    ->limit(5);
-            },
-            'sales.payments' => ['payment_method'],
-        ]);
-
-        $customer->append([
-            'sales_summary',
-        ]);
+        $loadedCustomer = $service->get($customer);
 
         return Inertia::render('customers/customer-show', [
-            'customer' => $customer,
-            'payment_methods' => \App\Models\Support\PaymentMethod::all(),
+            'customer' => $loadedCustomer,
+            'payment_methods' => \App\Models\Support\PaymentMethod::where('is_active', true)
+                ->orderBy('order')
+                ->get()
+                ->map(fn ($pm) => [
+                    'id' => $pm->id,
+                    'description' => $pm->description,
+                ]),
+            'price_lists' => \App\Models\PriceList\PriceList::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get()
+                ->map(fn ($pl) => [
+                    'id' => $pl->id,
+                    'name' => $pl->name,
+                    'price' => $pl->price,
+                    'entrances' => $pl->entrances,
+                    'days_duration' => $pl->days_duration,
+                    'months_duration' => $pl->months_duration,
+                ]),
         ]);
     }
 
@@ -139,5 +140,71 @@ class CustomerController extends Controller
         return redirect()->route('app.customers.index')
             ->with('status', 'success')
             ->with('message', __('Customer deleted successfully.'));
+    }
+
+    /**
+     * Check if email is available for this tenant
+     */
+    public function checkEmail(Request $request, CustomerService $customerService)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $available = $customerService->isEmailAvailable($request->input('email'));
+
+        return response()->json([
+            'available' => $available,
+            'message' => $available
+                ? 'Email disponibile'
+                : 'Un cliente con questa email esiste già',
+        ]);
+    }
+
+    /**
+     * Calculate Italian Tax Code (Codice Fiscale)
+     */
+    public function calculateTaxCode(Request $request, CustomerService $customerService)
+    {
+        $request->validate([
+            'first_name' => ['required', 'string'],
+            'last_name' => ['required', 'string'],
+            'birth_date' => ['required', 'date'],
+            'birthplace' => ['required', 'string'],
+            'gender' => ['required', 'string', 'in:M,F'],
+        ]);
+
+        $taxCode = $customerService->calculateTaxCode($request->all());
+
+        return response()->json([
+            'tax_code' => $taxCode,
+        ]);
+    }
+
+    /**
+     * Upload customer avatar photo
+     */
+    public function uploadAvatar(Request $request, Customer $customer)
+    {
+        $request->validate([
+            'avatar' => ['required', 'image', 'max:2048'], // Max 2MB
+        ]);
+
+        // Delete old avatar if exists
+        if ($customer->avatar_path) {
+            \Storage::disk('public')->delete($customer->avatar_path);
+        }
+
+        // Store new avatar
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        // Update customer with new avatar path (not URL)
+        $customer->update([
+            'avatar_path' => $path,
+        ]);
+
+        return redirect()->back()
+            ->with('status', 'success')
+            ->with('message', 'Avatar aggiornato con successo');
     }
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import {Button, Table, TableBody, TableCell, TableHead, TableRow} from "@mui/material";
 import {FieldArray, useFormikContext} from "formik";
-import { BookableService, PriceListArticle, PriceListMembershipFee, PriceListToken, PriceListGiftCard, PriceListDayPass, Product } from '@/types';
+import { AutocompleteOption, BookableService, PriceListArticle, PriceListMembershipFee, PriceListToken, PriceListGiftCard, PriceListDayPass, Product } from '@/types';
 import { MEMBERSHIP, ARTICLE, TOKEN, GIFT_CARD, DAY_PASS } from '@/pages/price-lists/price-lists';
 import { SubscriptionGeneralFormValuesWithContent, SubscriptionGeneralFormValues } from '@/components/price-list/subscription/tabs/SubscriptionGeneralTab';
 import { usePage } from '@inertiajs/react';
@@ -10,22 +10,52 @@ import SubscriptionTableRow from '@/components/price-list/subscription/content-t
 import SubscriptionTableFormRow from '@/components/price-list/subscription/content-table/form/SubscriptionTableFormRow';
 import SubscriptionAddContentDialog from '@/components/price-list/subscription/SubscriptionAddContentDialog';
 
-const createRow = (entity: Product | BookableService | PriceListMembershipFee | PriceListArticle | PriceListToken | PriceListGiftCard | PriceListDayPass | any, vatRateOptions: any, isOptional: boolean = false): SubscriptionGeneralFormValuesWithContent | undefined => {
+/**
+ * Determine the specific model class for a product/pricelist type
+ */
+const getProductTypeClass = (entity: Product | BookableService | PriceListMembershipFee | PriceListArticle | PriceListToken | PriceListGiftCard | PriceListDayPass): SubscriptionGeneralFormValuesWithContent['price_listable_type'] => {
+  // If entity.type is already a full class name, return it
+  if (entity.type?.startsWith('App\\Models\\')) {
+    return entity.type as SubscriptionGeneralFormValuesWithContent['price_listable_type'];
+  }
+
+  // Map product type to full class name
+  const typeMap = {
+    // PRODUCT types (catalog)
+    'base': 'App\\Models\\Product\\BaseProduct',
+    'base_product': 'App\\Models\\Product\\BaseProduct',
+    'course': 'App\\Models\\Product\\CourseProduct',
+    'course_product': 'App\\Models\\Product\\CourseProduct',
+    'bookable_service': 'App\\Models\\Product\\BookableService',
+
+    // PRICELIST types (commercial offerings)
+    'article': 'App\\Models\\PriceList\\Article',
+    'membership': 'App\\Models\\PriceList\\Membership',
+    'membership_fee': 'App\\Models\\PriceList\\Membership',
+    'token': 'App\\Models\\PriceList\\Token',
+    'day_pass': 'App\\Models\\PriceList\\DayPass',
+    'gift_card': 'App\\Models\\PriceList\\GiftCard',
+  } as const;
+
+  // Otherwise map the short type to full class name (with null check)
+  return (entity.type && typeMap[entity.type as keyof typeof typeMap]) as SubscriptionGeneralFormValuesWithContent['price_listable_type'] || 'App\\Models\\Product\\BaseProduct' as SubscriptionGeneralFormValuesWithContent['price_listable_type'];
+};
+
+const createRow = (
+  entity: Product | BookableService | PriceListMembershipFee | PriceListArticle | PriceListToken | PriceListGiftCard | PriceListDayPass,
+  vatRateOptions: AutocompleteOption<number>[],
+  isOptional: boolean = false
+): SubscriptionGeneralFormValuesWithContent | undefined => {
   if (!entity.id) {
     console.error('createRow: entity has no id', entity);
     return;
   }
 
-  // Check if it's a Product (BaseProduct or CourseProduct)
-  // Types can be: "base", "course", "base_product", "course_product", or full class names
-  const isProduct = entity.type === "base" ||
-                    entity.type === "base_product" ||
-                    entity.type === "course" ||
-                    entity.type === "course_product" ||
-                    entity.type === "bookable_service" ||
-                    entity.type === "App\\Models\\Product\\BaseProduct" ||
-                    entity.type === "App\\Models\\Product\\CourseProduct" ||
-                    entity.type === "App\\Models\\Product\\BookableService";
+  // Determine the specific product type class
+  const price_listable_type = getProductTypeClass(entity);
+
+  // Check if it's a Product type (vs PriceList type like Article)
+  const isProduct = price_listable_type.includes('Product\\');
 
   // Extract booking rules from product settings if available (for bookable services)
   const bookingSettings = entity.settings?.booking;
@@ -36,12 +66,12 @@ const createRow = (entity: Product | BookableService | PriceListMembershipFee | 
       days_duration: null,
       months_duration: null,
       price: null,
-      vat_rate_id: entity.vat_rate_id,
-      vat_rate: vatRateOptions.find((option: any) => option.value === entity.vat_rate_id) ?? null,
+      vat_rate_id: entity.vat_rate_id ?? null,
+      vat_rate: vatRateOptions.find(option => option.value === entity.vat_rate_id) ?? null,
       is_optional: isOptional,
-      price_listable_id: entity.id,
-      price_listable_type: 'App\\Models\\Product\\Product',
-      price_listable: entity,
+      price_listable_id: typeof entity.id === 'number' ? entity.id : parseInt(String(entity.id)),
+      price_listable_type: price_listable_type,
+      price_listable: entity as Product | BookableService | PriceListMembershipFee | PriceListArticle | PriceListToken | PriceListGiftCard | PriceListDayPass,
 
       // Access rules
       unlimited_entries: true, // Default to unlimited if entrances not specified
@@ -90,18 +120,42 @@ const createRow = (entity: Product | BookableService | PriceListMembershipFee | 
     };
   }
 
+  // Handle PriceList types (Article, Membership, Token, DayPass, GiftCard)
   if (entity.type === MEMBERSHIP || entity.type === ARTICLE || entity.type === TOKEN || entity.type === GIFT_CARD || entity.type === DAY_PASS) {
+    // Determine the specific type
+    const price_listable_type = getProductTypeClass(entity);
+
+    // Calculate days_duration and months_duration based on type
+    // Access properties directly from entity without strict type casting
+    let days_duration = null;
+    let months_duration = null;
+    let entrances = null;
+
+    if (entity.type === MEMBERSHIP) {
+      // For membership, use months_duration directly
+      months_duration = (entity as any).months_duration ?? null;
+    } else if (entity.type === TOKEN) {
+      // Token uses validity_days/validity_months for duration
+      days_duration = (entity as any).validity_days ?? null;
+      months_duration = (entity as any).validity_months ?? null;
+      // Use entrances directly (DB column is now entrances)
+      entrances = (entity as any).entrances ?? null;
+    } else if (entity.type === GIFT_CARD) {
+      months_duration = (entity as any).validity_months ?? null;
+    }
+
     return {
       id: undefined,
-      days_duration: null,
-      months_duration: entity.type === MEMBERSHIP ? entity.months_duration : null,
-      price: entity.price,
-      vat_rate_id: entity.vat_rate_id,
-      vat_rate: vatRateOptions.find((option: any) => option.value === entity.vat_rate_id) ?? null,
+      days_duration: days_duration ?? null,
+      months_duration: months_duration ?? null,
+      entrances: entrances ?? null,
+      price: (entity as any).price ?? null,
+      vat_rate_id: entity.vat_rate_id ?? null,
+      vat_rate: vatRateOptions.find(option => option.value === entity.vat_rate_id) ?? null,
       is_optional: isOptional,
-      price_listable_id: entity.id,
-      price_listable_type: 'App\\Models\\PriceList\\PriceList',
-      price_listable: entity,
+      price_listable_id: typeof entity.id === 'number' ? entity.id : parseInt(String(entity.id)),
+      price_listable_type: price_listable_type,
+      price_listable: entity as Product | BookableService | PriceListMembershipFee | PriceListArticle | PriceListToken | PriceListGiftCard | PriceListDayPass,
 
       // Access rules
       unlimited_entries: true,
@@ -237,7 +291,7 @@ export default function ({contentType}: SubscriptionTableProps) {
                 giftCards={giftCards || []}
                 dayPasses={dayPasses || []}
                 onClose={toggleOpenContentDialog}
-                onAdd={(entity: any) => {
+                onAdd={(entity: Product | BookableService | PriceListMembershipFee | PriceListArticle | PriceListToken | PriceListGiftCard | PriceListDayPass) => {
                   const newRow = createRow(entity, vatRateOptions || [], contentType === "optional");
                   if (newRow) {
                     push(newRow);

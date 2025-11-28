@@ -53,7 +53,7 @@ class PriceListResource extends JsonResource
                 'months_duration' => $this->months_duration,
                 'validity_days' => $this->validity_days,
                 'validity_months' => $this->validity_months,
-                'token_quantity' => $this->token_quantity,
+                'entrances' => $this->entrances,
                 'vat_rate_id' => $this->vat_rate_id,
                 'vat_rate' => $this->vat_rate,
             ];

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\StoreSaleRequest;
 use App\Models\Sale\Sale;
 use App\Services\Sale\SaleService;
+use App\Services\Sale\SdiErrorParserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -69,6 +70,7 @@ class SaleController extends Controller
                 'id' => $sale->id,
                 'progressive_number' => $sale->progressive_number,
                 'date' => $sale->date->format('Y-m-d'),
+                'type' => $sale->type,
                 'customer' => [
                     'id' => $sale->customer->id,
                     'full_name' => $sale->customer->full_name ?? $sale->customer->company_name,
@@ -85,17 +87,28 @@ class SaleController extends Controller
                     'error_message' => $sale->electronic_invoice->sdi_error_messages,
                     'last_send_attempt_at' => $sale->electronic_invoice->last_send_attempt_at?->format('d/m/Y H:i'),
                 ] : null,
-                'gross_total' => $sale->sale_summary['gross_price'] ?? 0,
+                'gross_total' => $sale->sale_summary['final_total'] ?? 0,  // Use final_total which includes stamp duty
                 'net_total' => $sale->sale_summary['net_price'] ?? 0,
                 'total_tax' => $sale->sale_summary['total_tax'] ?? 0,
+                'stamp_duty_amount' => $sale->sale_summary['stamp_duty_amount'] ?? 0,
             ]);
 
         // Calculate stats - optimized queries
-        // Total amount: sum of (total_net + vat_amount) for all sale_rows
+        // Total amount: sum of (total_net + vat_amount) for all sale_rows PLUS stamp duty when charged to customer
         $totalAmountCents = \DB::table('sale_rows')
             ->whereNull('deleted_at')
             ->selectRaw('SUM(total_net + vat_amount) as total')
             ->value('total') ?? 0;
+
+        // Add stamp duty for all sales where it's applied and charged to customer
+        $chargeStampToCustomer = \App\Models\TenantSetting::get('invoice.stamp_duty.charge_customer', true);
+        if ($chargeStampToCustomer) {
+            $stampDutyTotalCents = \DB::table('sales')
+                ->whereNull('deleted_at')
+                ->where('stamp_duty_applied', true)
+                ->sum('stamp_duty_amount') ?? 0;
+            $totalAmountCents += $stampDutyTotalCents;
+        }
 
         $totalAmount = $totalAmountCents / 100; // Convert from cents to euros
 
@@ -139,7 +152,7 @@ class SaleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Sale $sale): Response
+    public function show(Sale $sale, SdiErrorParserService $errorParser): Response
     {
         $sale->load([
             'customer',
@@ -151,13 +164,27 @@ class SaleController extends Controller
             'rows.entity',
             'payments.payment_method',
             'electronic_invoice',
+            'original_sale',
         ]);
+
+        // Load send attempts separately to customize the key name
+        if ($sale->electronic_invoice) {
+            $sale->electronic_invoice->load(['sendAttempts.user']);
+            $sale->electronic_invoice->send_attempts_list = $sale->electronic_invoice->sendAttempts;
+        }
 
         $sale->append(['sale_summary']);
         $sale->customer->append(['full_name', 'option_label']);
 
+        // Parse SDI errors se presenti
+        $parsedErrors = null;
+        if ($sale->electronic_invoice && $sale->electronic_invoice->sdi_error_messages) {
+            $parsedErrors = $errorParser->parseErrors($sale->electronic_invoice->sdi_error_messages)->toArray();
+        }
+
         return Inertia::render('sales/sale-show', [
             'sale' => $sale,
+            'parsedSdiErrors' => $parsedErrors,
         ]);
     }
 
@@ -219,33 +246,12 @@ class SaleController extends Controller
      */
     public function update(StoreSaleRequest $request, Sale $sale, SaleService $saleService): RedirectResponse
     {
-        // Delete existing rows and payments
-        $sale->rows()->delete();
-        $sale->payments()->delete();
-
-        // Update sale with new data
-        $sale->update([
-            'document_type_electronic_invoice_id' => $request->input('document_type_id'),
-            'progressive_number' => $request->input('progressive_number'),
-            'date' => $request->input('date'),
-            'year' => $request->input('year'),
-            'customer_id' => $request->input('customer_id'),
-            'payment_condition_id' => $request->input('payment_condition_id'),
-            'financial_resource_id' => $request->input('financial_resource_id'),
-            'promotion_id' => $request->input('promotion_id'),
-            'discount_percentage' => $request->input('discount_percentage', 0),
-            'discount_absolute' => $request->input('discount_absolute', 0),
-            'status' => $request->input('status'),
-            'tax_included' => $request->input('tax_included', true),
-            'notes' => $request->input('notes'),
-        ]);
-
-        // Re-create rows and payments using the same logic as store
-        $saleService->store($request->validated());
+        // Update the sale using the service (includes stamp duty recalculation)
+        $updatedSale = $saleService->update($sale, $request->validated());
 
         return to_route('app.sales.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'sale' => $sale->id,
+            'sale' => $updatedSale->id,
         ])->with('status', 'Vendita aggiornata con successo.');
     }
 
@@ -269,6 +275,11 @@ class SaleController extends Controller
             'rows.*.percentage_discount' => 'nullable|numeric|min:0|max:100',
             'rows.*.absolute_discount' => 'nullable|numeric|min:0',
             'rows.*.vat_rate_percentage' => ['nullable', 'numeric_or_array'],
+            'rows.*.vat_rate_name' => ['nullable', 'string'],
+            'rows.*.vat_breakdown' => ['nullable', 'array'],
+            'rows.*.vat_breakdown.*.subtotal' => ['required_with:rows.*.vat_breakdown', 'numeric'],
+            'rows.*.vat_breakdown.*.vat_rate' => ['required_with:rows.*.vat_breakdown', 'numeric'],
+            'rows.*.vat_breakdown.*.vat_nature' => ['nullable', 'string'],
             'sale_percentage_discount' => 'nullable|numeric|min:0|max:100',
             'sale_absolute_discount' => 'nullable|numeric|min:0',
             'tax_included' => 'required|boolean',

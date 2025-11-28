@@ -26,14 +26,32 @@ export const drawerWidth = 240;
 const breadcrumbNameMap: { [key: string]: string } = {
   '/dashboard': 'Dashboard',
   '/customers': 'Clienti',
-  '/customers/create': 'Nuovo cliente',
+  '/customers/create': 'Nuovo Cliente',
   '/products': 'Prodotti',
-  '/base-products': 'Prodotti base',
+  '/base-products': 'Prodotti Base',
   '/course-products': 'Corsi',
+  '/bookable-services': 'Servizi Prenotabili',
   '/price-lists': 'Listini',
+  '/price-lists/create': 'Nuovo Listino',
   '/sales': 'Vendite',
-  '/sales/create': 'Nuova vendita',
-  '/users': 'Utenti'
+  '/sales/create': 'Nuova Vendita',
+  '/users': 'Gestione Utenti',
+  '/users/create': 'Invita Utente',
+  '/roles': 'Ruoli e Permessi',
+  '/roles/create': 'Nuovo Ruolo',
+  '/configurations': 'Configurazioni',
+  '/configurations/company': 'Azienda',
+  '/configurations/invoice': 'Fatturazione',
+  '/configurations/invoice-configuration': 'Fatturazione',
+  '/configurations/regional': 'Impostazioni Regionali',
+  '/configurations/email': 'Email e Notifiche',
+  '/configurations/vat': 'IVA e Tasse',
+  '/configurations/payment': 'Metodi di Pagamento',
+  '/configurations/financial-resources': 'Risorse Finanziarie',
+  '/configurations/gdpr-compliance': 'GDPR Compliance',
+  '/configurations/structure': 'Struttura',
+  '/configurations/appearance': 'Aspetto',
+  '/configurations/preservation': 'Conservazione Sostitutiva'
 };
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
@@ -72,14 +90,11 @@ export default function AppLayout({ title, children }: PropsWithChildren<{ user:
   axios.defaults.headers.common['X-Tenant'] = page.props.currentTenantId;
 
   useEffect(() => {
-    //const variant = page.props.flash.status;
-    //const message = page.props.flash.message;
-
-    // if (variant) {
-    //     enqueueSnackbar(message ?? 'Inserimento avvenuto con successo', { variant });
-    // }
-    //setOpenAlert(!!(status as string));
-  }, [page.props.flash.message, page.props.flash.status]);
+    // Update openAlert when flash message changes
+    if (status) {
+      setOpenAlert(true);
+    }
+  }, [page.props.flash.message, page.props.flash.status, status]);
 
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -146,8 +161,35 @@ export default function AppLayout({ title, children }: PropsWithChildren<{ user:
               <Typography color="inherit">Gymme</Typography>
               {filteredPathnames.map((_, index) => {
                 const to = `/${filteredPathnames.slice(0, index + 1).join('/')}`;
-                const label = breadcrumbNameMap[to] || filteredPathnames[index];
+                const segment = filteredPathnames[index];
                 const last = index === filteredPathnames.length - 1;
+
+                // Get label from map or transform segment
+                let label = breadcrumbNameMap[to];
+                if (!label) {
+                  // Check if it's a UUID
+                  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
+                  // Check if it's a numeric ID
+                  const isNumericId = /^\d+$/.test(segment);
+
+                  if (isUUID || isNumericId) {
+                    // Try to get entity name from page props
+                    const entityName = (page.props as any).customer?.full_name ||
+                                      (page.props as any).sale?.display_name ||
+                                      (page.props as any).priceList?.name ||
+                                      (page.props as any).product?.name ||
+                                      (page.props as any).baseProduct?.name ||
+                                      (page.props as any).courseProduct?.name;
+                    label = entityName || 'Dettaglio';
+                  } else {
+                    // Capitalize and replace dashes/underscores with spaces
+                    label = segment
+                      .replace(/[-_]/g, ' ')
+                      .split(' ')
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(' ');
+                  }
+                }
 
                 return last ? (
                   <Typography color="inherit" key={to}>

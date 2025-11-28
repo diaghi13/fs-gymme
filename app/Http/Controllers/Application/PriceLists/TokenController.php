@@ -18,7 +18,7 @@ class TokenController extends Controller
     {
         $token = new Token([
             'color' => Color::randomHex(),
-            'token_quantity' => 10,
+            'entrances' => 10,
             'validity_days' => 365,
         ]);
         $token->type = 'token';
@@ -40,7 +40,7 @@ class TokenController extends Controller
             'color' => 'required|string|max:7',
             'price' => 'required|numeric|min:0',
             'vat_rate_id' => 'required|exists:vat_rates,id',
-            'token_quantity' => 'required|integer|min:1',
+            'entrances' => 'required|integer|min:1',
             'validity_days' => 'nullable|integer|min:1',
             'saleable' => 'nullable|boolean',
             'saleable_from' => 'nullable|date',
@@ -82,7 +82,7 @@ class TokenController extends Controller
         ];
 
         $token = Token::create([
-            ...$request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'token_quantity', 'validity_days', 'saleable', 'saleable_from', 'saleable_to']),
+            ...$request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'entrances', 'validity_days', 'saleable', 'saleable_from', 'saleable_to']),
             'settings' => $settings,
         ]);
 
@@ -158,7 +158,7 @@ class TokenController extends Controller
             'color' => 'sometimes|required|string|max:7',
             'price' => 'sometimes|required|numeric|min:0',
             'vat_rate_id' => 'sometimes|required|exists:vat_rates,id',
-            'token_quantity' => 'sometimes|required|integer|min:1',
+            'entrances' => 'sometimes|required|integer|min:1',
             'validity_days' => 'nullable|integer|min:1',
             'saleable' => 'nullable|boolean',
             'saleable_from' => 'nullable|date',
@@ -211,7 +211,7 @@ class TokenController extends Controller
             }
 
             $token->update([
-                ...$request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'token_quantity', 'validity_days', 'saleable', 'saleable_from', 'saleable_to']),
+                ...$request->only(['name', 'parent_id', 'color', 'price', 'vat_rate_id', 'entrances', 'validity_days', 'saleable', 'saleable_from', 'saleable_to']),
                 'settings' => $settings,
             ]);
         }

@@ -2,7 +2,12 @@ import React from 'react';
 import { Formik, FormikConfig } from 'formik';
 import {
   AutocompleteOption,
-  PriceListArticle, PriceListMembershipFee,
+  BookableService,
+  PriceListArticle,
+  PriceListMembershipFee,
+  PriceListToken,
+  PriceListGiftCard,
+  PriceListDayPass,
   PriceListSubscription,
   Product
 } from '@/types';
@@ -36,8 +41,18 @@ export type SubscriptionGeneralFormValuesWithContent = {
   entrances?: number | null;
   is_optional: boolean;
   price_listable_id: number;
-  price_listable_type: 'App\\Models\\Product\\Product' | 'App\\Models\\PriceList\\PriceList';
-  price_listable: Product | PriceListMembershipFee | PriceListArticle;
+  price_listable_type:
+    // PRODUCTS (3)
+    | 'App\\Models\\Product\\BaseProduct'
+    | 'App\\Models\\Product\\CourseProduct'
+    | 'App\\Models\\Product\\BookableService'
+    // PRICELISTS (5)
+    | 'App\\Models\\PriceList\\Article'
+    | 'App\\Models\\PriceList\\Membership'
+    | 'App\\Models\\PriceList\\Token'
+    | 'App\\Models\\PriceList\\DayPass'
+    | 'App\\Models\\PriceList\\GiftCard';
+  price_listable: Product | BookableService | PriceListMembershipFee | PriceListArticle | PriceListToken | PriceListGiftCard | PriceListDayPass;
 
   // Access rules
   unlimited_entries?: boolean;
@@ -85,7 +100,7 @@ export type SubscriptionGeneralFormValuesWithContent = {
 
   // Metadata
   sort_order?: number;
-  settings?: Record<string, any> | null;
+  settings?: Record<string, unknown> | null;
 
   // Legacy fields (backward compatibility)
   daily_access?: number | null;
@@ -115,6 +130,7 @@ export default function SubscriptionGeneralTab({ priceList }: SubscriptionGenera
       multi_location_access: priceList.multi_location_access ?? false,
       standard_content: priceList.standard_content.map((content) => ({
         ...content,
+        price_listable_type: content.price_listable_type as SubscriptionGeneralFormValuesWithContent['price_listable_type'],
         isDirty: false,
         vat_rate: vatRateOptions!.find((option) => option.value === content.vat_rate_id)!
       })),
@@ -123,6 +139,7 @@ export default function SubscriptionGeneralTab({ priceList }: SubscriptionGenera
       const data = {
         ...values,
         standard_content: values.standard_content!.map((content) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { vat_rate, price_listable, isDirty, ...contentData } = content;
           return {
             ...contentData,

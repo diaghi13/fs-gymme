@@ -64,8 +64,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             HandleAppearance::class,
-            HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            HandleInertiaRequests::class,
         ]);
 
         $middleware->statefulApi();
@@ -80,7 +80,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->group('tenant', [
             \App\Http\Middleware\EnsureTenantSet::class,
+            \App\Http\Middleware\VerifyTenantAccess::class,  // Check access BEFORE tenant init
             \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
+            \App\Http\Middleware\SwitchToTenantUser::class,
             \App\Http\Middleware\EnsureUserIsInTenantMiddleware::class,
             \App\Http\Middleware\HasActiveSubscriptionPlan::class,
             \App\Http\Middleware\SetCurrentStructure::class,
@@ -90,6 +92,21 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\LogResourceView::class,
             \App\Http\Middleware\LogPageView::class,
         ]);
+    })
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+        // Conservazione Sostitutiva - Esegui il 1° giorno del mese alle 02:00
+        // Conserva fatture del mese precedente (obbligo normativo 10 anni)
+        $schedule->command('preserve:electronic-invoices')
+            ->monthlyOn(1, '02:00')
+            ->timezone('Europe/Rome')
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->onSuccess(function () {
+                \Log::info('Scheduled preservation completed successfully');
+            })
+            ->onFailure(function () {
+                \Log::error('Scheduled preservation failed');
+            });
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -3,26 +3,17 @@ import { Box, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography
 import MyCard from '@/components/ui/MyCard';
 import { Sale } from '@/types';
 import { CheckCircle, Clock, XCircle } from 'lucide-react';
+import FormattedCurrency from '@/components/ui/FormattedCurrency';
+import FormattedDate from '@/components/ui/FormattedDate';
 
 interface SalePaymentsCardProps {
   sale: Sale;
 }
 
 const SalePaymentsCard: React.FC<SalePaymentsCardProps> = ({ sale }) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('it-IT', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
-  };
-
   const formatDate = (date: string | null) => {
-    if (!date) return '-';
-    return new Date(date).toLocaleDateString('it-IT', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+    if (!date) return null;
+    return date;
   };
 
   const getPaymentStatusIcon = (payedAt: string | null, dueDate: string) => {
@@ -73,7 +64,7 @@ const SalePaymentsCard: React.FC<SalePaymentsCardProps> = ({ sale }) => {
                 Totale
               </Typography>
               <Typography variant="h6" fontWeight={700}>
-                {formatCurrency(totalAmount)}
+                <FormattedCurrency value={totalAmount} />
               </Typography>
             </Box>
             <Box>
@@ -81,7 +72,7 @@ const SalePaymentsCard: React.FC<SalePaymentsCardProps> = ({ sale }) => {
                 Pagato
               </Typography>
               <Typography variant="h6" fontWeight={700} color="success.main">
-                {formatCurrency(paidAmount)}
+                <FormattedCurrency value={paidAmount} />
               </Typography>
             </Box>
             <Box>
@@ -89,7 +80,7 @@ const SalePaymentsCard: React.FC<SalePaymentsCardProps> = ({ sale }) => {
                 Residuo
               </Typography>
               <Typography variant="h6" fontWeight={700} color={pendingAmount > 0 ? 'error.main' : 'success.main'}>
-                {formatCurrency(pendingAmount)}
+                <FormattedCurrency value={pendingAmount} />
               </Typography>
             </Box>
           </Box>
@@ -115,11 +106,11 @@ const SalePaymentsCard: React.FC<SalePaymentsCardProps> = ({ sale }) => {
                       {getPaymentStatusLabel(payment.payed_at, payment.due_date)}
                     </Box>
                   </TableCell>
-                  <TableCell>{formatDate(payment.due_date)}</TableCell>
-                  <TableCell>{formatDate(payment.payed_at)}</TableCell>
+                  <TableCell>{formatDate(payment.due_date) ? <FormattedDate value={formatDate(payment.due_date)!} /> : '-'}</TableCell>
+                  <TableCell>{formatDate(payment.payed_at) ? <FormattedDate value={formatDate(payment.payed_at)!} /> : '-'}</TableCell>
                   <TableCell>
                     <Typography fontWeight={600}>
-                      {formatCurrency(payment.amount)}
+                      <FormattedCurrency value={payment.amount} />
                     </Typography>
                   </TableCell>
                   <TableCell>{payment.payment_method?.name || '-'}</TableCell>

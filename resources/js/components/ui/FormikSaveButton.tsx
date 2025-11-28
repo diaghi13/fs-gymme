@@ -3,18 +3,26 @@ import React from 'react';
 import { useFormikContext } from 'formik';
 import SaveIcon from '@mui/icons-material/Save';
 
-export default function FormikSaveButton() {
-  const formik = useFormikContext();
+interface FormikSaveButtonProps {
+  loading?: boolean;
+  children?: React.ReactNode;
+}
+
+export default function FormikSaveButton({ loading, children }: FormikSaveButtonProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const formik = useFormikContext<any>();
+  const isSubmitting = loading ?? formik.isSubmitting;
+  const disabled = !formik.dirty || isSubmitting;
 
   return (
     <Button
       size="small"
       variant="contained"
       type="submit"
-      disabled={!formik.dirty || formik.isSubmitting}
-      startIcon={formik.isSubmitting ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+      disabled={disabled}
+      startIcon={isSubmitting ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
     >
-      {formik.isSubmitting ? 'Salvataggio...' : 'Salva'}
+      {isSubmitting ? 'Salvataggio...' : (children ?? 'Salva')}
     </Button>
   );
 }

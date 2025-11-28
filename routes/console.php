@@ -77,3 +77,34 @@ Schedule::command('subscription:send-renewal-reminders --days=3')
     ->onFailure(function () {
         Log::error('Renewal reminders failed (3 days)');
     });
+
+// Electronic Invoice Preservation - Monthly (1st day at 02:00)
+Schedule::command('preserve:electronic-invoices --auto')
+    ->monthlyOn(1, '02:00')
+    ->onSuccess(function () {
+        Log::info('Electronic invoice preservation completed');
+    })
+    ->onFailure(function () {
+        Log::error('Electronic invoice preservation failed');
+    });
+
+// GDPR Compliance - Anonymize expired invoices (Monthly check on 15th)
+Schedule::command('gdpr:anonymize-invoices --force')
+    ->monthlyOn(15, '03:00')
+    ->onSuccess(function () {
+        Log::info('GDPR anonymization completed');
+    })
+    ->onFailure(function () {
+        Log::error('GDPR anonymization failed');
+    });
+
+// GDPR Cleanup - Remove old logs and temp files (Weekly)
+Schedule::call(function () {
+    $service = app(\App\Services\Sale\GdprComplianceService::class);
+    $stats = $service->cleanupSensitiveData(90); // 90 days retention
+    Log::info('GDPR sensitive data cleanup completed', $stats);
+})
+    ->weekly()
+    ->saturdays()
+    ->at('04:00')
+    ->name('gdpr-cleanup');
