@@ -12,7 +12,6 @@ class CustomerSubscription extends Model
 {
     /** @use HasFactory<\Database\Factories\Customer\CustomerSubscriptionFactory> */
     use HasFactory;
-
     use LogsActivity;
 
     protected $fillable = [
