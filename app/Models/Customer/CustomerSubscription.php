@@ -15,7 +15,6 @@ class CustomerSubscription extends Model
     use LogsActivity;
 
     protected $fillable = [
-        'customer_id',
         'sale_row_id',
         'type',
         'price_list_id',
@@ -89,7 +88,7 @@ class CustomerSubscription extends Model
     {
         $endDate = $this->end_date ? \Illuminate\Support\Carbon::parse($this->end_date) : null;
 
-        if (! $endDate) {
+        if (!$endDate) {
             return null;
         }
 
@@ -105,29 +104,9 @@ class CustomerSubscription extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly([
-                'customer_id',
-                'sale_row_id',
-                'type',
-                'price_list_id',
-                'entitable_type',
-                'entitable_id',
-                'start_date',
-                'end_date',
-                'card_number',
-                'notes',
-                'status',
-                'suspended_days',
-                'extended_days',
-            ])
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs()
             ->useLogName('customer_subscription')
-            ->setDescriptionForEvent(fn (string $eventName) => match ($eventName) {
-                'created' => 'Abbonamento creato',
-                'updated' => 'Abbonamento modificato',
-                'deleted' => 'Abbonamento eliminato',
-                default => "Abbonamento {$eventName}",
-            });
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

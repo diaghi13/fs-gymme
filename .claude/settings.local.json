@@ -25,7 +25,10 @@
       "mcp__laravel-boost__read-log-entries",
       "WebFetch(domain:apiscontrino.com)",
       "WebFetch(domain:effatta.it)",
-      "WebFetch(domain:code.claude.com)"
+      "WebFetch(domain:code.claude.com)",
+      "Bash(git commit:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx eslint:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

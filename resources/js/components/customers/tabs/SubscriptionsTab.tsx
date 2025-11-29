@@ -23,11 +23,11 @@ import {
 } from '@mui/material';
 import { usePage, router } from '@inertiajs/react';
 import { CustomerShowProps } from '@/pages/customers/customer-show';
-import { route } from 'ziggy-js';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import HistoryIcon from '@mui/icons-material/History';
+import axios from 'axios';
 import AddSubscriptionDialog from '@/components/customers/dialogs/AddSubscriptionDialog';
 import SubscriptionHistoryDialog from '@/components/customers/dialogs/SubscriptionHistoryDialog';
 
@@ -63,39 +63,33 @@ interface CustomerSubscription {
 const SubscriptionsTab = () => {
   const { customer } = usePage<CustomerShowProps>().props;
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
+  const [subscriptions, setSubscriptions] = React.useState<CustomerSubscription[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [openAddDialog, setOpenAddDialog] = React.useState(false);
   const [openHistoryDialog, setOpenHistoryDialog] = React.useState(false);
   const [selectedSubscription, setSelectedSubscription] = React.useState<CustomerSubscription | null>(null);
 
-  // Filter subscriptions based on status - data already loaded from props
-  const subscriptions = React.useMemo(() => {
-    const allSubscriptions = customer.subscriptions || [];
-    const now = new Date();
-
-    switch (statusFilter) {
-      case 'active':
-        return allSubscriptions.filter(sub => {
-          const startDate = new Date(sub.start_date);
-          const endDate = sub.end_date ? new Date(sub.end_date) : null;
-          return startDate <= now && (!endDate || endDate >= now);
-        });
-      case 'expired':
-        return allSubscriptions.filter(sub => {
-          const endDate = sub.end_date ? new Date(sub.end_date) : null;
-          return endDate && endDate < now;
-        });
-      case 'future':
-        return allSubscriptions.filter(sub => {
-          const startDate = new Date(sub.start_date);
-          return startDate > now;
-        });
-      default:
-        return allSubscriptions;
+  const fetchSubscriptions = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        route('api.v1.customers.subscriptions.index', { customer: customer.id }),
+        { params: { status: statusFilter } }
+      );
+      setSubscriptions(response.data.subscriptions);
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [customer.subscriptions, statusFilter]);
+  }, [customer.id, statusFilter]);
+
+  React.useEffect(() => {
+    fetchSubscriptions();
+  }, [fetchSubscriptions]);
 
   const handleDelete = (subscription: CustomerSubscription) => {
-    if (!confirm('Sei sicuro di voler eliminare questo abbonamento?')) {
+    if (!confirm(`Sei sicuro di voler eliminare questo abbonamento?`)) {
       return;
     }
 
@@ -106,6 +100,9 @@ const SubscriptionsTab = () => {
       {
         data: { reason },
         preserveScroll: true,
+        onSuccess: () => {
+          fetchSubscriptions();
+        },
       }
     );
   };
@@ -123,6 +120,7 @@ const SubscriptionsTab = () => {
   const handleAddSuccess = () => {
     setOpenAddDialog(false);
     setSelectedSubscription(null);
+    fetchSubscriptions();
   };
 
   const getStatusColor = (status: string) => {
@@ -205,7 +203,9 @@ const SubscriptionsTab = () => {
             </FormControl>
           </Box>
 
-          {subscriptions.length === 0 ? (
+          {loading ? (
+            <Typography>Caricamento...</Typography>
+          ) : subscriptions.length === 0 ? (
             <Typography>Nessun abbonamento trovato.</Typography>
           ) : (
             <TableContainer component={Paper}>
