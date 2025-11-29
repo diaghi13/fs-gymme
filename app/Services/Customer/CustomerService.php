@@ -156,6 +156,7 @@ class CustomerService
                     },
                 ]);
             },
+            // Load ALL subscriptions (not just active) for SubscriptionsTab
             'subscriptions' => function (HasMany $query) {
                 $query->with([
                     'entity',
