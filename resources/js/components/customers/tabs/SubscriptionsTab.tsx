@@ -23,11 +23,12 @@ import {
 } from '@mui/material';
 import { usePage, router } from '@inertiajs/react';
 import { CustomerShowProps } from '@/pages/customers/customer-show';
+import { route } from 'ziggy-js';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import HistoryIcon from '@mui/icons-material/History';
-import AddSubscriptionDialogFormik from '@/components/customers/dialogs/AddSubscriptionDialogFormik';
+import AddSubscriptionDialog from '@/components/customers/dialogs/AddSubscriptionDialog';
 import SubscriptionHistoryDialog from '@/components/customers/dialogs/SubscriptionHistoryDialog';
 
 interface CustomerSubscription {
@@ -94,7 +95,7 @@ const SubscriptionsTab = () => {
   }, [customer.subscriptions, statusFilter]);
 
   const handleDelete = (subscription: CustomerSubscription) => {
-    if (!confirm(`Sei sicuro di voler eliminare questo abbonamento?`)) {
+    if (!confirm('Sei sicuro di voler eliminare questo abbonamento?')) {
       return;
     }
 
@@ -277,7 +278,7 @@ const SubscriptionsTab = () => {
         </CardContent>
       </Card>
 
-      <AddSubscriptionDialogFormik
+      <AddSubscriptionDialog
         open={openAddDialog}
         onClose={() => {
           setOpenAddDialog(false);
