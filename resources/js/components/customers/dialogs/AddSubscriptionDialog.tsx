@@ -39,8 +39,7 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({
   subscription,
   onSuccess,
 }) => {
-  const { customer } = usePage<CustomerShowProps>().props;
-  const [priceLists, setPriceLists] = React.useState<PriceList[]>([]);
+  const { customer, price_lists } = usePage<CustomerShowProps>().props;
   const [loading, setLoading] = React.useState(false);
   const [errors, setErrors] = React.useState<any>({});
 
@@ -55,36 +54,30 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({
     reason: '',
   });
 
-  // Fetch available price lists
-  React.useEffect(() => {
-    if (open) {
-      axios.get(route('api.v1.price-lists.available'))
-        .then((response) => {
-          setPriceLists(response.data.price_lists);
-        })
-        .catch((error) => {
-          console.error('Error fetching price lists:', error);
-        });
-    }
-  }, [open]);
+  // Helper function to format date from backend (YYYY-MM-DD HH:MM:SS) to input format (YYYY-MM-DD)
+  const formatDateForInput = (dateString: string | null): string => {
+    if (!dateString) return '';
+    // Handle both "2025-11-20" and "2025-11-20 00:00:00" formats
+    return dateString.split(' ')[0];
+  };
 
   // Reset form when dialog opens/closes or subscription changes
   React.useEffect(() => {
     if (open) {
       if (subscription) {
-        // Edit mode
+        // Edit mode - populate with existing data
         setFormData({
-          type: subscription.type,
+          type: subscription.type || 'subscription',
           price_list_id: subscription.price_list_id?.toString() || '',
-          start_date: subscription.start_date || '',
-          end_date: subscription.end_date || '',
+          start_date: formatDateForInput(subscription.start_date),
+          end_date: formatDateForInput(subscription.end_date),
           card_number: subscription.card_number || '',
           notes: subscription.notes || '',
           status: subscription.status || 'active',
           reason: '',
         });
       } else {
-        // Create mode
+        // Create mode - empty form with today's date
         setFormData({
           type: 'subscription',
           price_list_id: '',
@@ -100,10 +93,10 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({
     }
   }, [open, subscription]);
 
-  // Auto-calculate end date when price list changes
+  // Auto-calculate end date when price list changes (only in create mode)
   React.useEffect(() => {
-    if (formData.price_list_id && formData.start_date && !subscription) {
-      const selectedPriceList = priceLists.find(pl => pl.id === parseInt(formData.price_list_id));
+    if (formData.price_list_id && formData.start_date && !subscription && price_lists) {
+      const selectedPriceList = price_lists.find(pl => pl.id === parseInt(formData.price_list_id));
       if (selectedPriceList) {
         const startDate = new Date(formData.start_date);
 
@@ -119,9 +112,9 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({
         }));
       }
     }
-  }, [formData.price_list_id, formData.start_date, priceLists, subscription]);
+  }, [formData.price_list_id, formData.start_date, price_lists, subscription]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setLoading(true);
     setErrors({});
 
@@ -136,40 +129,36 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({
       reason: formData.reason || (subscription ? 'Abbonamento modificato' : 'Abbonamento creato manualmente'),
     };
 
-    if (subscription) {
-      // Update existing subscription
-      router.put(
-        route('api.v1.customer-subscriptions.update', { subscription: subscription.id }),
-        data,
-        {
-          preserveScroll: true,
-          onSuccess: () => {
-            setLoading(false);
-            onSuccess();
-          },
-          onError: (errors) => {
-            setLoading(false);
-            setErrors(errors);
-          },
-        }
-      );
-    } else {
-      // Create new subscription
-      router.post(
-        route('api.v1.customers.subscriptions.store', { customer: customer.id }),
-        data,
-        {
-          preserveScroll: true,
-          onSuccess: () => {
-            setLoading(false);
-            onSuccess();
-          },
-          onError: (errors) => {
-            setLoading(false);
-            setErrors(errors);
-          },
-        }
-      );
+    try {
+      if (subscription) {
+        // Update existing subscription via API
+        await axios.put(
+          `/api/v1/customer-subscriptions/${subscription.id}`,
+          data
+        );
+      } else {
+        // Create new subscription via API
+        await axios.post(
+          `/api/v1/customers/${customer.id}/subscriptions`,
+          data
+        );
+      }
+
+      // Reload the page to fetch fresh data
+      router.reload({
+        preserveScroll: true,
+        onSuccess: () => {
+          setLoading(false);
+          onSuccess();
+        },
+      });
+    } catch (error: any) {
+      setLoading(false);
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else {
+        setErrors({ general: 'Si è verificato un errore. Riprova.' });
+      }
     }
   };
 
@@ -205,15 +194,20 @@ const AddSubscriptionDialog: React.FC<AddSubscriptionDialogProps> = ({
               label="Listino Prezzi"
               onChange={(e) => setFormData({ ...formData, price_list_id: e.target.value })}
             >
-              {priceLists.map((pl) => (
+              {price_lists && price_lists.map((pl) => (
                 <MenuItem key={pl.id} value={pl.id}>
-                  {pl.name} - €{pl.price}
+                  {pl.name} - €{(pl.price / 100).toFixed(2)}
                   {pl.entrances && ` - ${pl.entrances} ingressi`}
                   {pl.days_duration && ` - ${pl.days_duration} giorni`}
                   {pl.months_duration && ` - ${pl.months_duration} mesi`}
                 </MenuItem>
               ))}
             </Select>
+            {errors.price_list_id && (
+              <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+                {errors.price_list_id}
+              </Typography>
+            )}
           </FormControl>
 
           <TextField

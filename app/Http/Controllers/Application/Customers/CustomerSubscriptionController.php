@@ -43,7 +43,7 @@ class CustomerSubscriptionController extends Controller
         ]);
     }
 
-    public function store(CustomerSubscriptionStoreRequest $request, Customer $customer): RedirectResponse
+    public function store(CustomerSubscriptionStoreRequest $request, Customer $customer)
     {
         $data = $request->validated();
         $data['customer_id'] = $customer->id;
@@ -63,12 +63,20 @@ class CustomerSubscriptionController extends Controller
             ])
             ->log('Abbonamento creato manualmente');
 
+        // Return JSON for API requests, redirect for web requests
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Abbonamento creato con successo.',
+                'subscription' => $subscription->load(['price_list', 'entity', 'suspensions', 'extensions']),
+            ], 201);
+        }
+
         return redirect()->back()
             ->with('status', 'success')
             ->with('message', 'Abbonamento creato con successo.');
     }
 
-    public function update(CustomerSubscriptionUpdateRequest $request, CustomerSubscription $subscription): RedirectResponse
+    public function update(CustomerSubscriptionUpdateRequest $request, CustomerSubscription $subscription)
     {
         $oldAttributes = $subscription->toArray();
 
@@ -83,6 +91,14 @@ class CustomerSubscriptionController extends Controller
                 'reason' => $request->input('reason') ?? 'Abbonamento modificato',
             ])
             ->log('Abbonamento modificato');
+
+        // Return JSON for API requests, redirect for web requests
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Abbonamento aggiornato con successo.',
+                'subscription' => $subscription->fresh()->load(['price_list', 'entity', 'suspensions', 'extensions']),
+            ]);
+        }
 
         return redirect()->back()
             ->with('status', 'success')
