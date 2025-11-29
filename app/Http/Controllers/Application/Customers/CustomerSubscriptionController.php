@@ -138,7 +138,6 @@ class CustomerSubscriptionController extends Controller
     {
         $priceLists = PriceList::query()
             ->where('is_active', true)
-            ->where('is_visible', true)
             ->orderBy('name')
             ->get()
             ->map(fn ($pl) => [
