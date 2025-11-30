@@ -16,11 +16,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        if (app()->environment('production')) {
-            $this->command->error('This seeder should not be run in production!');
-
-            return;
-        }
+//        if (app()->environment('production')) {
+//            $this->command->error('This seeder should not be run in production!');
+//
+//            return;
+//        }
 
         $user = CentralUser::create([
             'first_name' => 'Mario',
