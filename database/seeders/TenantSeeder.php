@@ -12,6 +12,7 @@ use Database\Seeders\Tenant\PaymentConditionSeeder;
 use Database\Seeders\Tenant\PaymentMethodSeeder;
 use Database\Seeders\Tenant\PriceListSeeder;
 use Database\Seeders\Tenant\StructureSeeder;
+use Database\Seeders\Tenant\VatNatureSeeder;
 use Database\Seeders\Tenant\VatRateSeeder;
 use Illuminate\Database\Seeder;
 
@@ -38,7 +39,8 @@ class TenantSeeder extends Seeder
             // UserSeeder::class,
 
             // Business data
-            //StructureSeeder::class,
+            StructureSeeder::class,  // REQUIRED by BaseProduct, CourseProduct, BookableService
+            VatNatureSeeder::class,
             VatRateSeeder::class,
             DocumentTypeSeeder::class,
             PaymentMethodSeeder::class,
