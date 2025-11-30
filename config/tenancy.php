@@ -19,7 +19,7 @@ return [
     'central_domains' => [
         // '127.0.0.1',
         'localhost',
-        'https://gymme-v2.ddns.net'
+        'gymme-v2.ddns.net'
     ],
 
     /**
