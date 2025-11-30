@@ -3,25 +3,43 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Traits\HasRoles;
 use Stancl\Tenancy\Contracts\SyncMaster;
 use Stancl\Tenancy\Database\Concerns\CentralConnection;
 use Stancl\Tenancy\Database\Concerns\ResourceSyncing;
 use Stancl\Tenancy\Database\Models\TenantPivot;
-use function Pest\Laravel\get;
 
 class CentralUser extends User implements SyncMaster
 {
-    use ResourceSyncing, CentralConnection, LogsActivity;
+    use CentralConnection, HasRoles, ResourceSyncing;
 
     public $table = 'users';
 
     protected static $logAttributes = ['first_name', 'last_name', 'email'];
+
     protected static $logOnlyDirty = true;
+
     protected static $logName = 'user';
+
+    protected static function bootLogsActivity()
+    {
+        // Skip activity logging during tests
+        if (app()->environment('testing')) {
+            return;
+        }
+
+        parent::bootLogsActivity();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(self::$logAttributes)
+            ->logOnlyDirty()
+            ->useLogName(self::$logName);
+    }
 
     protected $fillable = [
         'global_id',
@@ -47,21 +65,12 @@ class CentralUser extends User implements SyncMaster
     ];
 
     protected $appends = [
-        'company',
+        // 'company',
     ];
 
     public function getDescriptionForEvent(string $eventName): string
     {
         return "L'utente è stato {$eventName}";
-    }
-
-    public function getActivitylogOptions(): LogOptions
-    {
-        // TODO: Implement getActivitylogOptions() method.
-        return LogOptions::defaults()
-            ->logOnly(['first_name', 'last_name', 'email'])
-            ->logOnlyDirty()
-            ->setDescriptionForEvent(fn (string $eventName) => "L'utente è stato {$eventName}");
     }
 
     public function tenants(): BelongsToMany
@@ -76,11 +85,11 @@ class CentralUser extends User implements SyncMaster
             ->using(TenantPivot::class);
     }
 
-//    public function getCompanyAttribute()
-//    {
-//        // Return the first tenant
-//        return $this->tenants()->first();
-//    }
+    //    public function getCompanyAttribute()
+    //    {
+    //        // Return the first tenant
+    //        return $this->tenants()->first();
+    //    }
 
     public function company(): Attribute
     {

@@ -9,7 +9,7 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        channels: __DIR__ . '/../routes/channels.php',
+        channels: __DIR__.'/../routes/channels.php',
         then: function (Application $app) {
 
             $centralDomains = config('tenancy.central_domains');
@@ -27,9 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
             Route::middleware([
                 'web',
-                //\Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
-                'tenant',
+                // \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
                 'auth',
+                'tenant',
                 'log',
             ])
                 ->prefix('/app/{tenant}')
@@ -39,20 +39,33 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->prefix('/api/v1')
                 ->group(base_path('routes/tenant/api/routes.php'));
 
-//        web: __DIR__.'/../routes/web.php',
-//        api: __DIR__.'/../routes/api.php',
-//        commands: __DIR__.'/../routes/console.php',
-//        health: '/up',
-//        apiPrefix: '/api/v1',
+            // Webhook routes (no auth, no tenant middleware)
+            Route::middleware('api')
+                ->prefix('/webhooks')
+                ->group(base_path('routes/webhooks.php'));
+
+            //        web: __DIR__.'/../routes/web.php',
+            //        api: __DIR__.'/../routes/api.php',
+            //        commands: __DIR__.'/../routes/console.php',
+            //        health: '/up',
+            //        apiPrefix: '/api/v1',
         })
-//    )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        // Add global middleware to serve static assets first - must be the very first middleware
+        $middleware->use([
+            \App\Http\Middleware\ServeStaticAssets::class,
+        ]);
+
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'current_structure_id']);
+
+        $middleware->validateCsrfTokens(except: [
+            'stripe/webhook',
+        ]);
 
         $middleware->web(append: [
             HandleAppearance::class,
-            HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            HandleInertiaRequests::class,
         ]);
 
         $middleware->statefulApi();
@@ -66,16 +79,34 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->group('tenant', [
-            \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
             \App\Http\Middleware\EnsureTenantSet::class,
+            \App\Http\Middleware\VerifyTenantAccess::class,  // Check access BEFORE tenant init
+            \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
+            \App\Http\Middleware\SwitchToTenantUser::class,
             \App\Http\Middleware\EnsureUserIsInTenantMiddleware::class,
             \App\Http\Middleware\HasActiveSubscriptionPlan::class,
+            \App\Http\Middleware\SetCurrentStructure::class,
         ]);
 
         $middleware->group('log', [
             \App\Http\Middleware\LogResourceView::class,
             \App\Http\Middleware\LogPageView::class,
         ]);
+    })
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+        // Conservazione Sostitutiva - Esegui il 1° giorno del mese alle 02:00
+        // Conserva fatture del mese precedente (obbligo normativo 10 anni)
+        $schedule->command('preserve:electronic-invoices')
+            ->monthlyOn(1, '02:00')
+            ->timezone('Europe/Rome')
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->onSuccess(function () {
+                \Log::info('Scheduled preservation completed successfully');
+            })
+            ->onFailure(function () {
+                \Log::error('Scheduled preservation failed');
+            });
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

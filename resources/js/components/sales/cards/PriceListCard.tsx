@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-
+import { Box, Divider, Typography } from '@mui/material';
 import { PriceListFolder, PriceListSubscription, AllPriceLists, PriceListMembershipFee } from '@/types';
 import axios from 'axios';
 
@@ -11,6 +11,7 @@ import AddSubscriptionDialog from '@/components/sales/dialogs/AddSubscriptionDia
 import AddMembershipFeeDialog from '@/components/sales/dialogs/AddMembershipFeeDialog';
 import { createCartItem, SaleRowFormValues } from '@/support/createCartItem';
 import { SaleFormValues } from '@/pages/sales/sales';
+import QuickProductSearch from '@/components/sales/QuickProductSearch';
 
 export default function PriceListsCard() {
   const [subscription, setSubscription] = useState<PriceListSubscription | null>(null);
@@ -24,6 +25,9 @@ export default function PriceListsCard() {
     const resData = response.data.data as Exclude<AllPriceLists, PriceListFolder>;
 
     if (resData.type === SUBSCRIPTION) {
+      console.log('Subscription data received:', resData);
+      console.log('Standard content:', resData.standard_content);
+      console.log('Optional content:', resData.optional_content);
       setSubscription(resData);
       setSubscriptionModalOpen(true);
       return;
@@ -50,7 +54,24 @@ export default function PriceListsCard() {
 
   return (
     <React.Fragment>
-      <PriceListListCard onSelect={handleSelect} />
+      {/* Quick Product Search - Fast access for experienced users */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          Ricerca veloce
+        </Typography>
+        <QuickProductSearch onSelect={handleSelect} />
+      </Box>
+
+      <Divider sx={{ my: 3 }} />
+
+      {/* Traditional tree navigation - For browsing */}
+      <Box>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          Esplora listini
+        </Typography>
+        <PriceListListCard onSelect={handleSelect} />
+      </Box>
+
       {subscription && (
         <AddSubscriptionDialog
           open={subscriptionModalOpen}

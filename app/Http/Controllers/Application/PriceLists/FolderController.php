@@ -17,12 +17,12 @@ class FolderController extends Controller
     public function create()
     {
         return Inertia::render('price-lists/price-lists', [
-            'priceLists' => (new PriceList())->toTree(),
+            'priceLists' => (new PriceList)->toTree(),
             'priceListOptions' => PriceList::where('type', PriceListItemTypeEnum::FOLDER->value)->get(['id', 'name'])->map(function ($option) {
                 return ['value' => $option->id, 'label' => $option->name];
             }),
-            'priceListOptionsTree' => (new PriceList())->folderTree(),
-            'priceList' => new Folder(),
+            'priceListOptionsTree' => (new PriceList)->folderTree(),
+            'priceList' => new Folder,
         ]);
     }
 
@@ -31,11 +31,22 @@ class FolderController extends Controller
      */
     public function store(Request $request)
     {
-        $folder = Folder::create($request->only(['name', 'parent_id', 'saleable']));
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable', 'integer', 'exists:price_lists,id'],
+            'saleable' => ['nullable', 'boolean'],
+        ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($data['parent_id']) && $data['parent_id'] === '') {
+            $data['parent_id'] = null;
+        }
+
+        $folder = Folder::create($data);
 
         return to_route('app.price-lists.folders.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'folder' => $folder->id
+            'folder' => $folder->id,
         ])
             ->with('status', 'success');
     }
@@ -46,11 +57,11 @@ class FolderController extends Controller
     public function show(Folder $folder)
     {
         return Inertia::render('price-lists/price-lists', [
-            'priceLists' => (new PriceList())->toTree(),
+            'priceLists' => (new PriceList)->toTree(),
             'priceListOptions' => PriceList::where('type', PriceListItemTypeEnum::FOLDER->value)->get(['id', 'name'])->map(function ($option) {
                 return ['value' => $option->id, 'label' => $option->name];
             }),
-            'priceListOptionsTree' => (new PriceList())->folderTree(),
+            'priceListOptionsTree' => (new PriceList)->folderTree(),
             'priceList' => $folder,
         ]);
     }
@@ -60,11 +71,42 @@ class FolderController extends Controller
      */
     public function update(Request $request, Folder $folder)
     {
-        $folder->update($request->only(['name', 'parent_id', 'saleable']));
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable', 'integer', 'exists:price_lists,id', function ($attribute, $value, $fail) use ($folder) {
+                if ($value === $folder->id) {
+                    $fail('Una cartella non può essere genitore di se stessa');
+                }
+            }],
+            'saleable' => ['nullable', 'boolean'],
+        ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($data['parent_id']) && $data['parent_id'] === '') {
+            $data['parent_id'] = null;
+        }
+
+        $folder->update($data);
 
         return to_route('app.price-lists.folders.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'folder' => $folder->id
+            'folder' => $folder->id,
+        ])
+            ->with('status', 'success');
+    }
+
+    /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(Folder $folder)
+    {
+        $newFolder = $folder->replicate();
+        $newFolder->name = 'Copia di '.$folder->name;
+        $newFolder->save();
+
+        return to_route('app.price-lists.folders.show', [
+            'tenant' => session()->get('current_tenant_id'),
+            'folder' => $newFolder->id,
         ])
             ->with('status', 'success');
     }

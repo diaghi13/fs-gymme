@@ -8,26 +8,31 @@ import MyCard from '@/components/ui/MyCard';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import GeneralTab from '@/components/products/base-product/GeneralTab';
 import ScheduleTab from '@/components/products/base-product/ScheduleTab';
-import SaleTab from '@/components/products/base-product/SaleTab';
-import { useSearchParams } from '@/hooks/useSearchParams';
 import { useQueryParam } from '@/hooks/useQueryParam';
+import OnlineTab from '@/components/products/base-product/OnlineTab';
+import SaleTab from '@/components/products/base-product/SaleTab';
+import BookingsTab from '@/components/products/base-product/BookingsTab';
+
+import DeleteIconButton from '@/components/ui/DeleteIconButton';
 
 const tabs = {
   baseProductTabs: [
     { label: 'Generale', value: '1', name: 'general' },
     { label: 'Orari', value: '2', name: 'schedule' },
-    { label: 'Vendita', value: '3', name: 'sale' }
+    { label: 'Vendita', value: '3', name: 'sale' },
+    { label: 'Online', value: '4', name: 'online' },
+    { label: 'Prenotazioni', value: '5', name: 'bookings' }
   ]
 };
 
 export interface BaseProductPageProps extends PageProps {
   products: Array<ProductListItem>;
   product?: BaseProduct;
-  vatRateOptions?: VatRate[];
+  vatRateOptions: VatRate[];
+  currentTenantId: string;
 }
 
-export default function BaseProductPage({ auth, products, product }: BaseProductPageProps) {
-  //const tab = useSearchParams('tab')?.toString();
+export default function BaseProductPage({ auth, products, product, currentTenantId }: BaseProductPageProps) {
   const [tab, setTab] = useQueryParam('tab');
   const title = 'Prodotti base';
   const [tabValue, setTabValue] = React.useState(tab || '1');
@@ -82,7 +87,14 @@ export default function BaseProductPage({ auth, products, product }: BaseProduct
         </Grid>
         <Grid size={8}>
           {product && (
-            <MyCard sx={{ p: 0 }} title={product.name} bgColor={product.color}>
+            <MyCard sx={{ p: 0 }} title={product.name} bgColor={product.color} action={
+              <DeleteIconButton
+                routeName="app.base-products.destroy"
+                urlParams={[
+                  {key: "tenant", value: currentTenantId },
+                  {key: "base_product", value: product.id},
+                ]} />
+            }>
               <Box sx={{ flexGrow: 1, display: 'flex' }}>
                 <TabContext value={tabValue}>
                   <TabList
@@ -98,7 +110,7 @@ export default function BaseProductPage({ auth, products, product }: BaseProduct
 
                   </TabList>
                   <TabPanel value="1" sx={{ width: '100%' }}>
-                    {!product.visible && (
+                    {!product.is_active && (
                       <Box sx={{ mb: 2 }}>
                         <Alert severity="warning">Questo prodotto non è visibile nelle liste</Alert>
                       </Box>
@@ -109,10 +121,16 @@ export default function BaseProductPage({ auth, products, product }: BaseProduct
                   {!isNew && (
                     <>
                       <TabPanel value="2" sx={{ width: '100%' }}>
-                        <ScheduleTab product={product} onDismiss={handleDismiss} />
+                        <ScheduleTab product={product} onDismiss={handleDismiss} tab="2" />
                       </TabPanel>
                       <TabPanel value="3" sx={{ width: '100%' }}>
                         <SaleTab product={product} onDismiss={handleDismiss} />
+                      </TabPanel>
+                      <TabPanel value="4" sx={{ width: '100%' }}>
+                        <OnlineTab product={product} onDismiss={handleDismiss} tab="4" />
+                      </TabPanel>
+                      <TabPanel value="5" sx={{ width: '100%' }}>
+                        <BookingsTab product={product} onDismiss={handleDismiss} />
                       </TabPanel>
                     </>
                   )}

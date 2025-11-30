@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Application\PriceLists;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PriceList\StoreSubscriptionRequest;
+use App\Http\Requests\PriceList\UpdateSubscriptionRequest;
 use App\Models\PriceList\Subscription;
 use App\Services\PriceList\SubscriptionPriceListService;
 use App\Support\Color;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class SubscriptionController extends Controller
@@ -21,7 +22,7 @@ class SubscriptionController extends Controller
             'saleable' => true,
         ]);
 
-        $subscription->load(['standard_content', 'optional_content',]);
+        $subscription->load(['standard_content', 'optional_content']);
 
         return Inertia::render('price-lists/price-lists', [
             ...SubscriptionPriceListService::getViewAttributes(),
@@ -32,35 +33,15 @@ class SubscriptionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, SubscriptionPriceListService $service)
+    public function store(StoreSubscriptionRequest $request, SubscriptionPriceListService $service)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:price_lists,id|integer',
-            'color' => 'required|string|max:7',
-            'saleable' => 'boolean',
-
-            'standard_content' => 'nullable|array',
-            'standard_content.*.id' => 'nullable|integer',
-            'standard_content.*.days_duration' => 'nullable|integer|min:0',
-            'standard_content.*.months_duration' => 'nullable|integer|min:0',
-            'standard_content.*.price' => 'required|numeric|min:0',
-            'standard_content.*.vat_rate_id' => 'required|exists:vat_rates,id',
-            'standard_content.*.entrances' => 'nullable|integer|min:0',
-            'standard_content.*.daily_access' => 'nullable|integer|min:0',
-            'standard_content.*.weekly_access' => 'nullable|integer|min:0',
-            'standard_content.*.reservation_limit' => 'nullable|integer|min:0',
-            'standard_content.*.daily_reservation_limit' => 'nullable|integer|min:0',
-            'standard_content.*.is_optional' => 'nullable|boolean',
-            'standard_content.*.price_listable_id' => 'required|integer',
-            'standard_content.*.price_listable_type' => 'required|string|in:App\\Models\\Product\\Product,App\\Models\\PriceList\\PriceList',
-        ]);
+        $data = $request->validated();
 
         $priceList = $service->store($data);
 
         return to_route('app.price-lists.subscriptions.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'subscription' => $priceList->id
+            'subscription' => $priceList->id,
         ])
             ->with('status', 'success');
     }
@@ -76,12 +57,16 @@ class SubscriptionController extends Controller
                 'price_listable' => function ($query) {
                     $query->with('vat_rate');
                 },
+                'services',
+                'timeRestrictions',
             ],
             'optional_content' => [
                 'vat_rate',
                 'price_listable' => function ($query) {
                     $query->with('vat_rate');
                 },
+                'services',
+                'timeRestrictions',
             ],
         ]);
 
@@ -94,35 +79,56 @@ class SubscriptionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Subscription $subscription, SubscriptionPriceListService $service)
+    public function update(UpdateSubscriptionRequest $request, Subscription $subscription, SubscriptionPriceListService $service)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:price_lists,id|integer',
-            'color' => 'required|string|max:7',
-            'saleable' => 'boolean',
-
-            'standard_content' => 'nullable|array',
-            'standard_content.*.id' => 'nullable|integer',
-            'standard_content.*.days_duration' => 'nullable|integer|min:0',
-            'standard_content.*.months_duration' => 'nullable|integer|min:0',
-            'standard_content.*.price' => 'required|numeric|min:0',
-            'standard_content.*.vat_rate_id' => 'required|exists:vat_rates,id',
-            'standard_content.*.entrances' => 'nullable|integer|min:0',
-            'standard_content.*.daily_access' => 'nullable|integer|min:0',
-            'standard_content.*.weekly_access' => 'nullable|integer|min:0',
-            'standard_content.*.reservation_limit' => 'nullable|integer|min:0',
-            'standard_content.*.daily_reservation_limit' => 'nullable|integer|min:0',
-            'standard_content.*.is_optional' => 'nullable|boolean',
-            'standard_content.*.price_listable_id' => 'required|integer',
-            'standard_content.*.price_listable_type' => 'required|string|in:App\\Models\\Product\\Product,App\\Models\\PriceList\\PriceList',
-        ]);
+        $data = $request->validated();
 
         $service->update($data, $subscription);
 
         return to_route('app.price-lists.subscriptions.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'subscription' => $subscription->id
+            'subscription' => $subscription->id,
+        ])
+            ->with('status', 'success');
+    }
+
+    /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(Subscription $subscription)
+    {
+        $newSubscription = $subscription->replicate();
+        $newSubscription->name = 'Copia di '.$subscription->name;
+        $newSubscription->save();
+
+        // Duplicate subscription contents
+        foreach ($subscription->contents as $content) {
+            $newContent = $content->replicate();
+            $newContent->subscription_id = $newSubscription->id;
+            $newContent->save();
+
+            // Duplicate time restrictions if any
+            if ($content->timeRestrictions) {
+                foreach ($content->timeRestrictions as $restriction) {
+                    $newRestriction = $restriction->replicate();
+                    $newRestriction->subscription_content_id = $newContent->id;
+                    $newRestriction->save();
+                }
+            }
+
+            // Duplicate services if any
+            if ($content->services) {
+                foreach ($content->services as $service) {
+                    $newService = $service->replicate();
+                    $newService->subscription_content_id = $newContent->id;
+                    $newService->save();
+                }
+            }
+        }
+
+        return to_route('app.price-lists.subscriptions.show', [
+            'tenant' => session()->get('current_tenant_id'),
+            'subscription' => $newSubscription->id,
         ])
             ->with('status', 'success');
     }

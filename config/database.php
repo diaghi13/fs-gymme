@@ -62,6 +62,26 @@ return [
             ]) : [],
         ],
 
+        'tenant' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => 'gymme-tenant_60876426-2e31-4a9b-a163-1e46be4a425f',
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
@@ -80,6 +100,14 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+        ],
+
+        'tenant_dev' => [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL'),
+            'database' => database_path('gymme-tenant_60876426-2e31-4a9b-a163-1e46be4a425f'),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
 
         'pgsql' => [
@@ -167,6 +195,24 @@ return [
             'password' => env('REDIS_PASSWORD'),
             'port' => env('REDIS_PORT', '6379'),
             'database' => env('REDIS_CACHE_DB', '1'),
+        ],
+
+        'session' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_SESSION_DB', '2'),
+        ],
+
+        'queue' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_QUEUE_DB', '3'),
         ],
 
     ],

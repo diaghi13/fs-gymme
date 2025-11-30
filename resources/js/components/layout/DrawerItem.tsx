@@ -14,6 +14,7 @@ import IconExpandMore from '@mui/icons-material/ExpandMore';
 import IconExpandLess from '@mui/icons-material/ExpandLess';
 import { useTheme } from '@mui/material/styles';
 import { Link } from '@inertiajs/react';
+import { useAuthorization } from '@/hooks/useAuthorization';
 
 interface DrawerCollapsableProps {
   open: boolean;
@@ -40,17 +41,41 @@ export interface DrawerItemProps {
   href?: string;
   items?: DrawerItemProps[];
   sub?: boolean;
+  permission?: string;
 }
 
-const DrawerItem = ({ name, Icon, href, items, sub }: DrawerItemProps) => {
-  //const { url } = usePage();
+const DrawerItem = ({ name, Icon, href, items, sub, permission }: DrawerItemProps) => {
+  const authorization = useAuthorization();
   const url = window.location.href;
-  //const [open, setOpen] = useState(!!items?.some(item => url.startsWith(item.href)));
   const [open, setOpen] =
     useState(items ? items.some(item => url.includes(item.href!)) : false);
   const isExpandable = items && items.length > 0;
   const theme = useTheme();
-  const active = url.includes(href!);
+
+  // DEBUG: Log permission check
+  if (permission) {
+    console.log(`[DrawerItem] ${name}:`, {
+      permission,
+      hasPermission: authorization.can(permission),
+      userPermissions: authorization.userPermissions,
+      user: authorization.user,
+      userDebug: (authorization.user as any)._debug,
+    });
+  }
+
+  // Check permission - if permission is specified and user doesn't have it, don't render
+  if (permission && !authorization.can(permission)) {
+    console.log(`[DrawerItem] HIDING ${name} - no permission: ${permission}`);
+    return null;
+  }
+
+  // Fix active state: exact match of pathname AND query params
+  const currentUrl = new URL(url);
+  const hrefUrl = href ? new URL(href, window.location.origin) : null;
+  const active = hrefUrl ?
+    currentUrl.pathname === hrefUrl.pathname &&
+    currentUrl.search === hrefUrl.search : false;
+
   const urlParams = new URLSearchParams(window.location.search);
   const tenant = urlParams.get('tenant');
   const u = href ? new URL(href, window.location.origin) : null;

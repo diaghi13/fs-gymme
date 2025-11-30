@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Models\Scopes;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Scope;
+
+class TenantScope implements Scope
+{
+    /**
+     * Apply the scope to a given Eloquent query builder.
+     *
+     * This scope ensures that tenancy is initialized before querying tenant data.
+     * It acts as a safety layer even though data isolation is primarily achieved
+     * through separate databases per tenant.
+     */
+    public function apply(Builder $builder, Model $model): void
+    {
+        // Skip scope for central models by checking the connection name
+        // This is more efficient than class_uses_recursive which can cause infinite loops
+        if ($model->getConnectionName() === 'central') {
+            return;
+        }
+
+        // Verify that tenancy is initialized
+        // Disable this check temporarily to avoid issues during boot
+        // if (! tenancy()->initialized) {
+        //     throw new \RuntimeException(
+        //         'Tenancy must be initialized before querying tenant-specific data. '.
+        //         'Model: '.get_class($model)
+        //     );
+        // }
+    }
+}

@@ -6,7 +6,7 @@ import {
   SubscriptionGeneralFormValues,
   SubscriptionGeneralFormValuesWithContent
 } from '@/components/price-list/subscription/tabs/SubscriptionGeneralTab';
-import { MEMBERSHIP } from '@/pages/price-lists/price-lists';
+import { SUBSCRIPTION_CONTENT_TYPES } from '@/constants/subscriptionContentTypes';
 import MainFormRow from '@/components/price-list/subscription/content-table/form/MainFormRow';
 import ExtraFormRow from '@/components/price-list/subscription/content-table/form/ExtraFormRow';
 
@@ -20,8 +20,13 @@ const SubscriptionTableFormRow: React.FC<SubscriptionTableFormRowProps> = ({ con
   const [expanded, setExpanded] = React.useState(false);
   const { values, setFieldValue } = useFormikContext<SubscriptionGeneralFormValues>();
   const [prevValues, setPrevValues] = useState<SubscriptionGeneralFormValuesWithContent | undefined>(undefined);
-  const isProduct = content.price_listable_type === 'App\\Models\\Product\\Product';
-  const isMembership = content.price_listable.type === MEMBERSHIP;
+
+  // Check if it's a Product (catalog) or PriceList (commercial offering)
+  const isProduct = content.price_listable_type?.includes('Product\\');
+  const isMembership = content.price_listable_type === SUBSCRIPTION_CONTENT_TYPES.MEMBERSHIP;
+  const isToken = content.price_listable_type === SUBSCRIPTION_CONTENT_TYPES.TOKEN;
+  const isGiftCard = content.price_listable_type === SUBSCRIPTION_CONTENT_TYPES.GIFT_CARD;
+
   const list = contentType === 'standard' ? 'standard_content' : 'optional_content';
   const theme = useTheme();
 

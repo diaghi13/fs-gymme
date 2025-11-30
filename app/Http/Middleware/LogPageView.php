@@ -16,10 +16,12 @@ class LogPageView
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $response = $next($request);
+        if (\App::environment('local', 'testing')) {
+            return $next($request); // Disabilita in locale e testing
+        }
 
         if (!Auth::check() || !$request->isMethod('get')) {
-            return $response; // Solo GET e solo utenti loggati
+            return $next($request); // Solo GET e solo utenti loggati
         }
 
         // Escludi alcune rotte (opzionale)
@@ -31,14 +33,14 @@ class LogPageView
 
         foreach ($excludedPaths as $excluded) {
             if ($request->is($excluded)) {
-                return $response;
+                return $next($request);
             }
         }
 
         $user = Auth::user();
 
         if ($user->hasRole('super-admin')) {
-            return $response;
+            return $next($request);
         }
 
         //tenancy()->central(function () use ($request, $user) {
@@ -65,6 +67,6 @@ class LogPageView
             $log->log("Pagina visitata: " . ($routeName ?: $uri));
         //});
 
-        return $response;
+        return $next($request);
     }
 }

@@ -9,6 +9,7 @@
 /vendor
 .env
 .env.backup
+.env.backup-redis
 .env.production
 .phpactor.json
 .phpunit.result.cache
@@ -22,3 +23,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# not load all folders that word starts with tenant
+/storage/tenant*/
+.env.backup-redis

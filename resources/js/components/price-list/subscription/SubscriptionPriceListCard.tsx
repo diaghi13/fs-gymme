@@ -5,10 +5,14 @@ import SaleForm from "@/components/price-list/subscription/SaleForm";
 import MyCard from "@/components/ui/MyCard";
 import React from "react";
 import {
+  PageProps,
   PriceListSubscription,
 } from "@/types";
 import SubscriptionOptionalTab from '@/components/price-list/subscription/tabs/SubscriptionOptionalTab';
-//import SubscriptionSummaryTab from '@/components/price-list/subscription/tabs/SubscriptionSummaryTab';
+import SubscriptionExtraTab from '@/components/price-list/subscription/tabs/SubscriptionExtraTab';
+import SubscriptionSummaryTab from '@/components/price-list/subscription/tabs/SubscriptionSummaryTab';
+import PriceListCardActions from '@/components/price-list/PriceListCardActions';
+import { usePage } from '@inertiajs/react';
 
 interface SubscriptionPriceListCardProps {
   priceList: PriceListSubscription;
@@ -18,13 +22,25 @@ export default function SubscriptionPriceListCard(
   {priceList}: SubscriptionPriceListCardProps
 ){
   const [value, setValue] = React.useState('1');
+  const { currentTenantId } = usePage<PageProps>().props;
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
 
   return (
-    <MyCard sx={{p: 0}} title={priceList.name ?? 'Nuovo abbonamento'} bgColor={priceList.color}>
+    <MyCard
+      sx={{p: 0}}
+      title={priceList.name ?? 'Nuovo abbonamento'}
+      bgColor={priceList.color}
+      action={
+        <PriceListCardActions
+          priceListId={typeof priceList.id === 'string' ? parseInt(priceList.id) : priceList.id}
+          priceListType={priceList.type}
+          tenantId={currentTenantId}
+        />
+      }
+    >
       <Box sx={{flexGrow: 1, display: 'flex'}}>
         <TabContext value={value}>
           <TabList
@@ -36,7 +52,8 @@ export default function SubscriptionPriceListCard(
             {priceList && <Tab label="Generale" value="1"/>}
             {priceList?.id && <Tab label="Opzioni" value="2"/>}
             {priceList?.id && <Tab label="Vendita" value="3"/>}
-            {priceList?.id && <Tab label="Riepilogo" value="4"/>}
+            {priceList?.id && <Tab label="Extra" value="4"/>}
+            {priceList?.id && <Tab label="Riepilogo" value="5"/>}
           </TabList>
           <TabPanel value="1" sx={{width: "100%"}}>
             <SubscriptionGeneralTab priceList={priceList} />
@@ -48,9 +65,10 @@ export default function SubscriptionPriceListCard(
             <SaleForm priceList={priceList} />
           </TabPanel>
           <TabPanel value="4" sx={{width: "100%"}}>
-            <Typography variant={"body1"}>
-              Coming soon...
-            </Typography>
+            <SubscriptionExtraTab priceList={priceList} />
+          </TabPanel>
+          <TabPanel value="5" sx={{width: "100%"}}>
+            <SubscriptionSummaryTab priceList={priceList} />
           </TabPanel>
         </TabContext>
       </Box>

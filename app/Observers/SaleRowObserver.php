@@ -2,6 +2,9 @@
 
 namespace App\Observers;
 
+use App\Models\Customer\Customer;
+use App\Models\Customer\CustomerSubscription;
+use App\Models\Customer\MembershipFee;
 use App\Models\Sale\SaleRow;
 
 class SaleRowObserver
@@ -13,31 +16,49 @@ class SaleRowObserver
     {
         $entity = $saleRow->entity;
 
+        /** @var $customer Customer */
+        $customer = $saleRow->sale->customer;
+
         $subscription = null;
 
         if ($entity instanceof \App\Models\PriceList\Membership) {
-            $subscription = $this->createSubscription($saleRow, $entity);
-
-            $subscription->entity()->associate($entity);
+            $customer->membership_fees()->save(new MembershipFee([
+                'sale_row_id' => $saleRow->id,
+                'start_date' => $saleRow->start_date,
+                'end_date' => $saleRow->end_date,
+                'notes' => null,
+            ]));
         }
 
         if ($entity instanceof \App\Models\PriceList\SubscriptionContent) {
             $entity->load('price_listable');
 
             if ($entity->price_listable instanceof \App\Models\PriceList\Membership) {
-                $subscription = $this->createSubscription($saleRow, $entity->price_listable);
-
-                $subscription->entity()->associate($entity->price_listable);
+                $customer->membership_fees()->save(new MembershipFee([
+                    'sale_row_id' => $saleRow->id,
+                    'start_date' => $saleRow->start_date,
+                    'end_date' => $saleRow->end_date,
+                    'notes' => null,
+                ]));
             }
 
             if ($entity->price_listable instanceof \App\Models\Product\BaseProduct || $entity->price_listable instanceof \App\Models\Product\CourseProduct) {
                 $subscription = $this->createSubscription($saleRow, $entity->price_listable);
 
                 $subscription->entity()->associate($entity->price_listable);
+
+                //                $customer->subscriptions()->save(new CustomerSubscription([
+                //                    'sale_row_id' => $saleRow->id,
+                //                    'type' => 'subscription',
+                //                    'price_list_id' => $saleRow->price_list_id,
+                //                    'start_date' => $saleRow->start_date,
+                //                    'end_date' => $saleRow->end_date,
+                //                    'notes' => null,
+                //                ]));
             }
         }
 
-        if (!$subscription) {
+        if (! $subscription) {
             return;
         }
 
@@ -84,6 +105,17 @@ class SaleRowObserver
             'sale_row_id' => $saleRow->id,
             'type' => $entity instanceof \App\Models\PriceList\Membership ? 'membership' : 'subscription',
             'price_list_id' => $saleRow->price_list_id,
+            'start_date' => $saleRow->start_date,
+            'end_date' => $saleRow->end_date,
+            'notes' => null,
+        ]);
+    }
+
+    protected function createMembership(SaleRow $saleRow)
+    {
+        return new MembershipFee([
+            'customer_id' => $saleRow->sale->customer_id,
+            'sale_row_id' => $saleRow->id,
             'start_date' => $saleRow->start_date,
             'end_date' => $saleRow->end_date,
             'notes' => null,

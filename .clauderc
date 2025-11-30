@@ -1,0 +1,757 @@
+# Custom Project Instructions
+# This file persists across CLAUDE.md regenerations
+
+## Multi-Tenancy Database Architecture (CRITICALLY IMPORTANT!)
+**This application uses Stancl Tenancy with SEPARATE databases for central and tenant data.**
+
+### Database Structure:
+- **CENTRAL DATABASE** (`mysql` connection): Contains `tenants`, `domains`, `users`, `subscription_plans`, `permissions`, etc.
+- **TENANT DATABASES** (`gymme-tenant_*`): Each tenant has its own database containing `products`, `price_lists`, `customers`, `sales`, `structures`, etc.
+
+### Migration Commands (NEVER CONFUSE THESE!):
+- `php artisan migrate` → Runs migrations on CENTRAL database only
+- `php artisan migrate:fresh` → Drops ALL tables in CENTRAL database (DANGER!)
+- `php artisan tenants:migrate` → Runs tenant migrations on ALL tenant databases
+- `php artisan tenants:migrate-fresh` → Drops and recreates ALL tenant databases (DANGER!)
+
+### Migration File Locations:
+- `database/migrations/` → Central database migrations
+- `database/migrations/tenant/` → Tenant database migrations
+
+### CRITICAL RULES:
+1. ⚠️ **NEVER** run `php artisan migrate --path=database/migrations/tenant` - This runs TENANT migrations on CENTRAL database!
+2. ✅ **ALWAYS** use `php artisan tenants:migrate` for tenant migrations
+3. ⚠️ **NEVER** run `migrate:fresh` without understanding it will destroy the central DB including the `tenants` table
+4. ✅ **ALWAYS** verify which database you're targeting before running destructive commands
+5. ✅ When creating migrations, place them in the correct folder based on which database they belong to
+
+### What Goes Where:
+**CENTRAL DB:**
+- Tenants, Domains, Users (global)
+- Subscription Plans (SaaS plans)
+- Permissions, Roles (global)
+
+**TENANT DB:**
+- Products, Price Lists
+- Customers, Sales, Payments
+- Structures (gym locations)
+- Documents, Invoices
+- Activity logs (tenant-specific)
+
+## Development Environment
+
+### Development Tenant Database
+- **Database name**: `gymme-tenant_60876426-2e31-4a9b-a163-1e46be4a425f`
+- Use this tenant ID for all development and testing
+- When using tinker or database queries, initialize this tenant first
+
+### Field Naming Conventions (Updated 2025-11-10)
+The following field naming standardization was completed:
+- **price_lists table**: Uses `months_duration` and `days_duration` (NOT `duration_months` or `duration_days`)
+- **subscription_contents table**: Uses `months_duration` and `days_duration`
+- **products table**: Uses `subscription_duration_months` and `subscription_duration_days` (different context, keep as-is)
+
+When working with durations in price lists or subscriptions, always use the `months_duration` / `days_duration` pattern.
+
+## Sales System Implementation Notes
+
+### Price and VAT Calculation System (Updated 2025-11-11)
+
+**Library**: `whitecube/php-prices` for precise VAT calculations with proper rounding
+
+**CRITICAL CONVENTIONS** (MUST FOLLOW):
+
+1. **Database Storage**:
+   - All prices stored as **integers (centesimi)** via `MoneyCast`
+   - MoneyCast automatically converts: EURO (float) ↔ CENTESIMI (int)
+
+2. **Application Logic**:
+   - **ALL logic uses FLOAT in EURO** (e.g., 286.89)
+   - **NEVER use centesimi** in business logic
+   - Conversion happens ONLY at database boundary (via MoneyCast)
+
+3. **Service Layer** (`PriceCalculatorService`):
+   - **Input**: CENTESIMI (int) - e.g., 35000 = €350.00
+   - **Output**: EURO (float) - e.g., 286.89
+   - Reason: Input comes from DB (centesimi), output goes to logic (euro)
+
+4. **Critical Rule for SubscriptionContent**:
+   - `$contentModel->price` returns EURO (via MoneyCast)
+   - **MUST multiply by 100** before passing to `PriceCalculatorService`
+   - Example: `PriceCalculatorService::excludeVat((int) round($price * 100), ...)`
+
+**Database Fields** (sale_rows table):
+- `unit_price_net`: Prezzo unitario NETTO (senza IVA) - stored as centesimi, used as euro
+- `unit_price_gross`: Prezzo unitario LORDO (con IVA) - stored as centesimi, used as euro
+- `vat_amount`: Importo IVA calcolato - stored as centesimi, used as euro
+- `total_net`: Totale riga NETTO - stored as centesimi, used as euro
+- `total_gross`: Totale riga LORDO - stored as centesimi, used as euro
+
+**VAT Calculation** (`PriceCalculatorService::excludeVat`):
+```php
+// Input: 35000 centesimi (€350.00 gross, IVA 22%)
+// Step 1: Calculate net in centesimi
+$unitPriceNet = round(35000 / 1.22);  // 28689 centesimi
+// Step 2: Use whitecube/php-prices for precise calculations
+// Step 3: Return in EURO for application logic
+return ['unit_price_net' => 286.89];  // EURO (float)
+```
+
+**Critical Rules**:
+1. ✅ Services return EURO (float)
+2. ✅ SaleService passes EURO to Model::create()
+3. ✅ MoneyCast converts EURO → CENTESIMI for DB
+4. ✅ MoneyCast converts CENTESIMI → EURO when reading
+5. ❌ NEVER manually multiply/divide by 100 in business logic
+6. ✅ ALWAYS use `vat_amount` from rows in `getSaleSummaryAttribute()` (never recalculate)
+
+**Example Flow**:
+```
+Frontend → €350.00 (euro)
+         ↓
+SaleService → converts to 35000 (centesimi) → PriceCalculatorService
+         ↓
+PriceCalculatorService → calculates → returns 286.89 (euro)
+         ↓
+SaleRow::create(['unit_price_net' => 286.89])  // euro
+         ↓
+MoneyCast → multiplies × 100 → saves 28689 (centesimi in DB)
+         ↓
+$saleRow->unit_price_net → MoneyCast divides ÷ 100 → returns 286.89 (euro)
+```
+
+**Electronic Invoice Compliance**:
+- All calculations are fiscally compliant with Italian regulations
+- Formula: `Netto = Lordo / (1 + IVA%)`
+- Rounding adjustments ONLY on net amount, NEVER on VAT
+- Totals document always match sum of rows (no discrepancies)
+
+### CartSidebar Component (`resources/js/pages/sales/components/CartSidebar.tsx`)
+- **Modifica Sconto Item**: Ogni item ha bottone Edit che apre dialog per modificare sconto % o € con calcolo real-time sincronizzato
+- **Dettagli Abbonamento**: Se item è subscription, mostra contenuti selezionati con durate (mesi/giorni) per verifica operatore
+- **Riepilogo IVA**: Box dedicato con breakdown per aliquota (Imponibile + IVA) per FatturaPA compliance
+- **Sconto Globale**: Visual feedback con box arancione se applicato sconto a livello vendita
+- **Totali**: Imponibile + IVA Totale + TOTALE in box evidenziato
+- **Validazione**: Bottone "Completa Vendita" disabilitato fino a quando non sono soddisfatti tutti i requisiti (cliente, prodotti, payment_condition, result)
+
+### Payment Conditions System
+- Modello `PaymentCondition` ha relazione `installments()` con `PaymentInstallment`
+- **Con Rate Predefinite** (`installments.length > 0`): Rate generate dal sistema, partono BLOCCATE ma possono essere sbloccate dall'operatore con toggle button
+- **Senza Rate** (`installments.length === 0`): Operatore può aggiungere/modificare/eliminare rate manualmente (sempre sbloccate)
+- Sistema lock/unlock implementato in `PaymentsSection.tsx` con stato `installmentsLocked`
+- Quick actions (2 rate, 3 rate, ecc.) disponibili quando sbloccato
+- Alert e bottone toggle per comunicare stato all'operatore
+
+### Electronic Invoice System (FatturaPA)
+
+**Service**: `fattura-elettronica-api.it` (intermediario accreditato SDI)
+
+**ProgressivoInvio Format**:
+- **10 caratteri** (max SDI limit)
+- Format: `TTTTTRRRRR` (timestamp suffix 5 char + random 5 char)
+- Example: `35155DEAA0`
+- **Thread-safe**: usa `uniqid()` con microseconds + PID
+- **Note**: L'intermediario sostituisce comunque con il proprio progressivo prima invio a SDI
+
+**XML Generation**:
+- Schema: **FPR12** (FatturaPA v1.2.1 - Formato Privati)
+- Version: `1.9` (in DatiTrasmissione)
+- Service: `ElectronicInvoiceService` genera XML conforme
+- Validation: XSD schema validation prima dell'invio
+
+**Document Types** (da tabella `document_type_electronic_invoices`):
+- TD01: Fattura
+- TD04: Nota di Credito
+- TD05: Nota di Debito
+- TD06: Parcella (con ritenuta d'acconto)
+- Altri: TD02, TD03, TD16-TD20, TD24-TD27
+
+**Workflow**:
+1. Vendita salvata con `status=saved`
+2. Genera XML con `ElectronicInvoiceService`
+3. Invia a fattura-elettronica-api.it
+4. API sostituisce DatiTrasmissione con propri dati
+5. API invia a SDI
+6. Webhook riceve notifiche (INVI, CONS, NONC, ACCE, RIFI, etc.)
+
+**Important Fields**:
+- `sales.sdi_transmission_id`: Nostro ProgressivoInvio (10 char)
+- `sales.electronic_invoice_status`: Stato FE (generated, sent, delivered, etc.)
+- `electronic_invoices.transmission_id`: Stesso del sale
+- `electronic_invoices.xml_content`: XML generato
+- `electronic_invoices.sdi_status`: Stato da webhook SDI
+
+### Inertia Form Handling & HTTP Requests
+**CRITICAL**: This project uses Inertia.js for all form submissions and data mutations.
+
+- **ALWAYS use Inertia's `router` methods** (`router.get()`, `router.post()`, `router.put()`, `router.delete()`) for making HTTP requests in React components
+- **NEVER use `axios` directly** for requests that modify data - this causes CSRF token issues (419 errors)
+- `router` methods automatically handle CSRF tokens, preserve state, and integrate with Inertia's page system
+- Only use `axios` for non-Inertia endpoints or when you need raw XHR responses (e.g., downloading files, external APIs)
+
+**Correct Example:**
+```tsx
+import { router } from '@inertiajs/react'
+
+router.post(
+  route('app.structures.switch', { tenant: tenantId }),
+  { structure_id: newStructureId },
+  {
+    preserveScroll: true,
+    onSuccess: () => console.log('Success!'),
+    onError: (errors) => console.error('Error:', errors),
+  }
+)
+```
+
+**Wrong Example:**
+```tsx
+// WRONG - This will cause CSRF 419 errors
+axios.post(route('app.structures.switch'), { structure_id: id })
+```
+
+### QuickProductSearch Autocomplete
+- Configurazione corretta: `value={null}`, `inputValue={searchValue}`, `filterOptions={(x) => x}` (filtro custom)
+- `isOptionEqualToValue={(option, value) => option.id === value.id}` per evitare warning
+- Formatting prezzo: `€ ${euros.toFixed(2).replace('.', ',')}` (NO divisione per 100)
+
+### Cart Item Expiry Dates
+Products that show expiry dates in cart (based on `start_date`):
+- **BaseProduct**: Uses `months_duration` from price_list
+- **CourseProduct**: Uses `months_duration` from price_list
+- **Membership**: Uses `months_duration` from price_list
+- **Token**: Uses `months_duration`, `validity_months`, or `validity_days` from price_list
+- **Subscription contents**: Uses `months_duration` or `days_duration` from subscription_content
+
+Products that DON'T show expiry dates:
+- **Article**: One-time purchase, no expiry
+- **DayPass**: Single day access
+- **GiftCard**: Has validity_months but handled differently
+
+## Material UI v6 Implementation
+
+### Critical Information
+- This project uses **Material UI (MUI) v6**, which has significant breaking changes from v5
+- **ALWAYS** check existing MUI components in the project before creating new ones to follow the correct v6 patterns
+
+### Grid Component Changes (IMPORTANT!)
+
+**The Grid component API has completely changed in v6:**
+
+- **REMOVED**: Individual breakpoint props (`xs`, `sm`, `md`, `lg`, `xl`)
+- **NEW**: Unified `size` prop with object syntax
+- **REMOVED**: `item` prop (no longer needed)
+- **CHANGED**: `container` prop remains the same
+
+**Examples:**
+
+```tsx
+// ❌ WRONG (v5 syntax - DO NOT USE)
+<Grid container spacing={3}>
+  <Grid item xs={12} md={6}>
+    <Card>Content</Card>
+  </Grid>
+</Grid>
+
+// ✅ CORRECT (v6 syntax - USE THIS)
+<Grid container spacing={3}>
+  <Grid size={{ xs: 12, md: 6 }}>
+    <Card>Content</Card>
+  </Grid>
+</Grid>
+
+// Single breakpoint (same size for all)
+<Grid size={6}>
+  <Card>Content</Card>
+</Grid>
+
+// Auto grow
+<Grid size="grow">
+  <Card>Content</Card>
+</Grid>
+```
+
+### ListItem Component
+- Use `ListItemButton` for clickable items instead of `ListItem` with button prop
+- Check existing list components in the project for correct patterns
+
+### Other v6 Changes
+- **Package Structure**: ESM code at root, CommonJS in `node/` build
+- **UMD bundle removed** (aligns with React 19)
+- **Grid spacing** uses CSS gap property (more modern approach)
+- **Import from @mui/material** remains the same
+
+## Custom Components & Project Patterns
+
+This project has many custom reusable components, hooks, and utilities. **ALWAYS check for existing components before creating new ones.**
+
+### Layouts
+
+**AppLayout** (`resources/js/layouts/AppLayout.tsx`):
+- Main application layout with sidebar, header, breadcrumbs, and footer
+- **Required props**: `user: User`, `title?: string`
+- Features: automatic breadcrumbs, flash messages via Snackbar, onboarding wizard, online users context
+- Automatically handles tenant headers in axios
+
+**Other Layouts**:
+- `AuthLayout.tsx` - For authentication pages
+- `CentralLayout.tsx` - For central/admin pages
+- Settings and configuration layouts available in `resources/js/layouts/`
+
+### Custom Hooks
+
+**useRolesPermissions** (`resources/js/hooks/useRolesPermissions.ts`):
+- Check user roles and permissions
+- Returns `{ role, can }` functions
+
+**useLocalStorage** (`resources/js/hooks/useLocalStorage.ts`):
+- Persist state in localStorage with React state sync
+- Usage: `const [value, setValue] = useLocalStorage('key', defaultValue);`
+
+**Other Hooks Available**:
+- `useLocalStorageObject.ts` - For objects in localStorage
+- `useSearchParams.ts` - URL search params management
+- `useQueryParam.ts` - Single query param management
+- `useExitPromt.ts` - Warn before leaving page with unsaved changes
+- `use-mobile-navigation.ts` - Mobile nav state
+
+### Formik-Integrated Components
+
+All form components in `resources/js/components/ui/` are **Formik-integrated** - they use `useField` internally.
+
+**Autocomplete** (`resources/js/components/ui/Autocomplete.tsx`):
+```tsx
+import Autocomplete from '@/components/ui/Autocomplete';
+import { Formik, Form } from 'formik';
+
+<Formik initialValues={{ country: null }}>
+  <Form>
+    <Autocomplete
+      name="country"
+      label="Select Country"
+      options={countries}
+      getOptionLabel={(option) => option.name}
+    />
+  </Form>
+</Formik>
+```
+
+**DatePicker** (`resources/js/components/ui/DatePicker.tsx`):
+```tsx
+import DatePicker from '@/components/ui/DatePicker';
+
+<DatePicker
+  name="birthDate"
+  label="Data di nascita"
+/>
+// Automatically integrated with Formik field state
+```
+
+**Other Formik Components Available**:
+- `TextField.tsx` - Formik-integrated text field
+- `MoneyTextField.tsx` - Money input with formatting
+- `ColorInput.tsx` - Color picker
+- `Checkbox.tsx` - Formik checkbox
+- `DateTimePicker.tsx` - Date and time picker
+- `RadioButtonsGroup.tsx` - Radio group
+
+### Utility Functions
+
+**cn() function** (`resources/js/lib/utils.ts`):
+- Merge Tailwind classes with clsx
+- Usage: `cn('base-class', condition && 'conditional-class', props.className)`
+
+### Third-Party Library Integration
+
+**Ziggy (Laravel Routes in JS)**:
+```tsx
+import { router } from '@inertiajs/react';
+
+// Generate URL with route name
+route('app.customers.show', { customer: 123, tenant: tenantId })
+
+// Navigate using Inertia router
+router.get(route('dashboard'))
+router.post(route('api.save'), formData)
+```
+
+**Formik (Form Management)**:
+- All forms use Formik for state management and validation
+- Custom components are pre-integrated with Formik's `useField`
+- Always use Formik's `<Form>` component
+
+**MUI X Date Pickers**:
+- `@mui/x-date-pickers` used for all date/time inputs
+- Wrapped in custom components with Formik integration
+
+**Axios Configuration**:
+- Automatically includes tenant header: `X-Tenant` header set in AppLayout
+- Base URL configured for API calls
+- Use directly: `axios.post(route('api.endpoint'), data)`
+
+**Lucide React (Icons)**:
+- Icon library: `lucide-react`
+- Import specific icons: `import { User, Settings } from 'lucide-react'`
+
+**Laravel Echo**:
+- Real-time events with `@laravel/echo-react`
+- OnlineUsersProvider context available in AppLayout
+
+### PageProps Pattern
+
+**All pages receive PageProps** from Inertia with these properties:
+```tsx
+interface PageProps {
+  auth: {
+    user: User;  // Current authenticated user
+  };
+  success: boolean;
+  app_config: {
+    [key: string]: string | number;
+  };
+  flash: {
+    status: 'success' | 'info' | 'warning' | 'error' | undefined;
+    message: string;
+  };
+  currentTenantId: string;  // Active tenant ID
+  tenant?: {  // Tenant info (if in tenant context)
+    id: string;
+    name: string;
+    onboarding_completed_at: string | null;
+    trial_ends_at: string | null;
+  };
+}
+```
+
+**Extending PageProps**:
+```tsx
+interface MyPageProps extends PageProps {
+  // Use different prop name if conflicts with PageProps.tenant
+  customData: MyDataType;
+}
+
+export default function MyPage({ auth, customData }: MyPageProps) {
+  // ...
+}
+```
+
+### Component Organization
+
+**Tailwind Components** (`resources/js/components/tailwind/`):
+- shadcn/ui components adapted for this project
+- Use these for Tailwind-styled UI primitives
+
+**MUI Components** (`resources/js/components/ui/` with capitalized names):
+- Custom MUI-based components
+- Formik-integrated form controls
+
+**Domain Components**:
+- `resources/js/components/customers/` - Customer-related
+- `resources/js/components/products/` - Product-related
+- `resources/js/components/sales/` - Sales-related
+- `resources/js/components/price-list/` - Price list components
+
+### Best Practices
+
+1. **Always check existing components** before creating new ones
+2. **Use Formik-integrated components** for all form fields
+3. **Use route() helper** instead of hardcoded URLs
+4. **Extend PageProps correctly** - avoid conflicts with built-in properties
+5. **Use AppLayout** for authenticated pages with sidebar
+6. **Check hooks directory** before implementing custom state logic
+7. **Use cn() utility** for conditional class merging with Tailwind
+
+---
+
+## VAT System (CRITICAL - Updated 2025-11-19)
+
+### VAT Nature Architecture (NO MORE BOOLEAN SETTINGS!)
+- **vat_natures** table: 24 nature IVA italiane (N1-N7 + 17 sub-nature)
+- **Gerarchia**: `parent_code` (es: N3 → N3.1, N3.2, N3.3, N3.4, N3.5, N3.6)
+- ❌ **DEPRECATO**: `vat.exempt_nature_n1-n7` boolean in TenantSettings
+- ✅ **CORRETTO**: Usa `VatNature::all()` per leggere dinamicamente
+
+### VAT Rate Structure
+- **vat_rate_types**: 4 tipi (ESC, ESE, IMP, NIM) con `code`, `description`, `order`
+- **vat_rate_groups**: 15 gruppi (NORM, ART10, SPLIT, etc.) con `code`, `description`, `order`
+- **vat_rates**: 152 aliquote con `is_active` (attiva per tenant) e `is_system` (predefinita vs custom)
+- **Attivazione tenant**: `VatSettingsController@toggleActive()`
+- **Aliquote custom**: `VatSettingsController@storeCustomRate()`
+
+### Controller Pattern
+```php
+// CORRETTO
+public function show() {
+    return Inertia::render('configurations/vat-settings', [
+        'vatRates' => VatRate::with(['vat_rate_type', 'vat_rate_group'])->get(),
+        'vatNatures' => VatNature::all(), // Dinamiche da DB
+        'vatRateTypes' => VatRateType::orderBy('order')->get(),
+        'vatRateGroups' => VatRateGroup::orderBy('order')->get(),
+    ]);
+}
+
+// SBAGLIATO
+$exemptNatures = ['N1', 'N2', ...]; // NO hardcoded array!
+```
+
+---
+
+## Electronic Invoice (FatturaPA) System (CRITICAL!)
+
+### Key Services & Flow
+1. **ElectronicInvoiceService**: XML generation (Schema FPR12 v1.9)
+2. **FatturaElettronicaApiService**: API integration con fattura-elettronica-api.it
+3. **SdiErrorParserService**: 70+ codici errore SDI con suggerimenti italiani
+4. **ElectronicInvoicePreservationService**: Conservazione 10 anni (CAD art. 3)
+
+**Workflow**:
+```
+Sale (status=saved) → generateXml() → send() → Webhook (invoice.accepted) → ACCEPTED
+```
+
+### ProgressivoInvio (CRITICAL!)
+- **10 char max** (SDI limit): Format `TTTTTRRRRR` (timestamp 5 + random 5)
+- Thread-safe: `uniqid()` + microseconds + PID
+- **Nota**: Provider sostituisce prima invio SDI
+
+### Document Types Auto-Detection
+- TD01: Fattura normale
+- TD04: Nota di credito (se `original_sale_id` presente)
+- TD05: Nota di debito
+- TD06: Parcella con ritenuta
+
+### Critical Fields
+- `sales.sdi_transmission_id`: Nostro ProgressivoInvio
+- `sales.electronic_invoice_status`: Stato FE (generated, sent, accepted, rejected)
+- `electronic_invoices.external_id`: API provider ID (per webhook lookup)
+- `electronic_invoices.xml_content`: XML generato
+- `electronic_invoice_lookups` (central DB): Lookup O(1) per webhook multi-tenant
+
+### Webhook Multi-Tenant Pattern (SECURITY!)
+❌ **NEVER** iterate all tenants in webhook:
+```php
+// SBAGLIATO
+foreach (Tenant::all() as $tenant) { /* search invoice */ }
+```
+
+✅ **CORRECT** - Use lookup table (O(1)):
+```php
+$lookup = ElectronicInvoiceLookup::where('external_id', $externalId)->first();
+tenancy()->initialize($lookup->tenant_id);
+```
+
+---
+
+## Customer Multi-Tenant Creation (CRITICAL!)
+
+### Creation Flow (MUST FOLLOW!)
+**ALWAYS use `CustomerService::createWithUser()` - NEVER create manually!**
+
+```php
+// CORRETTO - Service handles everything
+$customer = CustomerService::createWithUser($validatedData, $tenant);
+
+// Flow interno del service:
+// 1. Check CentralUser exists (email)
+// 2. If NO → Create CentralUser (central DB)
+// 3. If YES → Attach tenant via tenant_users pivot
+// 4. Create User (tenant DB) with global_id reference
+// 5. Assign role 'customer' (NOT 'user')
+// 6. Create Customer with user_id
+```
+
+### Key Relationships
+```php
+$customer->user                  // User (tenant)
+$user->centralUser               // CentralUser (via global_id)
+$centralUser->tenants            // Multiple tenants (via pivot)
+```
+
+### MembershipFee vs SportsRegistration (DIFFERENT!)
+**MembershipFee** (`membership_fees`):
+- Quota associativa **ALLA STRUTTURA** (€30-50/anno)
+- **AUTO-CREATED** da `SaleRowObserver` quando venduto prodotto `membership_fee`
+- Read-only (NO create/delete), solo correzioni date/status
+- Dialog: 👁️ "Visualizza" (view + corrections)
+
+**SportsRegistration** (`sports_registrations`):
+- Tesseramento ad **ENTE SPORTIVO** (ASI, CONI, FIF, FIPE)
+- **FULL CRUD** (create/update/delete manuale)
+- Per gare e manifestazioni
+- Spesso GRATUITO
+- Dialog: ✏️ "Modifica" (full management)
+
+❌ **NEVER confuse these two!**
+
+---
+
+## Model Observers (AUTO-CREATION!)
+
+### SaleRowObserver (MOST IMPORTANT!)
+**Registered**: `AppServiceProvider::boot()`
+
+**On `created` event**:
+```php
+if ($saleRow->entitable_type === 'subscription' || 'course') {
+    // AUTO-CREATE CustomerSubscription
+    CustomerSubscription::create([...]);
+}
+
+if ($saleRow->entitable->product_type === 'membership_fee') {
+    // AUTO-CREATE MembershipFee
+    MembershipFee::create([...]);
+}
+```
+
+❌ **NEVER** create `CustomerSubscription` or `MembershipFee` manually!
+✅ **ALWAYS** let observer handle it via sale creation!
+
+### CustomerObserver
+- Dispatches `CustomerCreated` event
+- Triggers `SendWelcomeEmail` listener (queued)
+- Only if `gdpr_consent` + `marketing_consent` true
+
+---
+
+## Sales & Payments Critical Patterns
+
+### Sale Status Flow
+- `draft` → WIP, editable
+- `saved` → Finalized, ready for FE
+- `sent` → FE sent to SDI
+- ❌ **NEVER use `completed`** (deprecated)
+
+### Payment Conditions Modes
+**Mode 1: Predefined** (`installments.length > 0`):
+- Start LOCKED, operator unlocks with toggle
+- Quick actions only when unlocked
+
+**Mode 2: Custom** (`installments.length === 0`):
+- Always UNLOCKED
+- Operator full control
+
+### Cart Discount Pattern
+- Each item: Edit button → dialog with % or € discount
+- Real-time calc via `useQuickCalculate` hook
+- Global discount: orange box visual
+
+### VAT Breakdown (FatturaPA Compliance!)
+**MUST show** per-aliquota breakdown in CartSidebar:
+- Imponibile per aliquota
+- IVA per aliquota
+- Box dedicato riepilogo
+
+---
+
+## Backend Patterns (Quick Reference)
+
+### Controller Action Signatures
+```php
+// SEMPRE explicit return types
+public function store(StoreRequest $request, MyService $service): RedirectResponse
+public function index(Request $request): Response  // Inertia
+public function show(Model $model): JsonResponse  // API
+```
+
+### Service Layer Conventions
+```php
+// Constructor property promotion (PHP 8)
+public function __construct(
+    private GitHub $github,
+    private Logger $logger
+) {}
+
+// Return arrays for Inertia props, models quando appropriato
+public function getData(): array { return [...]; }
+```
+
+### Form Request Validation
+- **Array-based rules** (not fluent): `'email' => ['required', 'email']`
+- **Custom validators**: Italian tax code, VAT, phone
+- **Tenant-unique**: `Rule::unique('customers', 'email')->where('tenant_id', tenant('id'))`
+- **Authorization**: `tenancy()->central(fn () => $this->user()->can('action'))`
+- **Italian error messages**: Always in messages() method
+
+### Model Relationship Return Types
+```php
+// SEMPRE explicit return types
+public function user(): BelongsTo { return $this->belongsTo(User::class); }
+public function sales(): HasMany { return $this->hasMany(Sale::class); }
+public function subscription(): MorphOne { return $this->morphOne(CustomerSubscription::class, 'entitable'); }
+```
+
+### Computed Attributes Pattern
+```php
+protected $appends = ['full_name', 'avatar_url'];
+
+public function getFullNameAttribute(): string {
+    return $this->first_name . ' ' . $this->last_name;
+}
+
+// Storage accessor con tenant awareness
+public function getAvatarUrlAttribute(): ?string {
+    return $this->avatar_path
+        ? route('app.storage', ['tenant' => session('current_tenant_id'), 'path' => $this->avatar_path])
+        : null;
+}
+```
+
+---
+
+## Frontend Patterns (Quick Reference)
+
+### Available Custom Hooks (13+)
+- `useQuickCalculate` - Real-time sale calculations
+- `useCalculateInstallments` - Payment plan generation
+- `useRolePermissionLabels` - Italian permission translations (**ALWAYS use this!**)
+- `useRegionalSettings` - Date/currency formatting
+- `useAuthorization` - Permission checks
+- `useLocalStorage` / `useLocalStorageObject` - Persistent state
+- `useSearchParams` / `useQueryParam` - URL state
+- `useExitPrompt` - Unsaved changes warning
+- `use-mobile-navigation` - Mobile nav state
+
+### Formik + Inertia Best Practices
+```tsx
+const formik: FormikConfig<FormValues> = {
+  enableReinitialize: true,  // CRITICAL - allows form reset after save
+  initialValues: { /* from backend props */ },
+  onSubmit: (values, { setSubmitting }) => {
+    router.patch(route('update'), values, {
+      onFinish: () => setSubmitting(false),  // CRITICAL - prevents infinite loading
+      preserveScroll: true,
+    });
+  },
+};
+```
+
+### Currency Display (Regional Settings!)
+```tsx
+// ALWAYS use FormattedCurrency component
+import FormattedCurrency from '@/components/ui/FormattedCurrency';
+
+<FormattedCurrency value={amount} showSymbol={true} />
+// Respects tenant regional settings (decimal separator, symbol position)
+```
+
+---
+
+## Common Anti-Patterns (AVOID!)
+
+### ❌ Backend Anti-Patterns
+1. Manual `CustomerSubscription` creation (use SaleRowObserver)
+2. Manual `MembershipFee` creation (use SaleRowObserver)
+3. Hardcoded VAT nature arrays (use `VatNature::all()`)
+4. Manual * or / by 100 for money (MoneyCast handles it)
+5. Using `axios` for form submissions (use `router.post()`)
+6. Iterating tenants in webhook (use lookup table)
+7. Running tenant migrations on central DB (`migrate --path=...`)
+
+### ❌ Frontend Anti-Patterns
+1. Not using `enableReinitialize: true` in Formik
+2. Not calling `setSubmitting(false)` in onFinish
+3. Using `axios.post()` for Inertia forms (use `router.post()`)
+4. Hardcoding permission labels (use `useRolePermissionLabels`)
+5. Manual currency formatting (use `FormattedCurrency`)
+6. Creating new hooks without checking existing ones
+7. MUI v5 syntax (use v6 Grid with `size` prop)

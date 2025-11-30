@@ -1,10 +1,15 @@
-// Components
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
-
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
+import {
+    Box,
+    Button,
+    Typography,
+    Alert,
+    CircularProgress,
+    Stack,
+    Link as MuiLink
+} from '@mui/material';
+import { Link } from '@inertiajs/react';
 import AuthLayout from '@/layouts/auth-layout';
 
 export default function VerifyEmail({ status }: { status?: string }) {
@@ -17,25 +22,37 @@ export default function VerifyEmail({ status }: { status?: string }) {
     };
 
     return (
-        <AuthLayout title="Verify email" description="Please verify your email address by clicking on the link we just emailed to you.">
-            <Head title="Email verification" />
+        <AuthLayout
+            title="Verifica email"
+            description="Verifica il tuo indirizzo email cliccando sul link che ti abbiamo appena inviato."
+        >
+            <Head title="Verifica email" />
 
             {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    A new verification link has been sent to the email address you provided during registration.
-                </div>
+                <Alert severity="success" sx={{ mb: 3 }}>
+                    Un nuovo link di verifica è stato inviato all'indirizzo email fornito durante la registrazione.
+                </Alert>
             )}
 
-            <form onSubmit={submit} className="space-y-6 text-center">
-                <Button disabled={processing} variant="secondary">
-                    {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                    Resend verification email
-                </Button>
+            <Box component="form" onSubmit={submit} sx={{ width: '100%', textAlign: 'center' }}>
+                <Stack spacing={3} alignItems="center">
+                    <Button
+                        type="submit"
+                        variant="outlined"
+                        size="large"
+                        disabled={processing}
+                        startIcon={processing ? <CircularProgress size={16} /> : null}
+                    >
+                        {processing ? 'Invio in corso...' : 'Reinvia email di verifica'}
+                    </Button>
 
-                <TextLink href={route('logout')} method="post" className="mx-auto block text-sm">
-                    Log out
-                </TextLink>
-            </form>
+                    <Link href={route('logout')} method="post">
+                        <MuiLink component="span" sx={{ cursor: 'pointer', fontSize: '0.875rem' }}>
+                            Logout
+                        </MuiLink>
+                    </Link>
+                </Stack>
+            </Box>
         </AuthLayout>
     );
 }

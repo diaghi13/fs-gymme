@@ -68,7 +68,8 @@ interface CardProps {
   chipProps?: {
     label: string;
     color: "success" | "warning" | "secondary" | "default" | "primary" | "error" | "info";
-  }
+  };
+  actions?: React.ReactNode;
 }
 
 const SmallCard = (
@@ -84,7 +85,8 @@ const SmallCard = (
     ActionIcon,
     onHeaderActionClick,
     chip = false,
-    chipProps
+    chipProps,
+    actions
   }: CardProps) => {
   const skeletonAnimation = "wave";
   const iconFontSize = iconSize && iconSize === "small" ? 30 : 60;
@@ -98,11 +100,15 @@ const SmallCard = (
       <StyledCard color={color} sx={{zIndex: 1}}>
         <CardHeader
           action={
-            hasAction && (
-              <IconButton aria-label="settings" onClick={onHeaderActionClick}>
-                {ActionIcon ? <ActionIcon/> : <MoreVert/>}
-              </IconButton>
-            )}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              {actions}
+              {hasAction && (
+                <IconButton aria-label="settings" onClick={onHeaderActionClick}>
+                  {ActionIcon ? <ActionIcon/> : <MoreVert/>}
+                </IconButton>
+              )}
+            </Box>
+          }
           title={title}
           sx={{pb: 0, color: textContentColor}}
         />

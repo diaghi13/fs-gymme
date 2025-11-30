@@ -13,12 +13,20 @@ class StructureScope implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
-        $builder->where('structure_id', 1);
+        $structureId = null;
 
-//        if (auth()->check() && auth()->user()->structure_id) {
-//            $builder->where('structure_id', 1);
-//        } else {
-//            $builder->whereNull('structure_id');
-//        }
+        // Priority 1: Try to get from session (primary source)
+        if (session()->has('current_structure_id')) {
+            $structureId = session()->get('current_structure_id');
+        }
+        // Priority 2: Fallback to cookie (if session not available)
+        elseif (request()->hasCookie('current_structure_id')) {
+            $structureId = request()->cookie('current_structure_id');
+        }
+
+        // Apply scope if we found a structure_id
+        if ($structureId !== null) {
+            $builder->where($model->getTable().'.structure_id', $structureId);
+        }
     }
 }

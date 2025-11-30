@@ -24,6 +24,7 @@ import SearchDialog from '@/components/layout/SearchDialog';
 import { PageProps } from '@/types';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useRolesPermissions } from '@/hooks/useRolesPermissions';
+import StructureSwitcher from '@/components/StructureSwitcher';
 
 interface StyledAppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -128,6 +129,7 @@ export default function AppBar({ open, setOpen }: AppBarProps) {
             Cerca...
           </Typography>
         </Search>
+        <StructureSwitcher />
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           {role('super-admin') && (
             <Tooltip title="Amministrazione">

@@ -1,0 +1,203 @@
+﻿Fatture B2B in forma semplificata (ex art. 21-bis DPR 633/72) ;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;
+ID e Nome Tag XML;;;;;;;;Tipo info;Descrizione funzionale;Formato e valori ammessi;"    Obbligatorietà e occorrenze
+                        <A.B>
+Legenda
+A = 0    elemento non obbligatorio
+A = 1     elemento obbligatorio
+
+B = 1    ammessa una sola occorrenza
+B = N   ammessa una o più occorrenze";"    Dimensione
+
+Legenda
+A … B = min. A, max B
+A = dimensione fissa
+";"Controlli ""extra schema""";"Codice e descrizione dell'errore
+in caso di controllo non superato"
+1   <FatturaElettronicaHeader>;;;;;;;;;Il blocco ha molteplicità pari a 1, sia nel caso di fattura singola che nel caso di lotto di fatture;;<1.1>;;;
+;1.1   <DatiTrasmissione>;;;;;;;;Blocco sempre obbligatorio contenente informazioni che identificano univocamente il soggetto che trasmette, il documento trasmesso, il formato in cui è stato trasmesso il documento, il soggetto destinatario;;<1.1>;;;
+;;1.1.1   <IdTrasmittente>;;;;;;;"E' l’identificativo univoco del soggetto trasmittente; per i soggetti residenti in Italia, siano essi persone fisiche o giuridiche, corrisponde al codice fiscale preceduto da IT; per i soggetti non residenti corrisponde al numero identificativo IVA (dove i primi due caratteri rappresentano il paese secondo lo standard ISO 3166-1 alpha-2 code, ed i restanti, fino ad un massimo di 28, il codice vero e proprio)";;<1.1>;;;
+;;;1.1.1.1   <IdPaese>;;;;;xs:string;Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code;[IT], [ES], [DK],[…];<1.1>;2;;
+;;;1.1.1.2   <IdCodice>;;;;;xs:string;Codice identificativo fiscale;formato alfanumerico;<1.1>;1 … 28;"Se l'elemento informativo 1.1.1.1 <IdPaese> vale ""IT"", viene verificato che il Codice Fiscale sia censito in Anagrafe Tributaria";00300: 1.1.1.2 <IdCodice> non valido
+;;1.1.2   <ProgressivoInvio>;;;;;;xs:normalizedString;Numerazione attribuita dal soggetto che trasmette, secondo sue proprie regole;formato alfanumerico;<1.1>;1 … 10;;
+;;1.1.3   <FormatoTrasmissione>;;;;;;xs:string;Contiene il codice identificativo del tipo di trasmissione che si sta effettuando e del relativo formato;"valori ammessi:
+[FSM10]";<1.1>;5;;
+;;1.1.4   <CodiceDestinatario>;;;;;;xs:string;"Contiene il codice, di 7 caratteri, assegnato dal Sdi ai soggetti che hanno accreditato un canale; qualora il destinatario non abbia accreditato un canale presso SdI e riceva via PEC le fatture, l'elemento deve essere valorizzato con tutti zeri ('0000000'). ";formato alfanumerico;<1.1>;7;"Viene controllata la validità del codice che deve essere presente nell'anagrafica del Sistema di Interscambio (se diverso da ""0000000"" e da ""XXXXXXX"") .
+Inoltre, quando valorizzato con ""XXXXXXX"", viene controllato che l'elemento 
+informativo 1.3.1.1.1 <IdPaese> sia diverso da ""IT""
+";"00311:  1.1.4 <CodiceDestinatario> non valido
+00313: L’elemento 1.1.4 <CodiceDestinatario> può essere valorizzato con “XXXXXXX” per comunicare i dati di fatture emesse esclusivamente verso soggetti non residenti (1.3.1.1 <IdFiscaleIVA> deve essere valorizzato e 1.3.1.1.1 <IdPaese> deve esserre diverso da “IT”)
+"
+;;1.1.5   <PECDestinatario>;;;;;;xs:normalizedString;Indirizzo PEC al quale inviare il documento.  ;formato alfanumerico;<0.1>;7 … 256;Viene controllato che non sia corrispondente ad una delle caselle PEC di funzionamento del SdI (sdiXX@pec.fatturapa.it);0330: 1.1.5 <PECDestinatario> contenente un valore non ammesso
+;1.2   <CedentePrestatore>;;;;;;;;Blocco sempre obbligatorio contenente dati relativi al cedente / prestatore (fornitore);;<1.1>;;;
+;;1.2.1   <IdFiscaleIVA>;;;;;;;"Numero di identificazione fiscale ai fini IVA; i primi due caratteri rappresentano il paese ( IT, DE, ES …..) ed i restanti (fino ad un massimo di 28) il codice vero e proprio che, per i residenti in Italia, corrisponde al numero di partita IVA.";;<1.1>;;;
+;;;1.2.1.1   <IdPaese>;;;;;xs:string;Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code;[IT], [ES], [DK],[…];<1.1>;2;"Se l'elemento informativo 1.2.1.1 <IdPaese> ha un valore diverso da ""IT"", viene verificato 
+che l'elemento informativo 1.3.1.1.1 <IdPaese> non sia anche esso diverso da ""IT""";00476: gli elementi 1.2.1.1 <IdPaese> e 1.3.1.1.1 <IdPaese> non possono essere entrambi valorizzati con codice diverso da IT
+;;;1.2.1.2   <IdCodice>;;;;;xs:string;Codice identificativo fiscale;formato alfanumerico;<1.1>;1 … 28;"Se l'elemento informativo 1.2.1.1 <IdPaese> vale ""IT"", viene verificato che la Partita IVA sia censita in Anagrafe Tributaria e non sia cessata
+";00301: 1.2.1.2 <IdCodice> non valido
+;;1.2.2   <CodiceFiscale>;;;;;;xs:string;Numero di Codice Fiscale;formato alfanumerico;<0.1>;11 … 16;Se presente, viene verificato che sia coerente con l'elemento 1.2.1 <IdFiscaleIVA>;"00320: 1.2.1 <IdFiscaleIVA> e 1.2.2 <CodiceFiscale> non coerenti
+00321: 1.2.2 <CodiceFiscale> di soggetto non partecipante al gruppo IVA
+00322: 1.2.2 <CodiceFiscale> non presente a fronte di 1.2.1 <IdFiscaleIVA> di gruppo IVA
+"
+;;1.2.3   <Denominazione>;;;;;;xs:normalizedString;"Ditta, denominazione o ragione sociale (ditta, impresa, società, ente); elemento informativo obbligatorio ma da valorizzare in alternativa agli elementi informativi 1.2.4 <Nome> e 1.2.5 <Cognome>";formato alfanumerico;<0.1>;1 … 80;;
+;;1.2.4   <Nome>;;;;;;xs:normalizedString;Nome della persona fisica. Elemento informativo obbligatorio ma da valorizzare insieme all'elemento informativo 1.2.5 <Cognome>  ed in alternativa all'elemento informativo 1.2.3 <Denominazione>;formato alfanumerico;<0.1>;1 … 60;;
+;;1.2.5   <Cognome>;;;;;;xs:normalizedString;Cognome della persona fisica. Elemento informativo obbligatorio ma da valorizzare insieme all'elemento informativo 1.2.4 <Nome>  ed in alternativa all'elemento informativo 1.2.3 <Denominazione>;formato alfanumerico;<0.1>;1 … 60;;
+;;1.2.6   <Sede>;;;;;;;Blocco contenente i dati della sede del cedente / prestatore. Si tratta della sede legale per le società e del domicilio fiscale per le ditte individuali e i lavoratori autonomi.;;<1.1>;;;
+;;;1.2.6.1   <Indirizzo>;;;;;xs:normalizedString;Indirizzo della sede del cedente o prestatore (nome della via, piazza etc.);formato alfanumerico;<1.1>;1 … 60;;
+;;;1.2.6.2   <NumeroCivico>;;;;;xs:normalizedString;Numero civico riferito all'indirizzo (non indicare se già presente nell'elemento informativo indirizzo);formato alfanumerico;<0.1>;1 … 8;;
+;;;1.2.6.3   <CAP>;;;;;xs:string;Codice Avviamento Postale;formato numerico;<1.1>;5;;
+;;;1.2.6.4   <Comune>;;;;;xs:normalizedString;Comune relativo alla sede del cedente / prestatore;formato alfanumerico;<1.1>;1 … 60;;
+;;;1.2.6.5   <Provincia>;;;;;xs:string;Sigla della provincia di appartenenza del comune indicato nell'elemento informativo 1.2.6.4 <Comune>. Da valorizzare se l'elemento informativo 1.2.6.6 <Nazione> è uguale a IT;[RM], [MI], […];<0.1>;2;;
+;;;1.2.6.6   <Nazione>;;;;;xs:string;Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code;[IT], [ES], [DK],[…];<1.1>;2;;
+;;1.2.7   <StabileOrganizzazione>;;;;;;;Blocco da valorizzare nei casi di cedente / prestatore non residente, con stabile organizzazione in Italia;;<0.1>;;;
+;;;1.2.7.1   <Indirizzo>;;;;;xs:normalizedString;Indirizzo della stabile organizzazione in Italia (nome della via, piazza etc.);formato alfanumerico;<1.1>;1 … 60;;
+;;;1.2.7.2   <NumeroCivico>;;;;;xs:normalizedString;Numero civico riferito all'indirizzo (non indicare se già presente nell'elemento informativo indirizzo);formato alfanumerico;<0.1>;1 … 8;;
+;;;1.2.7.3   <CAP>;;;;;xs:string;Codice Avviamento Postale;formato numerico;<1.1>;5;;
+;;;1.2.7.4   <Comune>;;;;;xs:normalizedString;Comune relativo alla stabile organizzazione in Italia;formato alfanumerico;<1.1>;1 … 60;;
+;;;1.2.7.5   <Provincia>;;;;;xs:string;Sigla della provincia di appartenenza del comune indicato nell'elemento informativo 1.2.7.4 <Comune>. Da valorizzare se l'elemento informativo 1.2.7.6 <Nazione> è uguale a IT;[RM], [MI], […];<0.1>;2;;
+;;;1.2.7.6   <Nazione>;;;;;xs:string;Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code;[IT], [ES], [DK],[…];<1.1>;2;;
+;;1.2.8   <RappresentanteFiscale>;;;;;;;Blocco da valorizzare nei casi in cui il cedente / prestatore si avvalga di un rappresentante fiscale in Italia.;;<0.1>;;;
+;;;1.2.8.1   <IdFiscaleIVA>;;;;;;"Numero di identificazione fiscale ai fini IVA; i primi due caratteri rappresentano il paese ( IT, DE, ES …..) ed i restanti (fino ad un massimo di 28) il codice vero e proprio che, per i residenti in Italia, corrisponde al numero di partita IVA.";;<1.1>;;;
+;;;;1.2.8.1.1   <IdPaese>;;;;xs:string;Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code;[IT], [ES], [DK],[…];<1.1>;2;;
+;;;;1.2.8.1.2   <IdCodice>;;;;xs:string;Codice identificativo fiscale;formato alfanumerico;<1.1>;1 … 28;"Viene controllata la sua esistenza in Anagrafe
+Tributaria";00303: 1.2.8.1.2 <IdCodice> o 1.3.2.6.1.2 <IdCodice> non valido
+;;;1.2.8.2   <Denominazione>;;;;;xs:normalizedString;"Ditta, denominazione o ragione sociale (ditta, impresa, società, ente); elemento informativo obbligatorio ma da valorizzare in alternativa agli elementi informativi 1.2.8.3 <Nome> e 1.2.8.4 <Cognome>";formato alfanumerico;<0.1>;1 … 80;;
+;;;1.2.8.3   <Nome>;;;;;xs:normalizedString;Nome della persona fisica. Elemento informativo obbligatorio ma da valorizzare insieme all'elemento informativo 1.2.8.4 <Cognome> ed in alternativa all'elemento informativo 1.2.8.2 <Denominazione>;formato alfanumerico;<0.1>;1 … 60;;
+;;;1.2.8.4   <Cognome>;;;;;xs:normalizedString;Cognome della persona fisica. Elemento informativo obbligatorio ma da valorizzare insieme all'elemento informativo 1.2.8.3 <Nome> ed in alternativa all'elemento informativo 1.2.8.2 <Denominazione>;formato alfanumerico;<0.1>;1 … 60;;
+;;1.2.9   <IscrizioneREA>;;;;;;;Blocco da valorizzare nei casi di società iscritte nel registro delle imprese ai sensi dell'art. 2250 del codice civile.;;<0.1>;;;
+;;;1.2.9.1   <Ufficio>;;;;;xs:string;Sigla della provincia dell'Ufficio del registro delle imprese presso il quale è registrata la società;[RM], [MI], […];<1.1>;2;;
+;;;1.2.9.2   <NumeroREA>;;;;;xs:normalizedString;Numero di iscrizione al registro delle imprese;formato alfanumerico;<1.1>;1 … 20;;
+;;;1.2.9.3   <CapitaleSociale>;;;;;xs:decimal;Nei soli casi di società di capitali (SpA, SApA, SRL), l'elemento informativo va valorizzato per indicare il capitale sociale;"formato numerico; i decimali vanno separati dall'intero con il carattere  '.' (punto)";<0.1>;4 … 15;;
+;;;1.2.9.4   <SocioUnico>;;;;;xs:string;Nei casi di società per azioni e a responsabilità limitata, l'elemento informativo va valorizzato per indicare se vi è un socio unico  oppure se vi sono più soci ;"valori ammessi
+[SU] : socio unico
+[SM] : più soci";<0.1>;2;;
+;;;1.2.9.5   <StatoLiquidazione>;;;;;xs:string;Indica se la Società si trova in stato di liquidazione oppure no;"valori ammessi
+[LS] : in liquidazione
+[LN] : non in liquidazione";<1.1>;2;;
+;;1.2.10   <RegimeFiscale>;;;;;;xs:string;Regime fiscale.;"valori ammessi:
+vedi codifiche in calce al documento";<1.1>;4;;
+;1.3   <CessionarioCommittente>;;;;;;;;Blocco sempre obbligatorio contenente dati relativi al cessionario / committente (cliente);;<1.1>;;;
+;;1.3.1   <IdentificativiFiscali>;;;;;;;Blocco contenente gli identificativi fiscali del cessionario/committente;;<1.1>;;;
+;;;1.3.1.1   <IdFiscaleIVA>;;;;;;"Numero di identificazione fiscale ai fini IVA; i primi due caratteri rappresentano il paese ( IT, DE, ES …..) ed i restanti (fino ad un massimo di 28) il codice vero e proprio che, per i residenti in Italia, corrisponde al numero di partita IVA. NON è obbligatorio se si valorizza l'elemento informativo 1.3.1.2 <CodiceFiscale>";;<0.1>;;"Se non è valorizzato, viene controllato che sia valorizzato l'elemento informativo 1.3.1.2 <CodiceFiscale>
+Se valorizzato ed è pure valorizzato l'elemento informativo 1.3.1.2 <CodiceFiscale> viene controllato che siano coerenti";"00417: 1.3.1.1 <IdFiscaleIVA> e 1.3.1.2 <CodiceFiscale> non valorizzati (almeno uno dei due deve essere valorizzato)
+00324: 1.3.1.1 <IdFiscaleIVA> e 1.3.1.2 <CodiceFiscale> non coerenti"
+;;;;1.3.1.1.1   <IdPaese>;;;;xs:string;Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code;[IT], [ES], [DK],[…];<1.1>;2;"Se valorizzato , si verifica che sia coerente con l'elemento informativo  1.1.4 <CodiceDestinatario>
+Inoltre se l'elemento informativo 1.3.1.1.1 <IdPaese> ha un valore diverso da ""IT"", viene verificato 
+che l'elemento informativo 1.2.1.1 <IdPaese> non sia anche esso diverso da ""IT""";"00313: L’elemento 1.1.4 <CodiceDestinatario> può essere valorizzato con “XXXXXXX” per comunicare i dati di fatture emesse esclusivamente verso soggetti non residenti (1.3.1.1 <IdFiscaleIVA> deve essere valorizzato e 1.3.1.1.1 <IdPaese> deve esserre diverso da “IT”)
+00476: gli elementi 1.2.1.1 <IdPaese> e 1.3.1.1.1 <IdPaese> non possono essere entrambi valorizzati con codice diverso da IT"
+;;;;1.3.1.1.2   <IdCodice>;;;;xs:string;Codice identificativo fiscale;formato alfanumerico;<1.1>;1 … 28;"Se l'elemento informativo 1.3.1.1.1 <IdPaese> vale ""IT"", viene verificato che la Partita IVA sia censita in Anagrafe Tributaria";00305: 1.3.1.1.2 <IdCodice>non valido
+;;;1.3.1.2   <CodiceFiscale>;;;;;xs:string;Numero di Codice Fiscale. NON è obbligatorio se si valorizza l'elemento informativo 1.3.1.1 <IdFiscaleIVA>;formato alfanumerico;<0.1>;11 … 16;"Se non è valorizzato, viene controllato che sia valorizzato il blocco 1.3.1.1 <IdFiscaleIVA> e che quest'ultimo non sia di gruppo IVA
+Se valorizzato, e non è valorizzato il blocco 1.3.1.1 <IdFiscaleIVA>, viene controllata la sua esistenza in Anagrafe Tributaria.
+Se  valorizzato ed è pure valorizzato l'elemento informativo 1.3.1.1 <IdFiscaleIVA> viene controllato che siano coerenti
+";"00417: 1.3.1.1 <IdFiscaleIVA> e 1.3.1.2 <CodiceFiscale> non valorizzati (almeno uno dei due deve essere valorizzato)
+00306: 1.3.1.2 <CodiceFiscale> non valido
+00324: 1.3.1.1 <IdFiscaleIVA> e 1.3.1.2 <CodiceFiscale> non coerenti
+00325: 1.3.1.2 <CodiceFiscale> di soggetto non partecipante al gruppo IVA
+00326: 1.3.1.2 <CodiceFiscale> non presente a fronte di 1.3.1.1 <IdFiscaleIVA> di gruppo IVA"
+;;1.3.2   <AltriDatiIdentificativi>;;;;;;;Blocco contenente gli altri dati identificativi  del cessionario/committente;;<0.1>;;;
+;;;1.3.2.1   <Denominazione>;;;;;xs:normalizedString;"Ditta, denominazione o ragione sociale (ditta, impresa, società, ente); elemento informativo obbligatorio ma da valorizzare in alternativa agli elementi informativi 1.3.2.2 <Nome>  e 1.3.2.3 <Cognome>";formato alfanumerico;<0.1>;1 … 80;;
+;;;1.3.2.2   <Nome>;;;;;xs:normalizedString;Nome della persona fisica. Elemento informativo obbligatorio ma da valorizzare insieme all'elemento informativo 1.3.2.3 <Cognome> ed in alternativa all'elemento informativo 1.3.2.1 <Denominazione>;formato alfanumerico;<0.1>;1 … 60;;
+;;;1.3.2.3   <Cognome>;;;;;xs:normalizedString;Cognome della persona fisica. Elemento informativo obbligatorio ma da valorizzare insieme all'elemento informativo 1.3.2.2 <Nome> ed in alternativa all'elemento informativo 1.3.2.1 <Denominazione>;formato alfanumerico;<0.1>;1 … 60;;
+;;;1.3.2.4   <Sede>;;;;;;Blocco contenente i dati della sede del cessionario / committente.;;<1.1>;;;
+;;;;1.3.2.4.1   <Indirizzo>;;;;xs:normalizedString;Indirizzo della sede del cessionario / committente (nome della via, piazza etc.);formato alfanumerico;<1.1>;1 … 60;;
+;;;;1.3.2.4.2   <NumeroCivico>;;;;xs:normalizedString;Numero civico riferito all'indirizzo (non indicare se già presente nell'elemento informativo indirizzo);formato alfanumerico;<0.1>;1 … 8;;
+;;;;1.3.2.4.3   <CAP>;;;;xs:string;Codice Avviamento Postale;formato numerico;<1.1>;5;;
+;;;;1.3.2.4.4   <Comune>;;;;xs:normalizedString;Comune relativo alla sede del cessionario / committente;formato alfanumerico;<1.1>;1 … 60;;
+;;;;1.3.2.4.5   <Provincia>;;;;xs:string;Sigla della provincia di appartenenza del comune indicato nell'elemento informativo 1.3.2.4.4 <Comune>. Da valorizzare se l'elemento informativo 1.3.2.4.6 <Nazione> è uguale a IT;[RM], [MI], […];<0.1>;2;;
+;;;;1.3.2.4.6   <Nazione>;;;;xs:string;Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code;[IT], [ES], [DK],[…];<1.1>;2;;
+;;;1.3.2.5   <StabileOrganizzazione>;;;;;;Blocco da valorizzare nei casi di cessionario / committente non residente, con stabile organizzazione in Italia;;<0.1>;;;
+;;;;1.3.2.5.1   <Indirizzo>;;;;xs:normalizedString;Indirizzo della stabile organizzazione in Italia (nome della via, piazza etc.);formato alfanumerico;<1.1>;1 … 60;;
+;;;;1.3.2.5.2   <NumeroCivico>;;;;xs:normalizedString;Numero civico riferito all'indirizzo (non indicare se già presente nell'elemento informativo indirizzo);formato alfanumerico;<0.1>;1 … 8;;
+;;;;1.3.2.5.3   <CAP>;;;;xs:string;Codice Avviamento Postale;formato numerico;<1.1>;5;;
+;;;;1.3.2.5.4   <Comune>;;;;xs:normalizedString;Comune relativo alla stabile organizzazione in Italia;formato alfanumerico;<1.1>;1 … 60;;
+;;;;1.3.2.5.5   <Provincia>;;;;xs:string;Sigla della provincia di appartenenza del comune indicato nell'elemento informativo 1.3.2.5.4 <Comune>. Da valorizzare se l'elemento informativo 1.3.2.5.6 <Nazione> è uguale a IT;[RM], [MI], […];<0.1>;2;;
+;;;;1.3.2.5.6   <Nazione>;;;;xs:string;Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code;[IT], [ES], [DK],[…];<1.1>;2;;
+;;;1.3.2.6   <RappresentanteFiscale>;;;;;;Blocco da valorizzare nei casi in cui il cessionario / committente si avvalga di un rappresentante fiscale in Italia.;;<0.1>;;;
+;;;;1.3.2.6.1   <IdFiscaleIVA>;;;;;"Numero di identificazione fiscale ai fini IVA; i primi due caratteri rappresentano il paese ( IT, DE, ES …..) ed i restanti (fino ad un massimo di 28) il codice vero e proprio che, per i residenti in Italia, corrisponde al numero di partita IVA.";;<1.1>;;;
+;;;;;1.3.2.6.1.1   <IdPaese>;;;xs:string;Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code;[IT], [ES], [DK],[…];<1.1>;2;;
+;;;;;1.3.2.6.1.2   <IdCodice>;;;xs:string;Codice identificativo fiscale;formato alfanumerico;<1.1>;1 … 28;"Viene controllata la sua esistenza in Anagrafe
+Tributaria";00303: 1.2.8.1.2 <IdCodice> o 1.3.2.6.1.2 <IdCodice> non valido
+;;;;1.3.2.6.2   <Denominazione>;;;;xs:normalizedString;"Ditta, denominazione o ragione sociale (ditta, impresa, società, ente); elemento informativo obbligatorio ma da valorizzare in alternativa agli elementi informativi 1.3.2.6.3 <Nome> e 1.3.2.6.4 <Cognome>";formato alfanumerico;<0.1>;1 … 80;;
+;;;;1.3.2.6.3   <Nome>;;;;xs:normalizedString;Nome della persona fisica. Elemento informativo obbligatorio ma da valorizzare insieme all'elemento informativo 1.3.2.6.4 <Cognome> ed in alternativa all'elemento informativo 1.3.2.6.2 <Denominazione>;formato alfanumerico;<0.1>;1 … 60;;
+;;;;1.3.2.6.4   <Cognome>;;;;xs:normalizedString;Cognome della persona fisica. Elemento informativo obbligatorio ma da valorizzare insieme all'elemento informativo 1.3.2.6.3 <Nome> ed in alternativa all'elemento informativo 1.3.2.6.2 <Denominazione>;formato alfanumerico;<0.1>;1 … 60;;
+;1.4  <SoggettoEmittente>;;;;;;;xs:string;"Da valorizzare  in tutti i casi in cui la fattura è emessa da un soggetto diverso dal cedente/prestatore; indica se la fattura sia  emessa dal cessionario/committente oppure da un terzo per conto del cedente/prestatore";"valori ammessi:
+[CC]: cessionario / committente
+[TZ]: terzo.";<0.1>;2;;
+;;;;;;;;;;;;;;
+2   <FatturaElettronicaBody>;;;;;;;;;"Il blocco ha molteplicità pari a 1 nel caso di fattura singola; nel caso di lotto di fatture, si ripete per ogni fattura componente il lotto stesso";;<1.N>;;;
+;2.1   <DatiGenerali>;;;;;;;;Blocco sempre obbligatorio contenente i dati generali della fattura e quelli degli eventuali documenti correlati;;<1.1>;;;
+;;2.1.1   <DatiGeneraliDocumento>;;;;;;;Blocco sempre obbligatorio contenente i dati generali della fattura;;<1.1>;;;
+;;;2.1.1.1   <TipoDocumento>;;;;;xs:string;Ttipologia di documento;"valori ammessi:
+vedi codifiche in calce al documento";<1.1>;4;Se l'elemento informativo 2.1.1.1 <TipoDocumento> vale TD07, viene controllato che il cedente/prestatore e il cessionario/committente siano soggetti diversi.;00471: per il valore indicato nell'elemento 2.1.1.1 <TipoDocumento> il cedente/prestatore non può essere uguale al cessionario/committente
+;;;2.1.1.2   <Divisa>;;;;;xs:string;Codice (espresso secondo lo standard ISO 4217 alpha-3:2001) della valuta utilizzata per l'indicazione degli importi;il codice deve essere compreso tra quelli consentiti dallo standard ISO 4217 alpha-3:201, ad esempio: [EUR], [USD], [GBP], [CZK], [...];<1.1>;3;;
+;;;2.1.1.3   <Data>;;;;;xs:date;Data del documento (secondo il formato ISO 8601:2004);formato ISO 8601:2004, con la  precisione seguente:   YYYY-MM-DD;<1.1>;10;"Viene controllato che non sia successiva alla data
+in cui il file è stato ricevuto dal Sistema di Interscambio.
+Inoltre, se l'elemento informativo 2.1.1.1 <TipoDocumento> vale ""TD08"", viene controllato che non sia antecedente a
+quella presente nell'elemento informativo 2.1.2.2 <DataFR>";"00403: 2.1.1.3 <Data> successiva alla data di ricezione
+00418: 2.1.1.3 <Data> antecedente a 2.1.2.2 <DataFR>"
+;;;2.1.1.4   <Numero>;;;;;xs:normalizedString;Numero della fattura (art. 21, comma 2, lettera b DPR 633/1972);formato alfanumerico;<1.1>;1 … 20;"Viene controllato che contenga almeno un carattere
+numerico";00425: 2.1.1.4 <Numero> non contenente caratteri numerici
+;;;2.1.1.5   <BolloVirtuale>;;;;;xs:string;Bollo assolto ai sensi del decreto MEF 17 giugno 2014 (art. 6);"valore ammesso
+[SI]";<0.1>;2;;
+;;2.1.2   <DatiFatturaRettificata>;;;;;;;Blocco contenente le informazioni relative alla fattura rettificata. Vale per le fatture emesse ai sensi dell'articolo 26 DPR 633/72;;<0.1>;;;
+;;;2.1.2.1   <NumeroFR>;;;;;xs:string;Numero della fattura rettificata;formato alfanumerico;<1.1>;1 … 20 ;;
+;;;2.1.2.2   <DataFR>;;;;;xs:date;Data della fattura rettificata;formato ISO 8601:2004, con la  precisione seguente:  YYYY-MM-DD;<1.1>;10;"Se presente viene controllato che non sia successiva alla data presente nell'elemento informativo
+2.1.1.3 <Data>";00418: 2.1.1.3 <Data> antecedente a 2.1.2.2 <DataFR>
+;;;2.1.2.3   <ElementiRettificati>;;;;;xs:normalizedString;Indicazioni specifiche degli elementi oggetto di rettifica;formato alfanumerico;<1.1>;1 … 1000;;
+;2.2   <DatiBeniServizi>;;;;;;;;Blocco sempre obbligatorio. Contiene natura, qualità, quantità e gli elementi necessari a determinare il valore dei beni e/o dei servizi formanti oggetto dell'operazione;;<1.N>;;;
+;;2.2.1   <Descrizione>;;;;;;xs:normalizedString;Natura e qualità dell'oggetto della cessione/prestazione;formato alfanumerico;<1.1>;1 … 1000;;
+;;2.2.2   <Importo>;;;;;;xs:decimal;Ammontare complessivo (comprensivo di imposta) ;"formato numerico; i decimali vanno separati dall'intero con il carattere '.' (punto)";<1.1>;4 … 15;Il valore di questo campo (o la somma dei valori di questo campo in caso di presenza di più blocchi 2.2 <DatiBeniServizi>) non deve eccedere il limite di 400,00 euro. Il superamento di tale limite è consentiro solo se presente il blocco 2.1.2 <DatiFatturaRettificata> , se il cedente/prestatore è in Regime forfettario (RF19) o in Regime transfrontaliero di Franchigia (Direttiva UE 2020/285) (RF20);00460: Importo totale superiore al limite previsto per le fatture semplificate ai sensi del DPR 633/72, art. 21 bis
+;;2.2.3   <DatiIVA>;;;;;;;Dati relativi all'imposta sul valore aggiunto;;<1.1>;;;
+;;;2.2.3.1   <Imposta>;;;;;xs:decimal;Ammontare dell'imposta. Si può indicare in alternativa all'elemento informativo 2,2,3,2 <Aliquota>;"formato numerico;  i decimali vanno separati dall'intero con il carattere '.' (punto)";<0.1>;4 … 15;;
+;;;2.2.3.2   <Aliquota>;;;;;xs:decimal;Aliquota (%) IVA applicata. Si può indicare in alternativa all'elemento informativo 2,2,3,1 <Imposta>;"formato numerico;  i decimali vanno separati dall'intero con il carattere '.' (punto)";<0.1>;4 … 6;"Viene controllato che il valore sia espresso in termini
+percentuali (es.: ""22.00"" e non ""0.22"")";00424: 2.2.3.2 <Aliquota> non indicata in termini percentuali
+;;2.2.4   <Natura>;;;;;;xs:string;L'elemento serve per indicare il motivo (Natura dell'operazione) per il quale l'emittente della fattura non indica aliquota IVA;"valori ammessi:
+vedi codifiche in calce al documento";<0.1>;2 … 4;"Viene controllata la presenza o meno dell'elemento informativo 2.2.4 <Natura> dipendentemente dal valore dell'elemento informativo 2.2.3.2 <AliquotaIVA> 
+Per le fatture emesse apartire dal primo gennaio 2021 viene controllato che il valore espresso in questo elemento sia diverso da N2 e N3 (valori non più ammessi)";"00400: 2.2.4 <Natura> non presente a fronte di  2.2.3.2 <Aliquota>  pari a zero
+00401: 2.2.4 <Natura> presente a fronte di  2.2.3.2 <Aliquota> diversa da zero
+00445: non è più ammesso il valore generico N2 o N3 come codice natura dell’operazione"
+;;2.2.5   <RiferimentoNormativo>;;;;;;xs:normalizedString;Norma di riferimento;formato alfanumerico;<0.1>;1 … 100;;
+;2.3   <Allegati>;;;;;;;;Dati relativi ad eventuali allegati;;<0.N>;;;
+;;2.3.1   <NomeAttachment>;;;;;;xs:normalizedString;Nome dell'allegato;formato alfanumerico;<1.1>;1 … 60;;
+;;2.3.2   <AlgoritmoCompressione>;;;;;;xs:string;Algoritmo usato per comprimere l'attachment (ad es.: ZIP, RAR, …);formato alfanumerico;<0.1>;1 … 10;;
+;;2.3.3   <FormatoAttachment>;;;;;;xs:string;Formato dell'attachment (ad es: TXT, XML, DOC, PDF …….);formato alfanumerico;<0.1>;1 … 10;;
+;;2.3.4   <DescrizioneAttachment>;;;;;;xs:normalizedString;Descrizione del documento;formato alfanumerico;<0.1>;1 … 100;;
+;;2.3.5   <Attachment>;;;;;;xs:base64Binary;"Contiene il documento allegato alla fattura; il contenuto è demandato agli accordi tra PA e fornitore ";base64Binary [RFC 2045];<1.1>;valore vincolato alla dimensione max prevista per la fattura elettronica ;;
+;;;;;;;;;;;;;;
+CODIFICHE;;;;;;;;;;;;;;
+<RegimeFiscale>;;;;;;;;;;;;;;
+RF01;;Ordinario;;;;;;;;;;;;
+RF02;;Contribuenti minimi (art.1, c.96-117, L. 244/07) ;;;;;;;;;;;;
+RF04;;Agricoltura e attività connesse e pesca (artt.34 e 34-bis, DPR 633/72) ;;;;;;;;;;;;
+RF05;;Vendita sali e tabacchi (art.74, c.1, DPR. 633/72) ;;;;;;;;;;;;
+RF06;;Commercio fiammiferi (art.74, c.1, DPR  633/72) ;;;;;;;;;;;;
+RF07;;Editoria (art.74, c.1, DPR  633/72);;;;;;;;;;;;
+RF08;;Gestione servizi telefonia pubblica (art.74, c.1, DPR 633/72) ;;;;;;;;;;;;
+RF09;;Rivendita documenti di trasporto pubblico e di sosta (art.74, c.1, DPR  633/72) ;;;;;;;;;;;;
+RF10;;Intrattenimenti, giochi e altre attività di cui alla tariffa allegata al DPR 640/72 (art.74, c.6, DPR 633/72) ;;;;;;;;;;;;
+RF11;;Agenzie viaggi e turismo (art.74-ter, DPR 633/72) ;;;;;;;;;;;;
+RF12;;Agriturismo (art.5, c.2, L. 413/91) ;;;;;;;;;;;;
+RF13;;Vendite a domicilio (art.25-bis, c.6, DPR  600/73) ;;;;;;;;;;;;
+RF14;;Rivendita beni usati, oggetti d’arte, d’antiquariato o da collezione (art.36, DL 41/95) ;;;;;;;;;;;;
+RF15;;Agenzie di vendite all’asta di oggetti d’arte, antiquariato o da collezione (art.40-bis, DL 41/95) ;;;;;;;;;;;;
+RF16;;IVA per cassa P.A. (art.6, c.5, DPR 633/72) ;;;;;;;;;;;;
+RF17;;IVA per cassa (art. 32-bis, DL 83/2012) ;;;;;;;;;;;;
+RF18;;Altro;;;;;;;;;;;;
+RF19;;Regime forfettario (art.1, c.54-89, L. 190/2014);;;;;;;;;;;;
+RF20;;Regime transfrontaliero di Franchigia IVA (Direttiva UE 2020/285);;;;;;;;;;;;
+<TipoDocumento>;;;;;;;;;;;;;;
+TD07;;fattura semplificata;;;;;;;;;;;;
+TD08;;nota di credito semplificata;;;;;;;;;;;;
+TD09;;nota di debito semplificata;;;;;;;;;;;;
+<TipoNatura>;;;;;;;;;;;;;;
+N1;;escluse ex art. 15 del DPR 633/72;;;;;;;;;;;;
+N2.1;;non soggette ad IVA ai sensi degli artt. da 7 a 7-septies del D.P.R. n. 633/72;;;;;;;;;;;;
+N2.2;;non soggette - altri casi;;;;;;;;;;;;
+N3.1;;non imponibili - esportazioni;;;;;;;;;;;;
+N3.2;;non imponibili - cessioni intracomunitarie;;;;;;;;;;;;
+N3.3;;non imponibili - cessioni verso San Marino;;;;;;;;;;;;
+N3.4;;non imponibili - operazioni assimilate alle cessioni all'esportazione;;;;;;;;;;;;
+N3.5;;non imponibili - a seguito di dichiarazioni d'intento;;;;;;;;;;;;
+N3.6;;non imponibili - altre operazioni che non concorrono alla formazione del plafond;;;;;;;;;;;;
+N4;;esenti;;;;;;;;;;;;
+N5;;regime del margine / IVA non esposta in fattura;;;;;;;;;;;;

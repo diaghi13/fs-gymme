@@ -58,3 +58,5 @@ createInertiaApp({
 
 // This will set light / dark mode on load...
 initializeTheme();
+
+// Verifica che Ziggy sia disponibile nel contesto globale

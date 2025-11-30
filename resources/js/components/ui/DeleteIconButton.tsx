@@ -8,7 +8,7 @@ import DeleteDialog from '@/components/ui/DeleteDialog';
 interface DeleteIconProps {
   url?: string;
   routeName?: string;
-  urlParams?: { name: string, id: number }[];
+  urlParams?: { key: string, value: number | string }[];
   preserveState?: boolean;
   preserveScroll?: boolean;
 }
@@ -32,10 +32,10 @@ const DeleteIconButton: React.FC<DeleteIconProps> = (
   };
 
   const handleConfirm = () => {
-    const params = urlParams!.reduce((acc, { id, name }) => {
-      acc[name] = id;
+    const params = urlParams!.reduce((acc, { value, key }) => {
+      acc[key] = value; // Manteniamo il valore originale, sia esso un numero o una stringa
       return acc;
-    }, {} as { [key: string]: number });
+    }, {} as { [key: string]: number | string });
 
     if (routeName && !url) {
       url = route(routeName, params);

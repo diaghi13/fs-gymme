@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Application\PriceLists;
 
+use App\Enums\SubscriptionContentType;
 use App\Http\Controllers\Controller;
 use App\Models\PriceList\Subscription;
 use App\Services\PriceList\SubscriptionPriceListService;
@@ -28,14 +29,14 @@ class OptionalContentSubscriptionUpdateController extends Controller
             'optional_content.*.daily_reservation_limit' => 'nullable|integer|min:0',
             'optional_content.*.is_optional' => 'nullable|boolean',
             'optional_content.*.price_listable_id' => 'required|integer',
-            'optional_content.*.price_listable_type' => 'required|string|in:App\\Models\\Product\\Product,App\\Models\\PriceList\\PriceList',
+            'optional_content.*.price_listable_type' => 'required|string|in:'.implode(',', SubscriptionContentType::values()),
         ]);
 
         $priceList = $service->updateOptionalContent($data, $subscription);
 
         return to_route('app.price-lists.subscriptions.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'subscription' => $priceList->id
+            'subscription' => $priceList->id,
         ])
             ->with('status', 'success');
     }

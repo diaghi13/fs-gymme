@@ -28,8 +28,11 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.price-lists.folders.destroy',
         ])
         ->parameters([
-            //'folders' => 'folder',
+            // 'folders' => 'folder',
         ]);
+
+    Route::post('/price-lists/folders/{folder}/duplicate', [\App\Http\Controllers\Application\PriceLists\FolderController::class, 'duplicate'])
+        ->name('app.price-lists.folders.duplicate');
 
     Route::resource('/price-lists/articles', \App\Http\Controllers\Application\PriceLists\ArticleController::class)
         ->except(['index', 'edit'])
@@ -41,8 +44,11 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.price-lists.articles.destroy',
         ])
         ->parameters([
-            //'articles' => 'article',
+            // 'articles' => 'article',
         ]);
+
+    Route::post('/price-lists/articles/{article}/duplicate', [\App\Http\Controllers\Application\PriceLists\ArticleController::class, 'duplicate'])
+        ->name('app.price-lists.articles.duplicate');
 
     Route::resource('/price-lists/memberships', \App\Http\Controllers\Application\PriceLists\MembershipController::class)
         ->except(['index', 'edit'])
@@ -54,6 +60,9 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.price-lists.memberships.destroy',
         ]);
 
+    Route::post('/price-lists/memberships/{membership}/duplicate', [\App\Http\Controllers\Application\PriceLists\MembershipController::class, 'duplicate'])
+        ->name('app.price-lists.memberships.duplicate');
+
     Route::resource('/price-lists/subscriptions', \App\Http\Controllers\Application\PriceLists\SubscriptionController::class)
         ->except(['index', 'edit'])
         ->names([
@@ -64,6 +73,48 @@ Route::middleware(['web', 'auth'])->group(function () {
             'destroy' => 'app.price-lists.subscriptions.destroy',
         ]);
 
+    Route::post('/price-lists/subscriptions/{subscription}/duplicate', [\App\Http\Controllers\Application\PriceLists\SubscriptionController::class, 'duplicate'])
+        ->name('app.price-lists.subscriptions.duplicate');
+
     Route::match(['put', 'patch'], '/price-lists/subscriptions/{subscription}/optional-content', \App\Http\Controllers\Application\PriceLists\OptionalContentSubscriptionUpdateController::class)
-        ->name('price-lists.subscriptions.optional-content.update');
+        ->name('app.price-lists.subscriptions.optional-content.update');
+
+    Route::resource('/price-lists/day-passes', \App\Http\Controllers\Application\PriceLists\DayPassController::class)
+        ->except(['index', 'edit'])
+        ->names([
+            'create' => 'app.price-lists.day-passes.create',
+            'store' => 'app.price-lists.day-passes.store',
+            'show' => 'app.price-lists.day-passes.show',
+            'update' => 'app.price-lists.day-passes.update',
+            'destroy' => 'app.price-lists.day-passes.destroy',
+        ]);
+
+    Route::post('/price-lists/day-passes/{day_pass}/duplicate', [\App\Http\Controllers\Application\PriceLists\DayPassController::class, 'duplicate'])
+        ->name('app.price-lists.day-passes.duplicate');
+
+    Route::resource('/price-lists/tokens', \App\Http\Controllers\Application\PriceLists\TokenController::class)
+        ->except(['index', 'edit'])
+        ->names([
+            'create' => 'app.price-lists.tokens.create',
+            'store' => 'app.price-lists.tokens.store',
+            'show' => 'app.price-lists.tokens.show',
+            'update' => 'app.price-lists.tokens.update',
+            'destroy' => 'app.price-lists.tokens.destroy',
+        ]);
+
+    Route::post('/price-lists/tokens/{token}/duplicate', [\App\Http\Controllers\Application\PriceLists\TokenController::class, 'duplicate'])
+        ->name('app.price-lists.tokens.duplicate');
+
+    Route::resource('/price-lists/gift-cards', \App\Http\Controllers\Application\PriceLists\GiftCardController::class)
+        ->except(['index', 'edit'])
+        ->names([
+            'create' => 'app.price-lists.gift-cards.create',
+            'store' => 'app.price-lists.gift-cards.store',
+            'show' => 'app.price-lists.gift-cards.show',
+            'update' => 'app.price-lists.gift-cards.update',
+            'destroy' => 'app.price-lists.gift-cards.destroy',
+        ]);
+
+    Route::post('/price-lists/gift-cards/{gift_card}/duplicate', [\App\Http\Controllers\Application\PriceLists\GiftCardController::class, 'duplicate'])
+        ->name('app.price-lists.gift-cards.duplicate');
 });

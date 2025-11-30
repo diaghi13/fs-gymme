@@ -3,6 +3,7 @@ import { Formik, FormikConfig } from 'formik';
 import { router, usePage } from '@inertiajs/react';
 import { BaseProduct, CourseProduct, PageProps } from '@/types';
 import GeneralForm from '@/components/products/forms/GeneralForm';
+import { RequestPayload } from '@inertiajs/core';
 
 interface GeneralFormProps {
   product: BaseProduct | CourseProduct;
@@ -15,12 +16,12 @@ export default function GeneralTab({ product, onDismiss }: GeneralFormProps) {
   const formik: FormikConfig<{
     name: string;
     color: string;
-    visible: boolean;
+    is_active: boolean;
   }> = {
     initialValues: {
       name: product.name ?? '',
       color: product.color ?? '',
-      visible: product.visible
+      is_active: product.is_active ?? true
     },
     onSubmit: (values) => {
       if (!product.id) {
@@ -32,7 +33,7 @@ export default function GeneralTab({ product, onDismiss }: GeneralFormProps) {
       } else {
         router.patch(
           route('app.course-products.update', { course_product: product.id, tenant: currentTenantId }),
-          values,
+          { ...product, ...values } as unknown as RequestPayload,
           { preserveState: false }
         );
       }

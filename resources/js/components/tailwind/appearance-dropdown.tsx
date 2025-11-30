@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+/* TEMPORARILY DISABLED - Missing UI components
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAppearance } from '@/hooks/use-appearance';
 import { Monitor, Moon, Sun } from 'lucide-react';
@@ -49,5 +49,7 @@ export default function AppearanceToggleDropdown({ className = '', ...props }: H
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
-    );
+        </DropdownMenu>
 }
+
+*/

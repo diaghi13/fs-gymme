@@ -6,23 +6,25 @@ import {
   AutocompleteOptions,
   CourseProduct,
   PageProps,
-  ProductListItem, ProductPlanning,
+  ProductListItem,
   VatRate
 } from '@/types';
 import ProductListCard from '@/components/products/ProductListCard';
 import MyCard from '@/components/ui/MyCard';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import GeneralTab from '@/components/products/course-product/GeneralTab';
-import { useSearchParams } from '@/hooks/useSearchParams';
-import SaleTab from '@/components/products/course-product/SaleTab';
 import { useQueryParam } from '@/hooks/useQueryParam';
+import DeleteIconButton from '@/components/ui/DeleteIconButton';
+import SaleTab from '@/components/products/course-product/SaleTab';
+import TimeTableTab from '@/components/products/course-product/TimeTableTab';
+import BookingsTab from '@/components/products/course-product/BookingsTab';
 
 const tabs = {
   courseProductTabs: [
     { label: 'Generale', value: '1', name: 'general' },
     { label: 'Timetable', value: '2', name: 'timetable' },
     { label: 'Prenotazioni', value: '3', name: 'bookings' },
-    { label: 'Vendita', value: '4', name: 'selling' }
+    { label: 'Vendita', value: '4', name: 'sale' }
   ]
 };
 
@@ -30,12 +32,12 @@ export interface CourseProductPageProps extends PageProps {
   products: Array<ProductListItem>;
   product?: CourseProduct;
   vatRateOptions?: VatRate[];
-  planningOptions: ProductPlanning[];
+  planningOptions?: AutocompleteOptions<number>;
 }
 
-export default function CourseProductPage({ auth, products, product }: CourseProductPageProps) {
+export default function CourseProductPage({ auth, products, product, currentTenantId, planningOptions }: CourseProductPageProps) {
   //const tab = useSearchParams('tab')?.toString();
-  const [tab, setTab] = useQueryParam('tab', 'general');
+  const [tab, setTab] = useQueryParam('tab', '1');
   const title = 'Prodotti base';
   const [tabValue, setTabValue] = React.useState(tab || '1');
   const isNew = !product?.id;
@@ -89,7 +91,14 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
         </Grid>
         <Grid size={8}>
           {product && (
-            <MyCard sx={{ p: 0 }} title={product.name} bgColor={product.color}>
+            <MyCard sx={{ p: 0 }} title={product.name} bgColor={product.color} action={
+              <DeleteIconButton
+                routeName="app.course-products.destroy"
+                urlParams={[
+                  {key: "tenant", value: currentTenantId },
+                  {key: "course_product", value: product.id},
+                ]} />
+            }>
               <Box sx={{ flexGrow: 1, display: 'flex' }}>
                 <TabContext value={tabValue}>
                   <TabList
@@ -105,7 +114,7 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
 
                   </TabList>
                   <TabPanel value="1" sx={{ width: '100%' }}>
-                    {!product.visible && (
+                    {!product.is_active && (
                       <Box sx={{ mb: 2 }}>
                         <Alert severity="warning">Questo prodotto non è visibile nelle liste</Alert>
                       </Box>
@@ -116,11 +125,10 @@ export default function CourseProductPage({ auth, products, product }: CoursePro
                   {!isNew && (
                     <>
                       <TabPanel value="2" sx={{ width: '100%' }}>
-                        <Typography variant={'h6'}>Coming soon...</Typography>
-                        {/*<TimeTableTab product={product}  planningOptions={planningOptions}/>*/}
+                        <TimeTableTab product={product} planningOptions={planningOptions || []} />
                       </TabPanel>
                       <TabPanel value="3" sx={{ width: '100%' }}>
-                        <Typography variant={'h6'}>Coming soon...</Typography>
+                        <BookingsTab product={product} onDismiss={handleDismiss} />
                       </TabPanel>
                       <TabPanel value="4" sx={{ width: '100%' }}>
                         <SaleTab product={product} onDismiss={handleDismiss} />

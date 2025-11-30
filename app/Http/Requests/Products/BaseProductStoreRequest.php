@@ -24,9 +24,23 @@ class BaseProductStoreRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'color' => 'required|string|max:7',
-            'visible' => 'required|boolean',
+            'is_active' => 'required|boolean',
             'sale_in_subscription' => 'nullable|boolean',
             'selling_description' => 'nullable|string|max:255',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'name.required' => __('validation.required', ['attribute' => __('fields.name')]),
+            'name.string' => __('validation.string', ['attribute' => __('fields.name')]),
+            'name.max' => __('validation.max.string', ['attribute' => __('fields.name'), 'max' => 255]),
+            'color.required' => __('validation.required', ['attribute' => __('fields.color')]),
+            'color.string' => __('validation.string', ['attribute' => __('fields.color')]),
+            'color.max' => __('validation.max.string', ['attribute' => __('fields.color'), 'max' => 7]),
+            'is_active.required' => __('validation.required', ['attribute' => __('fields.is_active')]),
+            'is_active.boolean' => __('validation.boolean', ['attribute' => __('fields.is_active')]),
         ];
     }
 }

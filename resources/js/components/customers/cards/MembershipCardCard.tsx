@@ -1,9 +1,9 @@
 import * as React from 'react';
 import SmallCard from '@/components/ui/SmallCard';
 import { usePage } from '@inertiajs/react';
-import format from '@/support/format';
 import { CustomerShowProps } from '@/pages/customers/customer-show';
 import MembershipDialog from '@/components/customers/dialogs/MembershipDialog';
+import FormattedDate from '@/components/ui/FormattedDate';
 
 import EditIcon from '@mui/icons-material/Edit';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
@@ -22,7 +22,7 @@ const MembershipCardCard = () => {
         title="Tesseramento"
         content={
           customer.last_membership?.card_number && customer.last_membership?.end_date
-            ? `Scadenza: ${format(customer.last_membership?.end_date, 'dd/MM/yyyy')}`
+            ? <>Scadenza: <FormattedDate value={customer.last_membership?.end_date} /></>
             : 'Nessun tesseramento'
         }
         secondary={customer.last_membership?.card_number ? `N. tessera: ${customer.last_membership?.card_number}` : ''}

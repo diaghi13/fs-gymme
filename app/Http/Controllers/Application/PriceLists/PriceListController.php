@@ -16,11 +16,11 @@ class PriceListController extends Controller
     public function index()
     {
         return Inertia::render('price-lists/price-lists', [
-            'priceLists' => (new PriceList())->tree()
+            'priceLists' => (new PriceList)->tree()
                 ->orderByRaw('color IS NULL DESC')
                 ->orderBy('name')
                 ->get()
-                ->toTree()
+                ->toTree(),
         ]);
     }
 
@@ -29,7 +29,16 @@ class PriceListController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('price-lists/create-price-list', [
+            'priceLists' => (new PriceList)->toTree(),
+            'priceList' => new \App\Models\PriceList\Folder,
+            'priceListOptions' => PriceList::where('type', \App\Enums\PriceListItemTypeEnum::FOLDER->value)
+                ->get(['id', 'name'])
+                ->map(function ($option) {
+                    return ['value' => $option->id, 'label' => $option->name];
+                }),
+            'priceListOptionsTree' => (new PriceList)->folderTree(),
+        ]);
     }
 
     /**

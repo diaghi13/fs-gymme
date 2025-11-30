@@ -13,6 +13,8 @@ import {
 import {CSSObject} from "@mui/material/styles";
 import DrawerHeader from "./DrawerHeader";
 import DrawerItem from "./DrawerItem";
+import DrawerStructureSwitcher from "@/components/DrawerStructureSwitcher";
+import TenantInfo from "./TenantInfo";
 
 import SettingsIcon from "@mui/icons-material/Settings";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -80,6 +82,9 @@ export default function Drawer({open, setOpen, menuList}: DrawerProps){
     return (
         <StyledDrawer variant="permanent" open={open} ref={containerRef}>
             <DrawerHeader open={open} setOpen={setOpen} />
+            <Divider />
+            <TenantInfo open={open} />
+            <DrawerStructureSwitcher open={open} />
             <Divider />
             <Box sx={{ width: drawerWidth * 2 }}>
                 <Box

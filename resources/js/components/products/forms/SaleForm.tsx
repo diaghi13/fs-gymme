@@ -5,21 +5,22 @@ import Checkbox from '@/components/ui/Checkbox';
 import TextField from '@/components/ui/TextField';
 import FormikSaveButton from '@/components/ui/FormikSaveButton';
 import { usePage } from '@inertiajs/react';
-import { ProductPageProps } from '@/pages/products/base-products';
+import { BaseProductPageProps } from '@/pages/products/base-products';
 import Autocomplete from '@/components/ui/Autocomplete';
+import { VatRate } from '@/types';
 
 interface SellingFormProps {
   onDismiss: () => void;
 }
 
 export default function SaleForm({ onDismiss }: SellingFormProps) {
-  const { props } = usePage<ProductPageProps>();
+  const { vatRateOptions } = usePage<BaseProductPageProps>().props;
 
   return (
     <Form>
       <Grid container spacing={4}>
         <Grid size={12}>
-          <Checkbox label="Vendibile in abbonamento" name="sale_in_subscription" />
+          <Checkbox label="Vendibile in abbonamento" name="saleable_in_subscription" />
         </Grid>
         <Grid size={12}>
           <Typography variant={'subtitle1'}>Imposta IVA</Typography>
@@ -30,9 +31,10 @@ export default function SaleForm({ onDismiss }: SellingFormProps) {
           <Grid size={12} >
             <Grid container spacing={2} alignItems={"flex-end"}>
               <Grid size={12}>
-                <Autocomplete
+                <Autocomplete<VatRate>
                   label={"IVA"}
-                  options={props.vatRateOptions}
+                  options={vatRateOptions}
+                  getOptionLabel={(option) => option.code + ' ' + option.description}
                   name={'vat_rate'}
                 />
               </Grid>

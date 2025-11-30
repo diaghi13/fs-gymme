@@ -1,6 +1,4 @@
-import { AutocompleteOptions } from '@/types';
-
-export const scheduleOptions: AutocompleteOptions<string> = [
+export const scheduleOptions: {label: string, value: string}[]= [
     {
         label: "Lunedì",
         value: "monday"

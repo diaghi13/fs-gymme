@@ -18,6 +18,7 @@ class PaymentCondition extends Model
         'visible',
         'active',
         'is_default',
+        'is_system',
         'financial_resource_type_id',
     ];
 
@@ -26,6 +27,7 @@ class PaymentCondition extends Model
         'visible' => 'boolean',
         'active' => 'boolean',
         'is_default' => 'boolean',
+        'is_system' => 'boolean',
     ];
 
     public function installments()

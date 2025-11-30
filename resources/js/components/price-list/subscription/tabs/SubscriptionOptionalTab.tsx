@@ -61,28 +61,20 @@ export default function SubscriptionOptionalTab({ priceList }: SubscriptionGener
         }))
       };
 
-      if (!priceList.id) {
-        router.post(
-          route('app.price-lists.subscriptions.optional-content.store', { tenant: currentTenantId }),
-          data as unknown as RequestPayload,
-          { preserveState: false }
-        );
-      } else {
-        router.patch(
-          route('app.price-lists.subscriptions.optional-content.update', { subscription: priceList.id, tenant: currentTenantId }),
-          data as unknown as RequestPayload,
-          { preserveState: false }
-        );
-      }
+      router.patch(
+        route('app.price-lists.subscriptions.optional-content.update', { subscription: priceList.id, tenant: currentTenantId }),
+        data as unknown as RequestPayload,
+        { preserveState: false }
+      );
     },
     enableReinitialize: true
   };
 
   const handleDismiss = () => {
     router.get(
-      route('app.price-lists.index', ),
+      route('app.price-lists.index', { tenant: currentTenantId }),
       undefined,
-      { preserveState: true }
+      { preserveState: false }
     );
   };
 

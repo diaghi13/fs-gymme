@@ -1,15 +1,19 @@
 import * as React from 'react';
 import { Button, Divider, Grid, ListItemIcon, ListItemText, Menu, MenuItem } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { ARTICLE, FOLDER, MEMBERSHIP, SUBSCRIPTION } from '@/pages/price-lists/price-lists';
+import { ARTICLE, DAY_PASS, FOLDER, GIFT_CARD, MEMBERSHIP, PriceListPageProps, SUBSCRIPTION, TOKEN } from '@/pages/price-lists/price-lists';
 import FolderIcon from '@mui/icons-material/Folder';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import CategoryIcon from '@mui/icons-material/Category';
 import CardMembershipIcon from '@mui/icons-material/CardMembership';
-import { router } from '@inertiajs/react';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import StyleIcon from '@mui/icons-material/Style';
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
+import { router, usePage } from '@inertiajs/react';
 
 
 const CreatePriceListAction = () => {
+  const { currentTenantId } = usePage<PriceListPageProps>().props;
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -24,16 +28,25 @@ const CreatePriceListAction = () => {
   const handleCreate = (type: string) => {
     switch (type) {
       case FOLDER:
-        router.get(route('app.price-lists.folders.create'));
+        router.get(route('app.price-lists.create', {tenant: currentTenantId}));
         break;
       case MEMBERSHIP:
-        router.get(route('app.price-lists.memberships.create'));
+        router.get(route('app.price-lists.memberships.create', {tenant: currentTenantId}));
         break;
       case ARTICLE:
-        router.get(route('app.price-lists.articles.create'));
+        router.get(route('app.price-lists.articles.create', {tenant: currentTenantId}));
+        break;
+      case DAY_PASS:
+        router.get(route('app.price-lists.day-passes.create', {tenant: currentTenantId}));
+        break;
+      case TOKEN:
+        router.get(route('app.price-lists.tokens.create', {tenant: currentTenantId}));
+        break;
+      case GIFT_CARD:
+        router.get(route('app.price-lists.gift-cards.create', {tenant: currentTenantId}));
         break;
       case SUBSCRIPTION:
-        router.get(route('app.price-lists.subscriptions.create'));
+        router.get(route('app.price-lists.subscriptions.create', {tenant: currentTenantId}));
         break;
     }
     handleMenuClose();
@@ -47,7 +60,7 @@ const CreatePriceListAction = () => {
         aria-expanded={open ? 'true' : undefined}
         onClick={handleMenuOpen}
       >
-        <AddIcon/> Aggiungi
+        <AddIcon /> Aggiungi
       </Button>
       <Menu
         id="basic-menu"
@@ -55,53 +68,83 @@ const CreatePriceListAction = () => {
         open={open}
         onClose={handleMenuClose}
         MenuListProps={{
-          'aria-labelledby': 'basic-button',
+          'aria-labelledby': 'basic-button'
         }}
       >
         <MenuItem onClick={() => {
-          handleCreate(FOLDER)
+          handleCreate(FOLDER);
         }}>
           <ListItemIcon>
-            <FolderIcon fontSize="small"/>
+            <FolderIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>
             Nuovo listino
           </ListItemText>
         </MenuItem>
-        <Divider/>
+        <Divider />
         <MenuItem onClick={() => {
-          handleCreate(SUBSCRIPTION)
+          handleCreate(SUBSCRIPTION);
         }}>
           <ListItemIcon>
-            <CreditCardIcon/>
+            <CreditCardIcon />
           </ListItemIcon>
           <ListItemText>
             Nuovo abbonamento
           </ListItemText>
         </MenuItem>
         <MenuItem onClick={() => {
-          handleCreate(ARTICLE)
+          handleCreate(ARTICLE);
         }}>
           <ListItemIcon>
-            <CategoryIcon/>
+            <CategoryIcon />
           </ListItemIcon>
           <ListItemText>
             Nuovo articolo
           </ListItemText>
         </MenuItem>
         <MenuItem onClick={() => {
-          handleCreate(MEMBERSHIP)
+          handleCreate(MEMBERSHIP);
         }}>
           <ListItemIcon>
-            <CardMembershipIcon/>
+            <CardMembershipIcon />
           </ListItemIcon>
           <ListItemText>
             Nuova quota associativa
           </ListItemText>
         </MenuItem>
+        <MenuItem onClick={() => {
+          handleCreate(DAY_PASS);
+        }}>
+          <ListItemIcon>
+            <ConfirmationNumberIcon />
+          </ListItemIcon>
+          <ListItemText>
+            Nuovo Day Pass
+          </ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => {
+          handleCreate(TOKEN);
+        }}>
+          <ListItemIcon>
+            <StyleIcon />
+          </ListItemIcon>
+          <ListItemText>
+            Nuovo Token/Carnet
+          </ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => {
+          handleCreate(GIFT_CARD);
+        }}>
+          <ListItemIcon>
+            <CardGiftcardIcon />
+          </ListItemIcon>
+          <ListItemText>
+            Nuova Gift Card
+          </ListItemText>
+        </MenuItem>
       </Menu>
     </Grid>
- );
+  );
 };
 
-export default CreatePriceListAction
+export default CreatePriceListAction;

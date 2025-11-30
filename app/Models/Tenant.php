@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Laravel\Cashier\Billable;
-use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
+use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 use Stancl\Tenancy\Database\Models\TenantPivot;
 
 class Tenant extends BaseTenant implements TenantWithDatabase
 {
-    use HasDatabase, HasDomains, Billable;
+    use Billable, HasDatabase, HasDomains, HasFactory;
 
     protected $guarded = [];
 
@@ -20,7 +21,25 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'is_active' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'trial_ends_at' => 'datetime',
+        'onboarding_completed_at' => 'datetime',
     ];
+
+    /**
+     * Check if onboarding has been completed.
+     */
+    public function hasCompletedOnboarding(): bool
+    {
+        return $this->onboarding_completed_at !== null;
+    }
+
+    /**
+     * Mark onboarding as completed.
+     */
+    public function completeOnboarding(): void
+    {
+        $this->update(['onboarding_completed_at' => now()]);
+    }
 
     public static function getCustomColumns(): array
     {
@@ -94,19 +113,28 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         return $this->active_subscription_plan()->exists();
     }
 
-//    protected $fillable = [
-//        'id',
-//        'name',
-//        'email',
-//        'database',
-//        'domain',
-//        'created_at',
-//        'updated_at',
-//    ];
-//
-//    protected $casts = [
-//        'id' => 'string',
-//        'created_at' => 'datetime',
-//        'updated_at' => 'datetime',
-//    ];
+    /**
+     * Get the first user (owner) of the tenant.
+     * Useful for testing and initial setup.
+     */
+    public function getOwnerAttribute(): ?CentralUser
+    {
+        return $this->users()->first();
+    }
+
+    //    protected $fillable = [
+    //        'id',
+    //        'name',
+    //        'email',
+    //        'database',
+    //        'domain',
+    //        'created_at',
+    //        'updated_at',
+    //    ];
+    //
+    //    protected $casts = [
+    //        'id' => 'string',
+    //        'created_at' => 'datetime',
+    //        'updated_at' => 'datetime',
+    //    ];
 }

@@ -3,36 +3,61 @@
 namespace App\Models\Sale;
 
 use App\Casts\MoneyCast;
-use App\Models\Scopes\StructureScope;
+use App\Enums\ElectronicInvoiceStatusEnum;
+use App\Enums\SdiNotificationTypeEnum;
 use App\Models\Traits\HasStructure;
-use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Sale extends Model
 {
     /** @use HasFactory<\Database\Factories\Sale\SaleFactory> */
-    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, HasStructure;
+    use HasFactory, HasStructure, \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $fillable = [
         'uuid',
         'document_type_id',
+        'document_type_electronic_invoice_id',
         'progressive_number',
+        'progressive_number_prefix',
+        'progressive_number_value',
         'description',
+        'causale',
         'date',
         'year',
         'customer_id',
+        'original_sale_id',
         'payment_condition_id',
         'financial_resource_id',
         'promotion_id',
         'discount_percentage',
         'discount_absolute',
+        'type',
         'status',
         'payment_status',
         'accounting_status',
         'exported_status',
         'currency',
+        'tax_included',
         'notes',
+        'electronic_invoice_status',
+        'sdi_sent_at',
+        'sdi_received_at',
+        'sdi_notification_type',
+        'sdi_notification_message',
+        'electronic_invoice_xml_path',
+        'sdi_transmission_id',
+        'withholding_tax_amount',
+        'withholding_tax_rate',
+        'withholding_tax_type',
+        'stamp_duty_applied',
+        'stamp_duty_amount',
+        'welfare_fund_type',
+        'welfare_fund_rate',
+        'welfare_fund_amount',
+        'welfare_fund_taxable_amount',
+        'welfare_fund_vat_rate_id',
+        'fiscal_retention_until',
     ];
 
     protected $casts = [
@@ -40,14 +65,29 @@ class Sale extends Model
         'year' => 'integer',
         'discount_percentage' => MoneyCast::class,
         'discount_absolute' => MoneyCast::class,
+        'tax_included' => 'boolean',
         'status' => \App\Enums\SaleStatusEnum::class,
         'payment_status' => \App\Enums\SalePaymentStatusEnum::class,
         'accounting_status' => \App\Enums\SaleAccountingStatusEnum::class,
         'exported_status' => \App\Enums\SaleExportedStatusEnum::class,
+        'electronic_invoice_status' => ElectronicInvoiceStatusEnum::class,
+        'sdi_sent_at' => 'datetime',
+        'sdi_received_at' => 'datetime',
+        'sdi_notification_type' => SdiNotificationTypeEnum::class,
+        'fiscal_retention_until' => 'datetime',
+        'withholding_tax_amount' => MoneyCast::class,
+        'withholding_tax_rate' => 'decimal:2',
+        'stamp_duty_applied' => 'boolean',
+        'stamp_duty_amount' => MoneyCast::class,
+        'welfare_fund_rate' => 'decimal:2',
+        'welfare_fund_amount' => MoneyCast::class,
+        'welfare_fund_taxable_amount' => MoneyCast::class,
     ];
 
     protected $appends = [
         'summary',
+        'sale_summary',
+        'display_name',
     ];
 
     protected static function boot()
@@ -56,7 +96,7 @@ class Sale extends Model
 
         static::creating(function ($sale) {
             $sale->uuid = (string) \Illuminate\Support\Str::uuid();
-            //$sale->progressive_number = $sale->next_progressive_number;
+            // $sale->progressive_number = $sale->next_progressive_number;
         });
     }
 
@@ -90,36 +130,61 @@ class Sale extends Model
         return $this->hasMany(\App\Models\Sale\Payment::class);
     }
 
-    public function getTotalPriceAttribute()
+    public function electronic_invoice()
     {
-        // Somma i totali delle righe (considerando eventuale sconto sulla riga)
-        $rowsTotal = $this->rows->sum(function ($row) {
-            $rowTotal = ($row->quantity * $row->unit_price) - ($row->discount_absolute ?? 0);
-            // Applica sconto percentuale sulla riga se presente
-            if (!empty($row->discount_percentage)) {
-                $rowTotal -= $rowTotal * ($row->discount_percentage / 100);
-            }
-            return $rowTotal;
-        });
-
-        // Applica sconto percentuale sull'intera vendita
-//        if (!empty($this->discount_percentage)) {
-//            $rowsTotal -= $rowsTotal * ($this->discount_percentage / 100);
-//        }
-
-        // Applica sconto assoluto sull'intera vendita
-        if (!empty($this->discount_absolute)) {
-            $rowsTotal -= $this->discount_absolute;
-        }
-
-        return max(0, round($rowsTotal, 2));
+        return $this->hasOne(ElectronicInvoice::class);
     }
 
+    public function original_sale()
+    {
+        return $this->belongsTo(Sale::class, 'original_sale_id');
+    }
+
+    public function credit_notes()
+    {
+        return $this->hasMany(Sale::class, 'original_sale_id')->where('type', 'credit_note');
+    }
+
+    public function document_type()
+    {
+        return $this->belongsTo(\App\Models\Support\DocumentType::class);
+    }
+
+    public function document_type_electronic_invoice()
+    {
+        return $this->belongsTo(\App\Models\Support\DocumentTypeElectronicInvoice::class);
+    }
+
+    public function welfare_fund_vat_rate()
+    {
+        return $this->belongsTo(\App\Models\VatRate::class, 'welfare_fund_vat_rate_id');
+    }
+
+    public function getTotalPriceAttribute()
+    {
+        // Usa il summary che calcola correttamente da total_gross
+        return $this->summary->total_gross ?? 0;
+    }
+
+    /**
+     * Calcola il riepilogo IVA per la fattura elettronica (DatiRiepilogo)
+     *
+     * ⚠️ IMPORTANTE FISCALE:
+     * Secondo le normative dell'Agenzia delle Entrate:
+     * 1. L'IVA si calcola RIGA per RIGA con arrotondamento al centesimo
+     * 2. Il totale IVA è la SOMMA delle IVA di ogni riga (art. 21 DPR 633/72)
+     * 3. NON si ricalcola l'IVA sul totale imponibile per evitare discrepanze
+     * 4. Ogni riga ha il proprio arrotondamento indipendente
+     *
+     * Questo metodo DEVE sommare i vat_amount pre-calcolati delle righe.
+     * ❌ NON ricalcolare: round(imponibile_totale × aliquota)
+     * ✅ SOMMARE: sum(vat_amount_riga_1 + vat_amount_riga_2 + ...)
+     */
     public function getSummaryDataAttribute()
     {
         // Raggruppa le righe per aliquota IVA e natura
         $groups = $this->rows->groupBy(function ($row) {
-            return $row->vat_rate->percentage . '-' . ($row->vat_rate->nature ?? '');
+            return $row->vat_rate->percentage.'-'.($row->vat_rate->nature ?? '');
         });
 
         $summary = [];
@@ -130,17 +195,18 @@ class Sale extends Model
             $nature = $firstRow->vat_rate->nature ?? null;
             $regulatoryReference = $firstRow->vat_rate->description ?? null;
 
+            // Imponibile: somma dei total_net (già scontati) delle righe
             $taxableAmount = $rows->sum(function ($row) {
-                $rowTotal = ($row->quantity * $row->unit_price) - ($row->discount_absolute ?? 0);
-                if (!empty($row->discount_percentage)) {
-                    $rowTotal -= $rowTotal * ($row->discount_percentage / 100);
-                }
-                return $rowTotal;
+                return $row->total_net ?? 0;
             });
 
-            $tax = $vatRate > 0 ? round($taxableAmount * ($vatRate / 100), 2) : 0;
+            // ⚠️ CRITICO FISCALE: Somma dei vat_amount pre-calcolati riga per riga
+            // Questo rispetta l'art. 21 DPR 633/72 e evita sanzioni per evasione
+            $tax = $rows->sum(function ($row) {
+                return $row->vat_amount ?? 0;
+            });
 
-            $item = new \stdClass();
+            $item = new \stdClass;
             $item->vat_rate = number_format($vatRate, 2, '.', '');
             $item->taxable_amount = number_format($taxableAmount, 2, '.', '');
             $item->tax = number_format($tax, 2, '.', '');
@@ -159,77 +225,112 @@ class Sale extends Model
 
     public function getSummaryAttribute()
     {
-        // Totale con sconti applicati
-        $total = $this->rows->sum(function ($row) {
-            $rowTotal = ($row->quantity * $row->unit_price) - ($row->discount_absolute ?? 0);
-            if (!empty($row->discount_percentage)) {
-                $rowTotal -= $rowTotal * ($row->discount_percentage / 100);
-            }
-            return $rowTotal;
-        });
+        // Totale netto (con sconti applicati, senza IVA) - somma di tutti i total_net
+        $totalNet = $this->rows->sum('total_net');
 
-        // Totale senza sconti (lordo)
-        $total_gross = $this->rows->sum(function ($row) {
-            return $row->quantity * $row->unit_price;
-        });
+        // Totale IVA - somma di tutti i vat_amount
+        $totalVat = $this->rows->sum('vat_amount');
 
-        // Applica eventuale sconto assoluto sull'intera vendita
-        if (!empty($this->discount_absolute)) {
-            $total -= $this->discount_absolute;
-        }
+        // Totale lordo (con sconti applicati, con IVA)
+        $totalGross = $totalNet + $totalVat;
 
-        // Totale pagato
-        $payed = $this->payments->sum('amount');
+        // Note: Gli sconti a livello di vendita (discount_percentage, discount_absolute)
+        // NON sono implementati qui perché dovrebbero essere applicati a livello di righe durante la creazione
 
-        // Totale ancora dovuto
-        $due = max(0, $total - $payed);
-
-        return [
-            'total'        => round(max(0, $total), 2),
-            'total_gross'  => round($total_gross, 2),
-            'payed'        => round($payed, 2),
-            'due'          => round($due, 2),
+        return (object) [
+            'total_net' => round($totalNet, 2),
+            'total_gross' => round($totalGross, 2),
+            'total_vat' => round($totalVat, 2),
         ];
     }
 
     public function getSaleSummaryAttribute(): array
     {
-        $grossPrice = $this->rows->sum(function ($row) {
-            return $row->quantity * $row->unit_price;
-        });
+        // IMPORTANTE: Nel DB salviamo SEMPRE prezzi NETTI (unit_price_net, total_net)
+        // Il campo sale.tax_included indica solo come vengono MOSTRATI all'utente in UI
 
-        $netPrice = $this->rows->sum(function ($row) {
-            $rowTotal = ($row->quantity * $row->unit_price) - ($row->absolute_discount ?? 0);
-            if (!empty($row->percentage_discount)) {
-                $rowTotal -= $rowTotal * ($row->percentage_discount / 100);
-            }
-            // Rimuovi l'IVA dal totale della riga
-            return $row->vat_rate ? $rowTotal / (1 + ($row->vat_rate->percentage / 100)) : $rowTotal;
-        });
+        // Calcola imponibile (somma totali NETTI delle righe)
+        $netPrice = $this->rows->sum('total_net');
 
-        $totalTax = $this->rows->sum(function ($row) {
-            $rowTotal = ($row->quantity * $row->unit_price) - ($row->absolute_discount ?? 0);
-            if (!empty($row->percentage_discount)) {
-                $rowTotal -= $rowTotal * ($row->percentage_discount / 100);
-            }
-            return $row->vat_rate ? $rowTotal * ($row->vat_rate->percentage / 100) : 0;
-        });
+        // Calcola IVA totale usando vat_amount già calcolato e salvato nelle righe
+        // IMPORTANTE: Non ricalcolare l'IVA, usa il valore già arrotondato da PriceCalculatorService
+        $totalTax = $this->rows->sum('vat_amount');
 
+        // Prezzo lordo (con IVA) = Netto + IVA
+        $grossPrice = round($netPrice + $totalTax, 2);
+
+        // Imposta di bollo (se applicata E addebitata al cliente)
+        $stampDutyAmount = 0;
+        $chargeStampToCustomer = \App\Models\TenantSetting::get('invoice.stamp_duty.charge_customer', true);
+
+        if ($this->stamp_duty_applied && $chargeStampToCustomer) {
+            $stampDutyAmount = $this->stamp_duty_amount ?? 0;
+        }
+
+        // Totale finale con bollo (se addebitato al cliente)
+        $finalTotal = round($grossPrice + $stampDutyAmount, 2);
+
+        // Quantità totale prodotti
         $totalQuantity = $this->rows->sum('quantity');
 
+        // Importo pagato
         $totalPaid = $this->payments->sum('amount');
 
-        $totalDue = max(0, $netPrice - $totalPaid);
+        // Importo ancora dovuto (sul totale finale)
+        $totalDue = max(0, round($finalTotal - $totalPaid, 2));
+
+        // Scorporo IVA per aliquota con arrotondamenti precisi
+        $vatBreakdown = $this->rows
+            ->groupBy(function ($row) {
+                return $row->vat_rate_id ?? 0;
+            })
+            ->map(function ($rows) {
+                $first = $rows->first();
+
+                // Somma imponibili delle righe con stessa aliquota
+                $taxableAmount = $rows->sum('total_net');
+
+                // Somma IVA usando vat_amount già calcolato nelle righe
+                // IMPORTANTE: Non ricalcolare, usa i valori già arrotondati da PriceCalculatorService
+                $vatAmount = $rows->sum('vat_amount');
+
+                // Totale lordo = imponibile + IVA
+                $totalAmount = round($taxableAmount + $vatAmount, 2);
+
+                return [
+                    'vat_rate_id' => $first->vat_rate_id,
+                    'vat_rate' => $first->vat_rate,
+                    'percentage' => $first->vat_rate?->percentage ?? 0,
+                    'taxable_amount' => round($taxableAmount, 2),
+                    'vat_amount' => round($vatAmount, 2),
+                    'total_amount' => $totalAmount,
+                ];
+            })
+            ->values()
+            ->toArray();
 
         return [
-            'gross_price' => round($grossPrice, 2),
-            'net_price' => round($netPrice, 2),
-            'total_tax' => round($totalTax, 2),
+            'net_price' => round($netPrice, 2),  // Imponibile (senza IVA)
+            'total_tax' => round($totalTax, 2),  // IVA totale
+            'gross_price' => $grossPrice,  // Lordo (con IVA, senza bollo)
+            'stamp_duty_applied' => $this->stamp_duty_applied ?? false,
+            'stamp_duty_amount' => $stampDutyAmount,  // Bollo (solo se addebitato al cliente)
+            'final_total' => $finalTotal,  // Totale finale (con IVA + bollo se applicato)
             'total_quantity' => $totalQuantity,
             'total_paid' => round($totalPaid, 2),
-            'total_due' => round($totalDue, 2),
+            'total_due' => $totalDue,
             'absolute_discount' => round($this->discount_absolute ?? 0, 2),
             'percentage_discount' => round($this->discount_percentage ?? 0, 2),
+            'vat_breakdown' => $vatBreakdown,  // Scorporo IVA per aliquota
         ];
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->progressive_number) {
+            return 'Vendita #'.$this->progressive_number;
+        }
+
+        return 'Vendita';
     }
 }

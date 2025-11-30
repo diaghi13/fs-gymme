@@ -16,12 +16,15 @@ class MembershipController extends Controller
      */
     public function create()
     {
+        $membership = new Membership([
+            'color' => Color::randomHex(),
+            'months_duration' => 12,
+        ]);
+        $membership->type = 'membership';
+
         return Inertia::render('price-lists/price-lists', [
             ...PriceListService::getViewAttributes(),
-            'priceList' => new Membership([
-                'color' => Color::randomHex(),
-                'months_duration' => 12,
-            ]),
+            'priceList' => $membership,
         ]);
     }
 
@@ -30,11 +33,28 @@ class MembershipController extends Controller
      */
     public function store(Request $request)
     {
-        $membership = Membership::create($request->only(['name', 'parent_id', 'color', 'vat_rate_id', 'saleable']));
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable', 'integer', 'exists:price_lists,id'],
+            'color' => ['required', 'string', 'max:7'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'vat_rate_id' => ['required', 'integer', 'exists:vat_rates,id'],
+            'months_duration' => ['required', 'integer', 'min:1', 'max:120'],
+            'saleable' => ['nullable', 'boolean'],
+            'saleable_from' => ['nullable', 'date'],
+            'saleable_to' => ['nullable', 'date', 'after_or_equal:saleable_from'],
+        ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($validated['parent_id']) && $validated['parent_id'] === '') {
+            $validated['parent_id'] = null;
+        }
+
+        $membership = Membership::create($validated);
 
         return to_route('app.price-lists.memberships.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'membership' => $membership->id
+            'membership' => $membership->id,
         ])
             ->with('status', 'success');
     }
@@ -57,11 +77,48 @@ class MembershipController extends Controller
      */
     public function update(Request $request, Membership $membership)
     {
-        $membership->update($request->only(['name', 'parent_id', 'color', 'vat_rate_id', 'saleable']));
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable', 'integer', 'exists:price_lists,id', function ($attribute, $value, $fail) use ($membership) {
+                if ($value === $membership->id) {
+                    $fail('Non puoi selezionare se stesso come parent.');
+                }
+            }],
+            'color' => ['required', 'string', 'max:7'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'vat_rate_id' => ['required', 'integer', 'exists:vat_rates,id'],
+            'months_duration' => ['required', 'integer', 'min:1', 'max:120'],
+            'saleable' => ['nullable', 'boolean'],
+            'saleable_from' => ['nullable', 'date'],
+            'saleable_to' => ['nullable', 'date', 'after_or_equal:saleable_from'],
+        ]);
+
+        // Convert empty string to null for parent_id (foreign key constraint)
+        if (isset($validated['parent_id']) && $validated['parent_id'] === '') {
+            $validated['parent_id'] = null;
+        }
+
+        $membership->update($validated);
 
         return to_route('app.price-lists.memberships.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'membership' => $membership->id
+            'membership' => $membership->id,
+        ])
+            ->with('status', 'success');
+    }
+
+    /**
+     * Duplicate the specified resource.
+     */
+    public function duplicate(Membership $membership)
+    {
+        $newMembership = $membership->replicate();
+        $newMembership->name = 'Copia di '.$membership->name;
+        $newMembership->save();
+
+        return to_route('app.price-lists.memberships.show', [
+            'tenant' => session()->get('current_tenant_id'),
+            'membership' => $newMembership->id,
         ])
             ->with('status', 'success');
     }

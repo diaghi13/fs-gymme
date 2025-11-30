@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Stancl\Tenancy\Database\Models\Domain;
 use App\Models\Tenant;
+use Stancl\Tenancy\Database\Models\Domain;
 
 return [
     'tenant_model' => Tenant::class,
@@ -17,7 +17,7 @@ return [
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
     'central_domains' => [
-        //'127.0.0.1',
+        // '127.0.0.1',
         'localhost',
     ],
 
@@ -32,14 +32,14 @@ return [
         Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class,
         Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper::class,
         Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
-        // Stancl\Tenancy\Bootstrappers\RedisTenancyBootstrapper::class, // Note: phpredis is needed
+        Stancl\Tenancy\Bootstrappers\RedisTenancyBootstrapper::class,
     ],
 
     /**
      * Database tenancy config. Used by DatabaseTenancyBootstrapper.
      */
     'database' => [
-        'central_connection' => env('DB_CONNECTION', 'central'),
+        'central_connection' => env('DB_CONNECTION', 'mysql'),
 
         /**
          * Connection used as a "template" for the dynamically created tenant database connection.
@@ -150,7 +150,9 @@ return [
     'redis' => [
         'prefix_base' => 'tenant', // Each key in Redis will be prepended by this prefix_base, followed by the tenant id.
         'prefixed_connections' => [ // Redis connections whose keys are prefixed, to separate one tenant's keys from another.
-            // 'default',
+            'default',
+            'cache',
+            // Don't add 'session' here - causes CSRF issues because session starts before tenancy is initialized
         ],
     ],
 

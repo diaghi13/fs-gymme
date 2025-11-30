@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Application\Products;
 
+use App\Dtos\Product\BaseProductDto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Products\BaseProductStoreRequest;
 use App\Models\Product\BaseProduct;
-use App\Models\Product\Product;
 use App\Services\Product\BaseProductService;
-use App\Support\Color;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -33,15 +32,11 @@ class BaseProductController extends Controller
     /**
      * CustomerShow the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request, BaseProductService $service)
     {
         return Inertia::render('products/base-products', [
             'products' => $this->products,
-            'product' => new Product([
-                'name' => '',
-                'color' => Color::randomHex(),
-                'visible' => true,
-            ]),
+            'product' => $service->newProduct(),
         ]);
     }
 
@@ -50,13 +45,20 @@ class BaseProductController extends Controller
      */
     public function store(BaseProductStoreRequest $request, BaseProductService $service)
     {
-        $product = $service->store($request->validated());
+        try {
+            $product = $service->store($request->validated());
 
-        return to_route('app.base-products.show', [
-            'tenant' => $request->session()->get('current_tenant_id'),
-            'base_product' => $product->id
-        ])
-            ->with('status', 'success');
+            return to_route('app.base-products.show', [
+                'tenant' => $request->session()->get('current_tenant_id'),
+                'base_product' => $product->id
+            ])
+                ->with('status', 'success');
+        } catch (\Throwable $e) {
+            return back()
+                ->with('status', 'error')
+                ->with('message', 'Failed to create the product.')
+                ->withErrors(['error' => 'Failed to create the product: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -64,41 +66,40 @@ class BaseProductController extends Controller
      */
     public function show(BaseProduct $baseProduct, BaseProductService $service)
     {
-        ['product' => $product, 'vatRateOptions' => $vatRates,] = $service->show($baseProduct);
-
         return Inertia::render('products/base-products', [
+            ...$service->show($baseProduct),
             'products' => $this->products,
-            'product' => $product,
-            'vatRateOptions' => $vatRates,
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, BaseProduct $baseProduct)
+    public function update(Request $request, BaseProductDto $dto, BaseProductService $service)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'color' => 'required|string|max:7',
-            'visible' => 'required|boolean',
-        ]);
+        try {
+            $product = $service->update($dto);
 
-        $baseProduct->update($validatedData);
-
-        return to_route('app.base-products.show', [
-            'tenant' => $request->session()->get('current_tenant_id'),
-            'base_product' => $baseProduct->id
-        ])
-            ->with('status', 'success');
+            // redirect with the correct tab
+            return to_route('app.base-products.show', [
+                'tenant' => $request->session()->get('current_tenant_id'),
+                'base_product' => $product->id,
+                'tab' => $request->input('tab', 1),
+            ])->with('status', 'success');
+        } catch (\Throwable $e) {
+            return back()
+                ->with('status', 'error')
+                ->with('message', 'Failed to create the product.')
+                ->withErrors(['error' => 'Failed to update the product: ' . $e->getMessage()]);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(BaseProduct $baseProduct, BaseProductService $service)
+    public function destroy(string $id, BaseProductService $service)
     {
-        $service->delete($baseProduct);
+        $service->delete($id);
 
         return to_route('app.base-products.index', [
             'tenant' => session()->get('current_tenant_id'),

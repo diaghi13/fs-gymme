@@ -43,4 +43,28 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::patch('course-products/{product}/sales', \App\Http\Controllers\Application\Products\CourseProductSaleUpdate::class)
         ->name('app.course-products.sales.update');
 
+    // Course Product Plannings (nested resource)
+    Route::post('course-products/{course_product}/plannings', [\App\Http\Controllers\Application\Products\CourseProductPlanningController::class, 'store'])
+        ->name('app.course-products.plannings.store');
+
+    Route::put('course-products/{course_product}/plannings/{planning}', [\App\Http\Controllers\Application\Products\CourseProductPlanningController::class, 'update'])
+        ->name('app.course-products.plannings.update');
+
+    Route::delete('course-products/{course_product}/plannings/{planning}', [\App\Http\Controllers\Application\Products\CourseProductPlanningController::class, 'destroy'])
+        ->name('app.course-products.plannings.destroy');
+
+    Route::resource('/bookable-services', \App\Http\Controllers\Application\Products\BookableServiceController::class)
+        ->except(['edit'])
+        ->names([
+            'index' => 'app.bookable-services.index',
+            'create' => 'app.bookable-services.create',
+            'store' => 'app.bookable-services.store',
+            'show' => 'app.bookable-services.show',
+            'update' => 'app.bookable-services.update',
+            'destroy' => 'app.bookable-services.destroy',
+        ]);
+
+    Route::patch('bookable-services/{bookable_service}/sales', \App\Http\Controllers\Application\Products\BookableServiceSaleUpdate::class)
+        ->name('app.bookable-services.sales.update');
+
 });

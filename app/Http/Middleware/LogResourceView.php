@@ -16,12 +16,10 @@ class LogResourceView
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $response = $next($request);
-
         $user = Auth::user();
 
         if (Auth::check() && Auth::user()->hasRole('super-admin')) {
-            return $next($request);
+            return  $next($request);
         }
 
         // Deve essere usato su route tipo /users/{user} o /progetti/{progetto}
@@ -42,6 +40,6 @@ class LogResourceView
             }
         //});
 
-        return $response;
+        return $next($request);
     }
 }

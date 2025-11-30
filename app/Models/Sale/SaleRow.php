@@ -4,9 +4,11 @@ namespace App\Models\Sale;
 
 use App\Casts\MoneyCast;
 use App\Models\PriceList\PriceList;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+#[ObservedBy([\App\Observers\SaleRowObserver::class])]
 class SaleRow extends Model
 {
     /** @use HasFactory<\Database\Factories\Support\SaleRowFactory> */
@@ -19,31 +21,31 @@ class SaleRow extends Model
         'entitable_id',
         'description',
         'quantity',
-        'unit_price',
+        'unit_price_net',
+        'unit_price_gross',
         'percentage_discount',
         'absolute_discount',
         'vat_rate_id',
-        'total',
+        'vat_amount',
+        'total_net',
+        'total_gross',
         'start_date',
         'end_date',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
-        'unit_price' => MoneyCast::class,
+        'unit_price_net' => MoneyCast::class,
+        'unit_price_gross' => MoneyCast::class,
         'percentage_discount' => MoneyCast::class,
         'absolute_discount' => MoneyCast::class,
-        'total' => MoneyCast::class,
+        'vat_rate_id' => 'integer',
+        'vat_amount' => MoneyCast::class,
+        'total_net' => MoneyCast::class,
+        'total_gross' => MoneyCast::class,
         'start_date' => 'date',
         'end_date' => 'date',
     ];
-
-    public static function boot()
-    {
-        parent::boot();
-
-        parent::observe(\App\Observers\SaleRowObserver::class);
-    }
 
     public function sale()
     {

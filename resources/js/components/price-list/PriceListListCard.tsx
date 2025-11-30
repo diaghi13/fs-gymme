@@ -28,7 +28,7 @@ interface PriceListListCardProps {
 
 export default function PriceListListCard({onSelect, canCreate}: PriceListListCardProps) {
   const {priceLists} = usePage<PriceListPageProps>().props;
-  const [filteredPriceLists, setFilteredPrPriceLists] = useState<AllPriceLists[]>(priceLists);
+  const [filteredPriceLists, setFilteredPrPriceLists] = useState<AllPriceLists[]>(priceLists || []);
   const [filter, setFilter] = useState<string>("");
 
   const handleFilter = (event: ChangeEvent<HTMLInputElement>) => {
@@ -36,18 +36,38 @@ export default function PriceListListCard({onSelect, canCreate}: PriceListListCa
   }
 
   useEffect(() => {
-    if (filter !== "") {
-      const filtered = priceLists.filter((item) =>
-        item.name.toLowerCase().includes(filter.toLowerCase())
-      );
-      /*const filtered = priceLists.filter(function f(o) {
-        if (o.name.toLowerCase().includes(filter)) return true
+    if (!priceLists) {
+      setFilteredPrPriceLists([]);
+      return;
+    }
 
-        if (o.children) {
-          return (o.children = o.children.filter(f)).length
-        }
-      })*/
-      setFilteredPrPriceLists(filtered);
+    if (filter !== "") {
+      // Recursive filter that searches in folders and their children
+      const filterRecursive = (items: AllPriceLists[]): AllPriceLists[] => {
+        return items.reduce<AllPriceLists[]>((acc, item) => {
+          const matchesFilter = item.name.toLowerCase().includes(filter.toLowerCase());
+
+          // Check if item is a folder with children
+          if ('children' in item && item.children) {
+            const filteredChildren = filterRecursive(item.children);
+
+            // Include folder if it matches OR has matching children
+            if (matchesFilter || filteredChildren.length > 0) {
+              acc.push({
+                ...item,
+                children: filteredChildren.length > 0 ? filteredChildren : item.children
+              });
+            }
+          } else if (matchesFilter) {
+            // It's a product and it matches
+            acc.push(item);
+          }
+
+          return acc;
+        }, []);
+      };
+
+      setFilteredPrPriceLists(filterRecursive(priceLists));
     } else {
       setFilteredPrPriceLists(priceLists);
     }
