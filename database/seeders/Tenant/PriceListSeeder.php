@@ -237,7 +237,7 @@ class PriceListSeeder extends Seeder
             'price' => 120, // €120 (€12/ingresso)
             'vat_rate_id' => $vatRateIdEsente,
             'validity_months' => 3,
-            'max_uses' => 10,
+            'entrances' => 10,
             'description' => 'Carnet valido 3 mesi per 10 ingressi in sala',
         ]);
 
@@ -250,7 +250,7 @@ class PriceListSeeder extends Seeder
             'price' => 200, // €200 (€10/ingresso)
             'vat_rate_id' => $vatRateIdEsente,
             'validity_months' => 6,
-            'max_uses' => 20,
+            'entrances' => 20,
             'description' => 'Carnet valido 6 mesi per 20 ingressi in sala',
         ]);
 
@@ -273,7 +273,7 @@ class PriceListSeeder extends Seeder
             'price' => 100, // €100
             'vat_rate_id' => $vatRateIdEsente,
             'validity_months' => 2,
-            'max_uses' => 10,
+            'entrances' => 10,
             'description' => 'Pacchetto 10 lezioni di spinning valido 2 mesi',
         ]);
 
@@ -287,7 +287,7 @@ class PriceListSeeder extends Seeder
             'price' => 120, // €120
             'vat_rate_id' => $vatRateIdEsente,
             'validity_months' => 2,
-            'max_uses' => 8,
+            'entrances' => 8,
             'description' => 'Pacchetto 8 lezioni di yoga valido 2 mesi',
         ]);
 
@@ -355,7 +355,7 @@ class PriceListSeeder extends Seeder
             'price' => 225, // €225 (€45/seduta)
             'vat_rate_id' => $vatRateIdEsente,
             'validity_months' => 2,
-            'max_uses' => 5,
+            'entrances' => 5,
             'description' => 'Pacchetto 5 sedute di personal training',
         ]);
 
@@ -368,7 +368,7 @@ class PriceListSeeder extends Seeder
             'price' => 400, // €400 (€40/seduta)
             'vat_rate_id' => $vatRateIdEsente,
             'validity_months' => 3,
-            'max_uses' => 10,
+            'entrances' => 10,
             'description' => 'Pacchetto 10 sedute di personal training',
         ]);
 
@@ -382,7 +382,7 @@ class PriceListSeeder extends Seeder
             'price' => 135, // €135 (€45/massaggio)
             'vat_rate_id' => $vatRateIdEsente,
             'validity_months' => 3,
-            'max_uses' => 3,
+            'entrances' => 3,
             'description' => 'Pacchetto 3 massaggi sportivi o relax',
         ]);
 
