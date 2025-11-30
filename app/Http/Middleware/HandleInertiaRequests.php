@@ -69,7 +69,7 @@ class HandleInertiaRequests extends Middleware
                         }
                     }
 
-                    return [
+                    $userData = [
                         'id' => $user->id,
                         'first_name' => $user->first_name,
                         'last_name' => $user->last_name,
@@ -84,6 +84,13 @@ class HandleInertiaRequests extends Middleware
                             'global_id' => $user->global_id ?? null,
                         ],
                     ];
+
+                    // Add tenants only if this is a CentralUser (not in tenant context)
+                    if ($user instanceof \App\Models\CentralUser) {
+                        $userData['tenants'] = $user->tenants()->select(['tenants.id', 'tenants.name'])->get()->toArray();
+                    }
+
+                    return $userData;
                 } : null,
             ],
             'ziggy' => fn (): array => [

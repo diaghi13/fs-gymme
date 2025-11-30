@@ -15,12 +15,21 @@ export default function Welcome() {
         <header className="mb-6 w-full max-w-[335px] text-sm not-has-[nav]:hidden lg:max-w-4xl">
           <nav className="flex items-center justify-end gap-4">
             {auth.user ? (
-              <Link
-                href={auth.user.roles?.find((role) => role.name === 'super-admin') ? route('central.dashboard') : route('app.dashboard', {tenant: auth.user.tenants![0].id})}
-                className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-              >
-                Dashboard
-              </Link>
+              auth.user.tenants && auth.user.tenants.length > 0 ? (
+                <Link
+                  href={route('app.dashboard', { tenant: auth.user.tenants[0].id })}
+                  className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+                >
+                  Dashboard
+                </Link>
+              ) : auth.user.roles?.some((role) => role === 'super-admin') ? (
+                <Link
+                  href={route('central.dashboard')}
+                  className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+                >
+                  Dashboard
+                </Link>
+              ) : null
             ) : (
               <>
                 <Link
