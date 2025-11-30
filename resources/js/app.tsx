@@ -14,15 +14,18 @@ import { OnlineUsersProvider } from '@/Contexts/OnlineUserContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 
-configureEcho({
-  broadcaster: 'reverb',
-  key: import.meta.env.VITE_REVERB_APP_KEY,
-  wsHost: import.meta.env.VITE_REVERB_HOST,
-  wsPort: import.meta.env.VITE_REVERB_PORT,
-  wssPort: import.meta.env.VITE_REVERB_PORT,
-  forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
-  enabledTransports: ['ws', 'wss']
-});
+// Only configure Echo if Reverb key is provided
+if (import.meta.env.VITE_REVERB_APP_KEY) {
+  configureEcho({
+    broadcaster: 'reverb',
+    key: import.meta.env.VITE_REVERB_APP_KEY,
+    wsHost: import.meta.env.VITE_REVERB_HOST,
+    wsPort: import.meta.env.VITE_REVERB_PORT,
+    wssPort: import.meta.env.VITE_REVERB_PORT,
+    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+    enabledTransports: ['ws', 'wss']
+  });
+}
 
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';

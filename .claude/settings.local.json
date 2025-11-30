@@ -28,7 +28,8 @@
       "WebFetch(domain:code.claude.com)",
       "Bash(git commit:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "WebFetch(domain:gymme-v2.ddns.net)"
     ]
   },
   "enableAllProjectMcpServers": true,
