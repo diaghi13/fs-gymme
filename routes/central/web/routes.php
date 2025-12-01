@@ -49,6 +49,9 @@ Route::middleware([
     Route::resource('subscription-plans', \App\Http\Controllers\Central\SubscriptionPlanController::class)
         ->names('central.subscription-plans');
 
+    Route::resource('plan-features', \App\Http\Controllers\Central\PlanFeatureController::class)
+        ->names('central.plan-features');
+
     // Subscription Payments Management
     Route::prefix('subscription-payments')->name('central.subscription-payments.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Central\SubscriptionPaymentController::class, 'index'])

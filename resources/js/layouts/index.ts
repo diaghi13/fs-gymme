@@ -237,7 +237,7 @@ export const centralMenuList = () => ([
       },
       {
         name: 'Features & Addons',
-        href: '#' // TODO: route('central.plan-features.index')
+        href: route('central.plan-features.index')
       },
       {
         name: 'Associazione Features',
