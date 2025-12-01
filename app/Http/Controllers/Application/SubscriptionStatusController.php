@@ -11,8 +11,12 @@ class SubscriptionStatusController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $user = $request->user();
-        $tenant = $user->company;
+        // Get current tenant (we're in tenant context)
+        $tenant = tenant();
+
+        if (! $tenant) {
+            abort(500, 'Tenant non trovato');
+        }
 
         // Get current active subscription
         $activeSubscription = $tenant->active_subscription_plan;
@@ -45,7 +49,7 @@ class SubscriptionStatusController extends Controller
 
         return Inertia::render('subscription/status', [
             'subscriptionTenant' => $tenant->only(['id', 'name', 'email']),
-            'activeSubscription' => $activeSubscription?->load('pivot'),
+            'activeSubscription' => $activeSubscription,
             'cashierSubscription' => $subscriptionData,
             'availablePlans' => $availablePlans,
         ]);

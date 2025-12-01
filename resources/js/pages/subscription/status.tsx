@@ -167,7 +167,7 @@ export default function SubscriptionStatus({
           </Alert>
         )}
 
-        {activeSubscription && cashierSubscription && (
+        {activeSubscription && (
           <>
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, md: 8 }}>
@@ -179,10 +179,18 @@ export default function SubscriptionStatus({
                           {activeSubscription.name}
                         </Typography>
                         <Chip
-                          label={cashierSubscription.status}
-                          color={getStatusColor(cashierSubscription.status)}
+                          label={activeSubscription.pivot.status}
+                          color={getStatusColor(activeSubscription.pivot.status)}
                           size="small"
                         />
+                        {activeSubscription.is_trial_plan && (
+                          <Chip
+                            label="PIANO DEMO"
+                            color="info"
+                            size="small"
+                            sx={{ ml: 1 }}
+                          />
+                        )}
                       </Box>
 
                       <Divider />
@@ -192,17 +200,17 @@ export default function SubscriptionStatus({
                           Prezzo
                         </Typography>
                         <Typography variant="h5">
-                          €{activeSubscription.price.toFixed(2)} / {activeSubscription.interval}
+                          {activeSubscription.price === 0 ? 'Gratuito' : `€${(activeSubscription.price / 100).toFixed(2)} / ${activeSubscription.interval}`}
                         </Typography>
                       </Box>
 
-                      {cashierSubscription.on_trial && (
+                      {activeSubscription.pivot.is_trial && cashierSubscription?.on_trial && (
                         <Alert severity="info">
                           Periodo di prova fino al {formatDate(cashierSubscription.trial_ends_at)}
                         </Alert>
                       )}
 
-                      {cashierSubscription.on_grace_period && (
+                      {cashierSubscription?.on_grace_period && (
                         <Alert severity="warning">
                           L'abbonamento è stato cancellato e terminerà il {formatDate(cashierSubscription.ends_at)}
                         </Alert>
@@ -229,7 +237,7 @@ export default function SubscriptionStatus({
                       <Divider />
 
                       <Stack direction="row" spacing={2}>
-                        {cashierSubscription.on_grace_period ? (
+                        {cashierSubscription?.on_grace_period ? (
                           <Button
                             variant="contained"
                             color="success"
@@ -240,21 +248,36 @@ export default function SubscriptionStatus({
                           </Button>
                         ) : (
                           <>
-                            <Button
-                              variant="outlined"
-                              onClick={() => setChangePlanDialogOpen(true)}
-                              disabled={loading}
-                            >
-                              Cambia Piano
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              onClick={() => setCancelDialogOpen(true)}
-                              disabled={loading}
-                            >
-                              Cancella Abbonamento
-                            </Button>
+                            {activeSubscription.is_trial_plan ? (
+                              <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() => router.get(route('app.subscription-plans.index', { tenant: tenant.id }))}
+                                disabled={loading}
+                              >
+                                Passa a Piano Pagamento
+                              </Button>
+                            ) : (
+                              <>
+                                <Button
+                                  variant="outlined"
+                                  onClick={() => setChangePlanDialogOpen(true)}
+                                  disabled={loading}
+                                >
+                                  Cambia Piano
+                                </Button>
+                                {cashierSubscription && (
+                                  <Button
+                                    variant="outlined"
+                                    color="error"
+                                    onClick={() => setCancelDialogOpen(true)}
+                                    disabled={loading}
+                                  >
+                                    Cancella Abbonamento
+                                  </Button>
+                                )}
+                              </>
+                            )}
                           </>
                         )}
                       </Stack>
