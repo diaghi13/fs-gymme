@@ -42,6 +42,14 @@ class PlanFeature extends Model
     }
 
     /**
+     * Alias for subscriptionPlans() relationship.
+     */
+    public function plans(): BelongsToMany
+    {
+        return $this->subscriptionPlans();
+    }
+
+    /**
      * Tenants that have purchased this feature as an addon.
      */
     public function tenantAddons(): BelongsToMany

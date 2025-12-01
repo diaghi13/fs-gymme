@@ -42,6 +42,13 @@ class SubscriptionPlanRequest extends FormRequest
             'is_active' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
             'stripe_price_id' => 'nullable|string|max:255',
+
+            // Features
+            'features' => 'nullable|array',
+            'features.*.feature_id' => 'required|exists:plan_features,id',
+            'features.*.is_included' => 'required|boolean',
+            'features.*.quota_limit' => 'nullable|integer|min:0',
+            'features.*.price_cents' => 'nullable|integer|min:0',
         ];
     }
 

@@ -5,14 +5,38 @@ import { Box, Grid } from '@mui/material';
 import MyCard from '@/components/ui/MyCard';
 import { Formik, FormikConfig } from 'formik';
 import CreateForm from '@/components/central/subscription-plans/CreateForm';
+import FeaturesManager from '@/components/central/subscription-plans/FeaturesManager';
 import { router } from '@inertiajs/react';
+
+interface PlanFeature {
+  id: number;
+  name: string;
+  display_name: string;
+  feature_type: 'boolean' | 'quota' | 'metered';
+  is_addon_purchasable: boolean;
+  default_addon_price_cents: number | null;
+  default_addon_quota: number | null;
+}
+
+interface AttachedFeature {
+  id: number;
+  name: string;
+  display_name: string;
+  feature_type: string;
+  is_included: boolean;
+  quota_limit: number | null;
+  price_cents: number | null;
+}
 
 interface EditProps extends PageProps {
   subscriptionPlan: SubscriptionPlan;
+  availableFeatures: PlanFeature[];
+  planFeatures: AttachedFeature[];
 }
 
-const Edit: React.FC<EditProps> = ({ auth, subscriptionPlan }) => {
-  const formik: FormikConfig<Partial<SubscriptionPlan>> = {
+const Edit: React.FC<EditProps> = ({ auth, subscriptionPlan, availableFeatures, planFeatures }) => {
+  const formik: FormikConfig<any> = {
+    enableReinitialize: true,
     initialValues: {
       name: subscriptionPlan.name,
       slug: subscriptionPlan.slug,
@@ -26,16 +50,20 @@ const Edit: React.FC<EditProps> = ({ auth, subscriptionPlan }) => {
       is_active: subscriptionPlan.is_active ?? true,
       sort_order: subscriptionPlan.sort_order ?? 0,
       stripe_price_id: subscriptionPlan.stripe_price_id ?? '',
+      features: planFeatures.map(f => ({
+        feature_id: f.id,
+        is_included: f.is_included,
+        quota_limit: f.quota_limit,
+        price_cents: f.price_cents,
+      })),
     },
-    onSubmit: (values) => {
+    onSubmit: (values, { setSubmitting }) => {
       router.patch(
         route('central.subscription-plans.update', subscriptionPlan.id),
         values,
         {
           preserveScroll: true,
-          onSuccess: () => {
-            router.visit(route('central.subscription-plans.index'));
-          },
+          onFinish: () => setSubmitting(false),
           onError: (errors) => {
             console.error('Error updating subscription plan:', errors);
           }
@@ -47,15 +75,26 @@ const Edit: React.FC<EditProps> = ({ auth, subscriptionPlan }) => {
   return (
     <CentralLayout user={auth.user}>
       <Box m={2}>
-        <MyCard title="Crea Piano di Abbonamento">
-          <Grid container spacing={2}>
-            <Grid size={12}>
+        <Grid container spacing={2}>
+          <Grid size={12}>
+            <MyCard title={`Modifica Piano: ${subscriptionPlan.name}`}>
               <Formik {...formik}>
                 <CreateForm />
               </Formik>
-            </Grid>
+            </MyCard>
           </Grid>
-        </MyCard>
+
+          <Grid size={12}>
+            <MyCard title="Gestione Features">
+              <Formik {...formik}>
+                <FeaturesManager
+                  availableFeatures={availableFeatures}
+                  currentFeatures={planFeatures}
+                />
+              </Formik>
+            </MyCard>
+          </Grid>
+        </Grid>
       </Box>
     </CentralLayout>
   );
