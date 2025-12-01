@@ -97,7 +97,7 @@ export default function CentralLayout({ title, children, user }: PropsWithChildr
       <CssBaseline />
       <AppBar open={open} setOpen={handleDrawerToggle} toggleSettingDrawerOpen={() => {
       }} />
-      <Drawer open={open} setOpen={setOpen} menuList={centralMenuList} />
+      <Drawer open={open} setOpen={setOpen} menuList={() => centralMenuList()} />
       <Box
         component="main"
         sx={{
