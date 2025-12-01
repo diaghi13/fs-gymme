@@ -75,26 +75,24 @@ const Edit: React.FC<EditProps> = ({ auth, subscriptionPlan, availableFeatures, 
   return (
     <CentralLayout user={auth.user}>
       <Box m={2}>
-        <Grid container spacing={2}>
-          <Grid size={12}>
-            <MyCard title={`Modifica Piano: ${subscriptionPlan.name}`}>
-              <Formik {...formik}>
+        <Formik {...formik}>
+          <Grid container spacing={2}>
+            <Grid size={12}>
+              <MyCard title={`Modifica Piano: ${subscriptionPlan.name}`}>
                 <CreateForm />
-              </Formik>
-            </MyCard>
-          </Grid>
+              </MyCard>
+            </Grid>
 
-          <Grid size={12}>
-            <MyCard title="Gestione Features">
-              <Formik {...formik}>
+            <Grid size={12}>
+              <MyCard title="Gestione Features">
                 <FeaturesManager
                   availableFeatures={availableFeatures}
                   currentFeatures={planFeatures}
                 />
-              </Formik>
-            </MyCard>
+              </MyCard>
+            </Grid>
           </Grid>
-        </Grid>
+        </Formik>
       </Box>
     </CentralLayout>
   );
