@@ -18,6 +18,8 @@ import WorkIcon from '@mui/icons-material/Work';
 import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import StorageIcon from '@mui/icons-material/Storage';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import CardMembershipIcon from '@mui/icons-material/CardMembership';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 
 export const productType = {
   baseProduct: 'BASE_PRODUCT',
@@ -114,6 +116,20 @@ export const menuList = (tenant: string) => ([
       {
         name: 'Ruoli e permessi',
         href: route('app.roles.index', { tenant }),
+      },
+    ],
+  },
+  {
+    name: 'Abbonamento',
+    Icon: CardMembershipIcon,
+    items: [
+      {
+        name: 'Stato Abbonamento',
+        href: route('app.subscription.status', { tenant }),
+      },
+      {
+        name: 'Addons',
+        href: route('app.addons.index', { tenant }),
       },
     ],
   },
@@ -239,8 +255,17 @@ export const centralMenuList = () => ([
   },
   {
     name: 'Abbonamenti',
-    href: route('central.subscription-plans.index'),
-    Icon: WorkIcon
+    Icon: WorkIcon,
+    items: [
+      {
+        name: 'Piani',
+        href: route('central.subscription-plans.index')
+      },
+      {
+        name: 'Pagamenti',
+        href: route('central.subscription-payments.index')
+      }
+    ]
   },
   {
     name: 'Ruoli e Permessi',

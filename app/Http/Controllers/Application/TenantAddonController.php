@@ -38,7 +38,7 @@ class TenantAddonController extends Controller
         $tenant = Tenant::find(session('current_tenant_id'));
 
         if (! $tenant || ! $tenant->hasActiveSubscriptionPlan()) {
-            return Inertia::render('Application/Addons/Index', [
+            return Inertia::render('subscription/addons', [
                 'error' => 'Nessun piano attivo. Attiva un abbonamento per acquistare addons.',
                 'availableAddons' => [],
                 'currentAddons' => [],
@@ -109,7 +109,7 @@ class TenantAddonController extends Controller
                 ];
             });
 
-        return Inertia::render('Application/Addons/Index', [
+        return Inertia::render('subscription/addons', [
             'currentPlan' => [
                 'id' => $currentPlan->id,
                 'name' => $currentPlan->name,

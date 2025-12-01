@@ -108,7 +108,7 @@ Route::middleware([])->group(function () {
         ->name('app.sales.debug-status');
 
     Route::get('subscription-plan', \App\Http\Controllers\Application\SubscriptionPlanChoiceController::class)
-        //->withoutMiddleware(\App\Http\Middleware\HasActiveSubscriptionPlan::class)
+        // ->withoutMiddleware(\App\Http\Middleware\HasActiveSubscriptionPlan::class)
         ->name('app.subscription-plans.index');
 
     Route::get('subscription-plan-payment/{subscriptionPlan}', \App\Http\Controllers\Application\SubscriptionPlanPaymentController::class)
@@ -117,6 +117,18 @@ Route::middleware([])->group(function () {
 
     Route::get('subscription/status', \App\Http\Controllers\Application\SubscriptionStatusController::class)
         ->name('app.subscription.status');
+
+    // Subscription Addons Management
+    Route::prefix('subscription/addons')->name('app.addons.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Application\TenantAddonController::class, 'index'])
+            ->name('index');
+        Route::post('/', [\App\Http\Controllers\Application\TenantAddonController::class, 'store'])
+            ->name('store');
+        Route::delete('{addon}', [\App\Http\Controllers\Application\TenantAddonController::class, 'destroy'])
+            ->name('destroy');
+        Route::post('{addon}/upgrade', [\App\Http\Controllers\Application\TenantAddonController::class, 'upgrade'])
+            ->name('upgrade');
+    });
 
     // Structure Management
     Route::get('structures/switch/{structure}', [\App\Http\Controllers\Tenant\StructureController::class, 'switch'])
