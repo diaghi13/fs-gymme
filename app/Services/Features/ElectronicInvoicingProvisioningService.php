@@ -79,45 +79,106 @@ class ElectronicInvoicingProvisioningService
     }
 
     /**
-     * Create account with electronic invoicing provider.
+     * Create account with Fattura Elettronica API provider.
      *
-     * TODO: Replace with actual provider API integration.
+     * Uses the multi-azienda API to create a new company account.
+     * Documentation: https://fattura-elettronica-api.it/documentazione2.0/#multi_aziende
      *
      * @return array|null Array with credentials or null on failure
      */
     protected function createProviderAccount(Tenant $tenant): ?array
     {
-        // Example placeholder for API integration
-        // Replace with your actual provider (Aruba, Infocert, etc.)
+        $endpoint = config('services.fattura_elettronica_api.endpoint', 'https://fattura-elettronica-api.it/ws2.0/prod');
+        $username = config('services.fattura_elettronica_api.username');
+        $password = config('services.fattura_elettronica_api.password');
 
-        /*
-        $response = Http::post('https://api.provider.com/accounts', [
-            'company_name' => $tenant->name,
-            'vat_number' => $tenant->vat_number,
-            'tax_code' => $tenant->tax_code,
-            'email' => $tenant->email,
-            'pec_email' => $tenant->pec_email,
-            'sdi_code' => $tenant->sdi_code,
-        ]);
+        if (! $username || ! $password) {
+            Log::warning('Fattura Elettronica API credentials not configured');
 
-        if ($response->successful()) {
+            // Return mock for development if not configured
             return [
-                'api_key' => $response->json('api_key'),
-                'api_secret' => $response->json('api_secret'),
-                'account_id' => $response->json('account_id'),
+                'api_key' => $username ?: 'mock_username',
+                'api_secret' => $password ?: 'mock_password',
+                'account_id' => 'mock_'.uniqid(),
+                'provider' => 'fattura_elettronica_api_mock',
             ];
         }
 
-        return null;
-        */
-
-        // Placeholder: return mock credentials for development
-        return [
-            'api_key' => 'mock_api_key_'.uniqid(),
-            'api_secret' => 'mock_api_secret_'.uniqid(),
-            'account_id' => 'mock_account_'.uniqid(),
-            'provider' => 'mock_provider',
+        // Prepare company data according to API spec
+        $companyData = [
+            'ragione_sociale' => $tenant->name,
+            'piva' => $tenant->vat_number,
+            'cfis' => $tenant->tax_code,
+            'indirizzo' => $tenant->address,
+            'cap' => $tenant->postal_code,
+            'citta' => $tenant->city,
+            'provincia' => $this->extractProvince($tenant->address),
+            'paese' => $tenant->country ?: 'IT',
+            'telefono_amministrazione' => $tenant->phone,
+            'email_amministrazione' => $tenant->email,
+            'abilita_ricezione' => 1, // Enable receiving invoices
         ];
+
+        // Add optional fields if available
+        if ($tenant->pec_email) {
+            $companyData['pec'] = $tenant->pec_email;
+        }
+
+        try {
+            $response = Http::withBasicAuth($username, $password)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($endpoint.'/aziende', $companyData);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                // Store the Bearer token if provided in response headers
+                $bearerToken = $response->header('X-auth-token');
+                $tokenExpires = $response->header('X-auth-expires');
+
+                return [
+                    'api_key' => $username, // Basic auth username
+                    'api_secret' => $password, // Basic auth password
+                    'bearer_token' => $bearerToken,
+                    'token_expires' => $tokenExpires,
+                    'account_id' => $data['id'] ?? null,
+                    'provider' => 'fattura_elettronica_api',
+                    'provider_data' => $data, // Full company data from provider
+                ];
+            }
+
+            Log::error('Failed to create Fattura Elettronica API account', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Exception creating Fattura Elettronica API account', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Extract province code from address or city.
+     * Returns null if not found.
+     */
+    protected function extractProvince(?string $address): ?string
+    {
+        if (! $address) {
+            return null;
+        }
+
+        // Try to extract 2-letter province code (e.g., "RM", "MI", "TO")
+        // This is a simple heuristic - adjust based on your data
+        if (preg_match('/\b([A-Z]{2})\b/', strtoupper($address), $matches)) {
+            return $matches[1];
+        }
+
+        return null;
     }
 
     /**
@@ -129,13 +190,23 @@ class ElectronicInvoicingProvisioningService
 
         try {
             // Store encrypted credentials in tenant settings
-            // Assuming you have a TenantSetting model or similar
-
             if (class_exists(\App\Models\TenantSetting::class)) {
                 \App\Models\TenantSetting::set('electronic_invoicing_api_key', encrypt($credentials['api_key']));
                 \App\Models\TenantSetting::set('electronic_invoicing_api_secret', encrypt($credentials['api_secret']));
                 \App\Models\TenantSetting::set('electronic_invoicing_account_id', $credentials['account_id']);
                 \App\Models\TenantSetting::set('electronic_invoicing_provider', $credentials['provider']);
+
+                // Store bearer token if available
+                if (isset($credentials['bearer_token'])) {
+                    \App\Models\TenantSetting::set('electronic_invoicing_bearer_token', encrypt($credentials['bearer_token']));
+                    \App\Models\TenantSetting::set('electronic_invoicing_token_expires', $credentials['token_expires']);
+                }
+
+                // Store full provider data for reference
+                if (isset($credentials['provider_data'])) {
+                    \App\Models\TenantSetting::set('electronic_invoicing_provider_data', json_encode($credentials['provider_data']));
+                }
+
                 \App\Models\TenantSetting::set('electronic_invoicing_enabled', true);
             }
         } finally {
