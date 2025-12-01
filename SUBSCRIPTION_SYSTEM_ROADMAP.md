@@ -5,7 +5,7 @@ Sistema completo di gestione abbonamenti multi-tier con features modulari acquis
 
 ---
 
-## ✅ COMPLETATO (19/21 - 90%)
+## ✅ COMPLETATO (20/24 - 83%)
 
 ### Database Migrations ✅
 - [x] `create_plan_features_table.php` - Tabella features disponibili nel sistema
@@ -13,10 +13,13 @@ Sistema completo di gestione abbonamenti multi-tier con features modulari acquis
 - [x] `create_tenant_addons_table.php` - Addons acquistati dai tenant
 - [x] `add_demo_fields_to_tenants_table.php` - Campi `is_demo`, `demo_expires_at`, `payment_method`
 - [x] `add_tier_fields_to_subscription_plans_table.php` - Campi `tier`, `is_trial_plan`, `sort_order`
+- [x] `add_payment_method_to_subscription_plan_tenant_table.php` - **NUOVO**: Campi `payment_method`, `bank_transfer_notes`, `payment_confirmed_at`, `payment_confirmed_by`
 
 ### Enums ✅
 - [x] `FeatureType` - Boolean/Quota/Metered
 - [x] `SubscriptionPlanTier` - Base/Gold/Platinum
+- [x] `PaymentMethod` - **NUOVO**: Stripe/BankTransfer/Manual con helper methods
+- [x] `SubscriptionStatus` - **NUOVO**: Active/Trial/PendingPayment/Cancelled/Expired/Suspended
 
 ### Models ✅
 - [x] `PlanFeature` - Model con relationships verso piani e tenant addons
@@ -104,14 +107,25 @@ Sistema completo di gestione abbonamenti multi-tier con features modulari acquis
 
 ---
 
-## 📋 DA FARE (2/21 - 10%)
+### Pagamento Bonifico ✅ COMPLETATO
+- [x] Migration per campo `payment_method` in `subscription_plan_tenant`
+- [x] Campi aggiuntivi: `bank_transfer_notes`, `payment_confirmed_at`, `payment_confirmed_by`
+- [x] Enum `PaymentMethod` con Stripe/BankTransfer/Manual
+- [x] Enum `SubscriptionStatus` con stato `PendingPayment`
+- [x] `SubscriptionPaymentController` per conferma pagamenti admin:
+  - ✅ `index()` - Lista pagamenti in attesa
+  - ✅ `confirm()` - Conferma pagamento e attiva abbonamento
+  - ✅ `reject()` - Rifiuta pagamento
+- [x] `BankTransferInstructionsMail` - Email automatica con coordinate bancarie
+- [x] Template Blade `bank-transfer-instructions.blade.php`
+- [x] Aggiornato `TenantProvisioningService`:
+  - ✅ Supporto parametro `$paymentMethod`
+  - ✅ Creazione abbonamento con stato `pending_payment` per bonifico
+  - ✅ Invio automatico email con coordinate bancarie
 
-### Pagamento Bonifico (Enhancement Futuro)
-- [ ] Migration per campo `payment_method` in `subscription_plan_tenant`
-- [ ] Stato `pending_payment` per abbonamenti bonifico
-- [ ] Controller admin per conferma pagamenti manuali
-- [ ] Email automatica con coordinate bancarie
-- [ ] Notifica utente quando abbonamento attivato
+---
+
+## 📋 DA FARE (4/24 - 17%)
 
 ### Gestione Addons (UI Futuro)
 - [ ] `TenantAddonController`:
@@ -324,11 +338,12 @@ public function getUsage(Tenant $tenant, string $featureName): int
 - ✅ **Fase 2**: Seeders & Data (COMPLETATA - 1.5 ore)
 - ✅ **Fase 3**: Services & Logic (COMPLETATA - 2 ore)
 - ✅ **Fase 4**: Usage Tracking & Scheduled Tasks (COMPLETATA - 1 ora)
-- 📋 **Fase 5**: Controllers & UI (Opzionale - 4-5 ore)
-- 📋 **Fase 6**: Testing (Raccomandato - 2-3 ore)
+- ✅ **Fase 5**: Pagamento Bonifico (COMPLETATA - 1.5 ore)
+- 📋 **Fase 6**: Controllers & UI Addons (Opzionale - 3-4 ore)
+- 📋 **Fase 7**: Testing (Raccomandato - 2-3 ore)
 
-**Completato**: ~6.5 ore di sviluppo core (90%)
-**Rimanente opzionale**: ~6-8 ore per UI e test
+**Completato**: ~8 ore di sviluppo core (83%)
+**Rimanente opzionale**: ~5-7 ore per UI addons e test
 
 ---
 
@@ -338,11 +353,13 @@ public function getUsage(Tenant $tenant, string $featureName): int
 2. ✅ Commit del lavoro fatto
 3. ✅ Implementare tracking usage per features chiave
 4. ✅ Aggiungere scheduled task per cleanup demo tenants
-5. 🎨 Creare UI per visualizzare features disponibili
-6. 🎨 Creare UI per acquisto addons
-7. 🧪 Scrivere test per FeatureAccessService (opzionale)
-8. 📧 Implementare notifiche email per demo in scadenza (opzionale)
+5. ✅ Implementare supporto pagamento bonifico
+6. 🎨 Creare UI per visualizzare features disponibili (opzionale)
+7. 🎨 Creare UI per acquisto addons (opzionale)
+8. 🎨 Creare UI admin per conferma pagamenti bonifico (opzionale)
+9. 🧪 Scrivere test per FeatureAccessService (opzionale)
+10. 📧 Implementare notifiche email per demo in scadenza (opzionale)
 
 ---
 
-Ultimo aggiornamento: 2025-12-01 (Sistema Core COMPLETATO AL 90%)
+Ultimo aggiornamento: 2025-12-01 (Sistema Core COMPLETATO AL 83%)

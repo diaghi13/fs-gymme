@@ -33,13 +33,14 @@ class TenantProvisioningService
      *
      * @param  array  $data  Tenant registration data
      * @param  bool  $isDemo  Whether this is a demo tenant
+     * @param  string  $paymentMethod  Payment method (stripe, bank_transfer, manual)
      * @return Tenant The created tenant
      *
      * @throws \Exception If provisioning fails
      */
-    public function provision(array $data, bool $isDemo = false): Tenant
+    public function provision(array $data, bool $isDemo = false, string $paymentMethod = 'stripe'): Tenant
     {
-        return DB::transaction(function () use ($data, $isDemo) {
+        return DB::transaction(function () use ($data, $isDemo, $paymentMethod) {
             // 1. Create tenant in central database
             $tenant = $this->createTenant($data['tenant'], $isDemo);
 
@@ -56,7 +57,7 @@ class TenantProvisioningService
             $this->initializeTenantData($tenant, $data, $isDemo);
 
             // 6. Assign trial subscription plan if available
-            $this->assignTrialPlan($tenant);
+            $this->assignTrialPlan($tenant, $paymentMethod);
 
             return $tenant->fresh();
         });
@@ -214,8 +215,10 @@ class TenantProvisioningService
 
     /**
      * Assign trial subscription plan to tenant.
+     *
+     * @param  string  $paymentMethod  Payment method chosen by tenant
      */
-    protected function assignTrialPlan(Tenant $tenant): void
+    protected function assignTrialPlan(Tenant $tenant, string $paymentMethod = 'stripe'): void
     {
         // Find a trial or free plan
         $trialPlan = SubscriptionPlan::where('is_trial', true)
@@ -228,13 +231,46 @@ class TenantProvisioningService
         }
 
         if ($trialPlan) {
-            $tenant->subscription_planes()->attach($trialPlan->id, [
-                'is_active' => true,
+            $subscriptionData = [
                 'is_trial' => true,
                 'starts_at' => now(),
                 'trial_ends_at' => now()->addDays(config('app.trial_days', 14)),
-                'status' => 'trial',
-            ]);
+                'payment_method' => $paymentMethod,
+            ];
+
+            // Set status based on payment method
+            if ($paymentMethod === 'bank_transfer' || $paymentMethod === 'manual') {
+                $subscriptionData['status'] = \App\Enums\SubscriptionStatus::PendingPayment->value;
+                $subscriptionData['is_active'] = false; // Not active until payment confirmed
+            } else {
+                $subscriptionData['status'] = \App\Enums\SubscriptionStatus::Trial->value;
+                $subscriptionData['is_active'] = true;
+            }
+
+            $tenant->subscription_planes()->attach($trialPlan->id, $subscriptionData);
+
+            // Send bank transfer instructions if needed
+            if ($paymentMethod === 'bank_transfer') {
+                $this->sendBankTransferInstructions($tenant, $trialPlan);
+            }
+        }
+    }
+
+    /**
+     * Send bank transfer instructions email.
+     */
+    protected function sendBankTransferInstructions(Tenant $tenant, SubscriptionPlan $plan): void
+    {
+        $subscription = $tenant->subscription_planes()->where('subscription_plan_id', $plan->id)->first();
+
+        if ($subscription) {
+            \Mail::to($tenant->email)->send(
+                new \App\Mail\BankTransferInstructionsMail(
+                    $tenant,
+                    $plan,
+                    (string) $subscription->pivot->id
+                )
+            );
         }
     }
 
