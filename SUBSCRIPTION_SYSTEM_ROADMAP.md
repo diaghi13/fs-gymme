@@ -5,7 +5,7 @@ Sistema completo di gestione abbonamenti multi-tier con features modulari acquis
 
 ---
 
-## ✅ COMPLETATO (21/24 - 88%)
+## ✅ COMPLETATO (22/24 - 92%)
 
 ### Database Migrations ✅
 - [x] `create_plan_features_table.php` - Tabella features disponibili nel sistema
@@ -138,14 +138,38 @@ Sistema completo di gestione abbonamenti multi-tier con features modulari acquis
 
 ---
 
-## 📋 DA FARE (3/24 - 13%)
+### Gestione Addons ✅ COMPLETATO
+- [x] `TenantAddonController`:
+  - ✅ `index()` - Lista addons disponibili e attivi
+    - Mostra addons acquistabili per il piano corrente
+    - Include info su quota, prezzo, utilizzo corrente
+    - Distingue tra features incluse nel piano e addons
+  - ✅ `store()` - Acquista nuovo addon
+    - Validazione disponibilità e prerequisiti
+    - Supporto pagamento Stripe e bonifico
+    - Creazione record con stato appropriato
+  - ✅ `destroy()` - Cancella addon
+    - Cancellazione sicura con transaction
+    - TODO placeholder per cancellazione Stripe
+  - ✅ `upgrade()` - Aumenta quota addon esistente
+    - Validazione addon attivo
+    - Aggiornamento quota
+    - TODO placeholder per update Stripe
 
-### Gestione Addons (UI Futuro - OPZIONALE)
-- [ ] `TenantAddonController`:
-  - `index()` - Lista addons disponibili per il piano
-  - `store()` - Acquista addon
-  - `destroy()` - Cancella addon
-  - `upgrade()` - Aumenta quota addon esistente
+---
+
+## 📋 DA FARE (2/24 - 8%) - SOLO UI FRONTEND
+
+### UI Frontend React (OPZIONALE)
+- [ ] Pagina React `Application/Addons/Index.tsx`:
+  - Visualizzazione addons disponibili con card
+  - Form acquisto addon
+  - Gestione cancellazione addon
+  - Upgrade quota addon
+- [ ] Pagina React `Central/SubscriptionPayments/Index.tsx`:
+  - Tabella pagamenti in attesa
+  - Dialog conferma/rifiuta pagamento
+  - Filtri e ricerca
 
 ### Testing (Quality Assurance) - OPZIONALE
 - [ ] Test Features System (opzionale):
@@ -347,11 +371,12 @@ public function getUsage(Tenant $tenant, string $featureName): int
 - ✅ **Fase 4**: Usage Tracking & Scheduled Tasks (COMPLETATA - 1 ora)
 - ✅ **Fase 5**: Pagamento Bonifico (COMPLETATA - 1.5 ore)
 - ✅ **Fase 6**: Provisioning Fatturazione Elettronica (COMPLETATA - 0.5 ore)
-- 📋 **Fase 7**: Controllers & UI Addons (Opzionale - 3-4 ore)
-- 📋 **Fase 8**: Testing (Raccomandato - 2-3 ore)
+- ✅ **Fase 7**: Controllers Backend Addons (COMPLETATA - 0.5 ore)
+- 📋 **Fase 8**: UI Frontend React (Opzionale - 2-3 ore)
+- 📋 **Fase 9**: Testing (Raccomandato - 2-3 ore)
 
-**Completato**: ~8.5 ore di sviluppo core (88%)
-**Rimanente opzionale**: ~5-7 ore per UI addons e test
+**Completato**: ~9 ore di sviluppo core (92%)
+**Rimanente opzionale**: ~4-6 ore per UI frontend React e test
 
 ---
 
@@ -363,13 +388,15 @@ public function getUsage(Tenant $tenant, string $featureName): int
 4. ✅ Aggiungere scheduled task per cleanup demo tenants
 5. ✅ Implementare supporto pagamento bonifico
 6. ✅ Creare service provisioning fatturazione elettronica
-7. 🎨 Creare UI per visualizzare features disponibili (opzionale)
-8. 🎨 Creare UI per acquisto addons (opzionale)
-9. 🎨 Creare UI admin per conferma pagamenti bonifico (opzionale)
-10. 🔌 Integrare provider reale fatturazione elettronica (Aruba/Infocert)
-11. 🧪 Scrivere test per FeatureAccessService (opzionale)
-12. 📧 Implementare notifiche email per demo in scadenza (opzionale)
+7. ✅ Integrare provider reale Fattura Elettronica API
+8. ✅ Creare TenantAddonController per gestione addons
+9. 🎨 Creare UI React per visualizzare features disponibili (opzionale)
+10. 🎨 Creare UI React per acquisto/gestione addons (opzionale)
+11. 🎨 Creare UI React admin per conferma pagamenti bonifico (opzionale)
+12. 🧪 Scrivere test per FeatureAccessService (opzionale)
+13. 📧 Implementare notifiche email per demo in scadenza (opzionale)
+14. 💳 Integrare Stripe per addons (attualmente placeholder TODO)
 
 ---
 
-Ultimo aggiornamento: 2025-12-01 (Sistema Core COMPLETATO AL 88%)
+Ultimo aggiornamento: 2025-12-01 (Sistema Core COMPLETATO AL 92%)
