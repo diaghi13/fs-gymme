@@ -19,7 +19,6 @@ import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import StorageIcon from '@mui/icons-material/Storage';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import CardMembershipIcon from '@mui/icons-material/CardMembership';
-import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 
 export const productType = {
   baseProduct: 'BASE_PRODUCT',
