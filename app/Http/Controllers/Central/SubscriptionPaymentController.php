@@ -44,7 +44,7 @@ class SubscriptionPaymentController extends Controller
             ->orderBy('subscription_plan_tenant.created_at', 'desc')
             ->get();
 
-        return Inertia::render('Central/SubscriptionPayments/Index', [
+        return Inertia::render('central/subscription-payments/index', [
             'pendingPayments' => $pendingPayments,
         ]);
     }

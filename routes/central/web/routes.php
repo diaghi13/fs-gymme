@@ -49,6 +49,16 @@ Route::middleware([
     Route::resource('subscription-plans', \App\Http\Controllers\Central\SubscriptionPlanController::class)
         ->names('central.subscription-plans');
 
+    // Subscription Payments Management
+    Route::prefix('subscription-payments')->name('central.subscription-payments.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Central\SubscriptionPaymentController::class, 'index'])
+            ->name('index');
+        Route::post('{subscriptionId}/confirm', [\App\Http\Controllers\Central\SubscriptionPaymentController::class, 'confirm'])
+            ->name('confirm');
+        Route::post('{subscriptionId}/reject', [\App\Http\Controllers\Central\SubscriptionPaymentController::class, 'reject'])
+            ->name('reject');
+    });
+
     Route::get('centrals/redirect', \App\Http\Controllers\Central\RedirectToCentralController::class)
         ->name('central.redirectToCentral');
 });
