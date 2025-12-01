@@ -118,20 +118,6 @@ export const menuList = (tenant: string) => ([
       },
     ],
   },
-  {
-    name: 'Abbonamento',
-    Icon: CardMembershipIcon,
-    items: [
-      {
-        name: 'Stato Abbonamento',
-        href: route('app.subscription.status', { tenant }),
-      },
-      {
-        name: 'Addons',
-        href: route('app.addons.index', { tenant }),
-      },
-    ],
-  },
 ]);
 
 export const subMenuList = [
@@ -213,27 +199,16 @@ export const configurationMenuList = (tenant: string) => ([
     href: route('app.configurations.gdpr-compliance', { tenant }),
     Icon: SecurityIcon,
   },
-  // Note: Le seguenti voci sono per il contesto central, non tenant
-  // Rimuovile o spostale in un menu separato se necessario
-  // {
-  //   name: 'Abbonamenti',
-  //   href: route('central.subscription-plans.index'),
-  //   Icon: WorkIcon,
-  // },
-  // {
-  //   name: 'Ruoli e Permessi',
-  //   Icon: NewReleasesIcon,
-  //   items: [
-  //     {
-  //       name: 'Ruoli',
-  //       href: route('central.roles.index'),
-  //     },
-  //     {
-  //       name: 'Permessi',
-  //       href: route('central.permissions.index'),
-  //     },
-  //   ],
-  // },
+  {
+    name: 'Abbonamento',
+    href: route('app.subscription.status', { tenant }),
+    Icon: CardMembershipIcon,
+  },
+  {
+    name: 'Addons & Features',
+    href: route('app.addons.index', { tenant }),
+    Icon: WorkIcon,
+  },
 ]);
 
 export const centralMenuList = () => ([
@@ -253,15 +228,23 @@ export const centralMenuList = () => ([
     Icon: StorageIcon
   },
   {
-    name: 'Abbonamenti',
+    name: 'Subscription System',
     Icon: WorkIcon,
     items: [
       {
-        name: 'Piani',
+        name: 'Piani Abbonamento',
         href: route('central.subscription-plans.index')
       },
       {
-        name: 'Pagamenti',
+        name: 'Features & Addons',
+        href: '#' // TODO: route('central.plan-features.index')
+      },
+      {
+        name: 'Associazione Features',
+        href: '#' // TODO: gestione pivot
+      },
+      {
+        name: 'Pagamenti Pendenti',
         href: route('central.subscription-payments.index')
       }
     ]
