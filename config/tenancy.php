@@ -18,8 +18,8 @@ return [
      */
     'central_domains' => [
         // '127.0.0.1',
-        'gymme-v2.ddns.net',
         'localhost',
+        'gymme-v2.ddns.net',
     ],
 
     /**

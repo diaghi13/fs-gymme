@@ -19,13 +19,18 @@ class SubscriptionPlan extends Model
         'currency',
         'interval',
         'trial_days',
+        'tier',
+        'is_trial_plan',
+        'sort_order',
         'is_active',
-        'stripe_price_id'
+        'stripe_price_id',
     ];
 
     protected $casts = [
         'price' => MoneyCast::class,
         'is_active' => 'boolean',
+        'is_trial_plan' => 'boolean',
+        'tier' => \App\Enums\SubscriptionPlanTier::class,
     ];
 
     protected static function booted()
@@ -46,5 +51,55 @@ class SubscriptionPlan extends Model
             'tenant_id'
         )->withPivot(['is_active', 'trial_ends_at', 'ends_at'])
             ->using(SubscriptionPlanTenant::class);
+    }
+
+    /**
+     * Features included or available in this plan.
+     */
+    public function features()
+    {
+        return $this->belongsToMany(PlanFeature::class, 'subscription_plan_features')
+            ->withPivot(['is_included', 'quota_limit', 'price_cents'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Only features included in this plan.
+     */
+    public function includedFeatures()
+    {
+        return $this->features()->wherePivot('is_included', true);
+    }
+
+    /**
+     * Features available as addons for this plan.
+     */
+    public function addonFeatures()
+    {
+        return $this->features()->wherePivot('is_included', false);
+    }
+
+    /**
+     * Scope: Active plans only.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope: Order by tier.
+     */
+    public function scopeOrderByTier($query)
+    {
+        return $query->orderBy('sort_order', 'asc');
+    }
+
+    /**
+     * Scope: By tier.
+     */
+    public function scopeByTier($query, string $tier)
+    {
+        return $query->where('tier', $tier);
     }
 }

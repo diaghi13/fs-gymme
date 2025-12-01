@@ -107,6 +107,20 @@ return Application::configure(basePath: dirname(__DIR__))
             ->onFailure(function () {
                 \Log::error('Scheduled preservation failed');
             });
+
+        // Cleanup Demo Tenants - Esegui ogni giorno alle 02:30
+        // Elimina tenant demo scaduti (is_demo=true, demo_expires_at < now)
+        $schedule->command('tenants:cleanup-expired-demos --force')
+            ->dailyAt('02:30')
+            ->timezone('Europe/Rome')
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->onSuccess(function () {
+                \Log::info('Demo tenants cleanup completed successfully');
+            })
+            ->onFailure(function () {
+                \Log::error('Demo tenants cleanup failed');
+            });
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

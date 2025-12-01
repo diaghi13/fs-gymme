@@ -32,15 +32,16 @@ class TenantProvisioningService
      * Provision a new tenant with all initial setup.
      *
      * @param  array  $data  Tenant registration data
+     * @param  bool  $isDemo  Whether this is a demo tenant
      * @return Tenant The created tenant
      *
      * @throws \Exception If provisioning fails
      */
-    public function provision(array $data): Tenant
+    public function provision(array $data, bool $isDemo = false): Tenant
     {
-        return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($data, $isDemo) {
             // 1. Create tenant in central database
-            $tenant = $this->createTenant($data['tenant']);
+            $tenant = $this->createTenant($data['tenant'], $isDemo);
 
             // 2. Create and setup tenant database
             $this->setupTenantDatabase($tenant);
@@ -52,7 +53,7 @@ class TenantProvisioningService
             $this->associateUserWithTenant($centralUser, $tenant);
 
             // 5. Initialize tenant context and create tenant data
-            $this->initializeTenantData($tenant, $data);
+            $this->initializeTenantData($tenant, $data, $isDemo);
 
             // 6. Assign trial subscription plan if available
             $this->assignTrialPlan($tenant);
@@ -64,11 +65,11 @@ class TenantProvisioningService
     /**
      * Create tenant in central database.
      */
-    protected function createTenant(array $data): Tenant
+    protected function createTenant(array $data, bool $isDemo = false): Tenant
     {
         $slug = $this->generateUniqueSlug($data['name']);
 
-        return Tenant::create([
+        $tenantData = [
             'name' => $data['name'],
             'slug' => $slug,
             'email' => $data['email'],
@@ -82,7 +83,16 @@ class TenantProvisioningService
             'pec_email' => $data['pec_email'] ?? null,
             'sdi_code' => $data['sdi_code'] ?? null,
             'is_active' => true,
-        ]);
+            'is_demo' => $isDemo,
+        ];
+
+        // Set demo expiration if this is a demo
+        if ($isDemo) {
+            $demoDays = config('app.demo_duration_days', 15);
+            $tenantData['demo_expires_at'] = now()->addDays($demoDays);
+        }
+
+        return Tenant::create($tenantData);
     }
 
     /**
@@ -128,7 +138,7 @@ class TenantProvisioningService
     /**
      * Initialize tenant-specific data (company, structure, admin user).
      */
-    protected function initializeTenantData(Tenant $tenant, array $data): void
+    protected function initializeTenantData(Tenant $tenant, array $data, bool $isDemo = false): void
     {
         tenancy()->initialize($tenant);
 
@@ -178,8 +188,27 @@ class TenantProvisioningService
                 $adminRole = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'admin']);
                 $adminUser->assignRole($adminRole);
             }
+
+            // If demo, seed with sample data
+            if ($isDemo) {
+                $this->seedDemoData($tenant);
+            }
         } finally {
             tenancy()->end();
+        }
+    }
+
+    /**
+     * Seed demo tenant with sample data.
+     */
+    protected function seedDemoData(Tenant $tenant): void
+    {
+        // Call demo seeder if it exists
+        if (class_exists(\Database\Seeders\DemoTenantSeeder::class)) {
+            Artisan::call('db:seed', [
+                '--class' => 'Database\\Seeders\\DemoTenantSeeder',
+                '--force' => true,
+            ]);
         }
     }
 

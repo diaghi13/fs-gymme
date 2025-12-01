@@ -19,9 +19,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     protected $casts = [
         'id' => 'string',
         'is_active' => 'boolean',
+        'is_demo' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'trial_ends_at' => 'datetime',
+        'demo_expires_at' => 'datetime',
         'onboarding_completed_at' => 'datetime',
     ];
 
@@ -120,6 +122,109 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function getOwnerAttribute(): ?CentralUser
     {
         return $this->users()->first();
+    }
+
+    /**
+     * Addons purchased by this tenant.
+     */
+    public function addons()
+    {
+        return $this->hasMany(TenantAddon::class);
+    }
+
+    /**
+     * Active addons only.
+     */
+    public function activeAddons()
+    {
+        return $this->addons()->active();
+    }
+
+    /**
+     * Get addon for a specific feature.
+     */
+    public function getAddonForFeature(int $featureId): ?TenantAddon
+    {
+        return $this->activeAddons()
+            ->where('plan_feature_id', $featureId)
+            ->first();
+    }
+
+    /**
+     * Check if this is a demo tenant.
+     */
+    public function isDemo(): bool
+    {
+        return $this->is_demo;
+    }
+
+    /**
+     * Check if demo has expired.
+     */
+    public function demoHasExpired(): bool
+    {
+        if (! $this->is_demo) {
+            return false;
+        }
+
+        return $this->demo_expires_at && $this->demo_expires_at->isPast();
+    }
+
+    /**
+     * Get days remaining for demo.
+     */
+    public function demoRemainingDays(): ?int
+    {
+        if (! $this->is_demo || ! $this->demo_expires_at) {
+            return null;
+        }
+
+        if ($this->demoHasExpired()) {
+            return 0;
+        }
+
+        return (int) now()->diffInDays($this->demo_expires_at, false);
+    }
+
+    /**
+     * Check if demo is expiring soon.
+     */
+    public function demoExpiringSoon(int $days = 3): bool
+    {
+        if (! $this->is_demo || ! $this->demo_expires_at) {
+            return false;
+        }
+
+        $remaining = $this->demoRemainingDays();
+
+        return $remaining !== null && $remaining > 0 && $remaining <= $days;
+    }
+
+    /**
+     * Scope: Only demo tenants.
+     */
+    public function scopeDemo($query)
+    {
+        return $query->where('is_demo', true);
+    }
+
+    /**
+     * Scope: Only expired demos.
+     */
+    public function scopeDemoExpired($query)
+    {
+        return $query->where('is_demo', true)
+            ->where('demo_expires_at', '<=', now());
+    }
+
+    /**
+     * Scope: Demos expiring soon.
+     */
+    public function scopeDemoExpiringSoon($query, int $days = 3)
+    {
+        return $query->where('is_demo', true)
+            ->whereNotNull('demo_expires_at')
+            ->whereBetween('demo_expires_at', [now(), now()->addDays($days)]);
     }
 
     //    protected $fillable = [
