@@ -475,18 +475,170 @@ class DemoExpiringMail extends Mailable
     }
 }
 
-// Job schedulato
-$schedule->call(function () {
-    $expiringSoon = TenantSubscription::where('status', 'trial')
-        ->where('ends_at', '>=', now())
-        ->where('ends_at', '<=', now()->addDays(3))
-        ->get();
+// Job schedulato (automatico - vedere bootstrap/app.php)
+$schedule->command('demo:notify-expiring')
+    ->dailyAt('09:00')
+    ->timezone('Europe/Rome');
+```
 
-    foreach ($expiringSoon as $subscription) {
-        Mail::to($subscription->tenant->owner)
-            ->send(new DemoExpiringMail());
-    }
-})->daily();
+### Cancellazione Automatica Tenant Demo
+
+#### Configurazione (config/demo.php)
+
+```php
+return [
+    // Durata demo (giorni)
+    'duration_days' => env('DEMO_DURATION_DAYS', 14),
+
+    // Grace period prima di eliminare (giorni)
+    'grace_period_days' => env('DEMO_GRACE_PERIOD_DAYS', 7),
+
+    // Abilita cancellazione automatica
+    'auto_delete_enabled' => env('DEMO_AUTO_DELETE_ENABLED', true),
+
+    // Giorni prima della scadenza per inviare email di avviso
+    'warning_email_days' => [3, 1], // 3 giorni prima, 1 giorno prima
+];
+```
+
+#### File .env
+
+```env
+# Demo Tenant Settings
+DEMO_DURATION_DAYS=14
+DEMO_GRACE_PERIOD_DAYS=7
+DEMO_AUTO_DELETE_ENABLED=true
+```
+
+#### Come Funziona
+
+```
+DAY 1:   Demo inizia (is_demo=true, demo_expires_at = now() + 14 giorni)
+DAY 11:  Email: "Demo scade tra 3 giorni"
+DAY 13:  Email: "Demo scade domani"
+DAY 14:  Demo scade → status = 'expired'
+         Tenant può ancora fare login (READ-ONLY)
+
+DAY 15-20: GRACE PERIOD (7 giorni)
+           Tenant può ancora upgradefare
+           Dati ancora disponibili
+
+DAY 21:  Cancellazione automatica
+         ⚠️  Tenant database eliminato
+         ⚠️  Storage tenant eliminato
+         ⚠️  Domini eliminati
+         ⚠️  Relazioni cascade eliminate
+```
+
+#### Comandi Disponibili
+
+```bash
+# Visualizza tenant che verranno eliminati (DRY RUN)
+php artisan demo:cleanup --dry-run
+
+# Elimina tenant scaduti (con conferma)
+php artisan demo:cleanup
+
+# Elimina tenant scaduti (senza conferma, per cron)
+php artisan demo:cleanup --force
+
+# Invia email di avviso per demo in scadenza
+php artisan demo:notify-expiring
+```
+
+#### Output Esempio
+
+```bash
+$ php artisan demo:cleanup --dry-run
+
+🔍 Searching for expired demo tenants...
+
+Found 2 expired demo tenant(s) past 7-day grace period:
+
++------+-------------+-------------------+------------------+----------------+-------+
+| ID   | Name        | Email             | Expired Date     | Days Past Grace| Users |
++------+-------------+-------------------+------------------+----------------+-------+
+| a1b2 | Palestra XY | owner@palestra.it | 2025-11-10 14:30 | +4             | 3     |
+| c3d4 | Gym Demo    | test@gym.it       | 2025-11-08 09:15 | +6             | 1     |
++------+-------------+-------------------+------------------+----------------+-------+
+
+🔸 DRY RUN MODE - No tenants will be deleted
+```
+
+#### Schedulazione Automatica (bootstrap/app.php)
+
+```php
+// Invio email di avviso (ogni giorno alle 09:00)
+$schedule->command('demo:notify-expiring')
+    ->dailyAt('09:00')
+    ->timezone('Europe/Rome')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->onSuccess(function () {
+        \Log::info('Demo expiration notifications sent successfully');
+    });
+
+// Cancellazione tenant scaduti (ogni giorno alle 02:30)
+$schedule->command('demo:cleanup --force')
+    ->dailyAt('02:30')
+    ->timezone('Europe/Rome')
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->onSuccess(function () {
+        \Log::info('Demo tenants cleanup completed successfully');
+    });
+```
+
+#### Safeguards Implementati
+
+1. **Grace Period**: 7 giorni dopo scadenza prima di eliminare
+2. **Conferma richiesta**: `--force` flag obbligatorio per automazione
+3. **Dry Run**: `--dry-run` per preview senza eliminare
+4. **Logging completo**: Tutti gli eventi loggati in `storage/logs/laravel.log`
+5. **Transaction sicure**: DB::transaction per rollback in caso di errore
+6. **Storage cleanup**: Elimina `storage/tenant{id}/` automaticamente
+7. **Cascade deletes**: Stancl/Tenancy gestisce database + domini
+
+#### Personalizzazione Grace Period
+
+**Modifica durata grace period:**
+
+```env
+# Aumenta a 14 giorni
+DEMO_GRACE_PERIOD_DAYS=14
+
+# Riduci a 3 giorni
+DEMO_GRACE_PERIOD_DAYS=3
+
+# Elimina subito dopo scadenza (sconsigliato)
+DEMO_GRACE_PERIOD_DAYS=0
+```
+
+**Disabilita cancellazione automatica:**
+
+```env
+DEMO_AUTO_DELETE_ENABLED=false
+```
+
+Quando disabilitato, il comando `demo:cleanup` mostrerà un warning e non eliminerà nulla.
+
+#### Monitoring e Logging
+
+```php
+// Log eventi importanti
+Log::info('Demo tenant deleted successfully', [
+    'tenant_id' => $tenant->id,
+    'tenant_name' => $tenant->name,
+    'expired_at' => $tenant->demo_expires_at,
+]);
+
+Log::error('Failed to delete demo tenant', [
+    'tenant_id' => $tenant->id,
+    'error' => $e->getMessage(),
+]);
+
+// Verifica log
+tail -f storage/logs/laravel.log | grep "Demo tenant"
 ```
 
 ### Graceful Degradation
@@ -496,7 +648,7 @@ Invece di bloccare completamente, puoi degradare:
 ```php
 // Middleware
 if ($subscription->status === 'expired') {
-    // Permetti accesso READ-ONLY
+    // Permetti accesso READ-ONLY durante grace period
     if (!$request->isMethod('GET')) {
         return redirect()->back()
             ->with('error', 'Demo scaduta. Upgrade per continuare.');

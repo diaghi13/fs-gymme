@@ -108,9 +108,23 @@ return Application::configure(basePath: dirname(__DIR__))
                 \Log::error('Scheduled preservation failed');
             });
 
+        // Notify Expiring Demo Tenants - Esegui ogni giorno alle 09:00
+        // Invia email di avviso ai tenant demo in scadenza (configurabile in config/demo.php)
+        $schedule->command('demo:notify-expiring')
+            ->dailyAt('09:00')
+            ->timezone('Europe/Rome')
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->onSuccess(function () {
+                \Log::info('Demo expiration notifications sent successfully');
+            })
+            ->onFailure(function () {
+                \Log::error('Demo expiration notifications failed');
+            });
+
         // Cleanup Demo Tenants - Esegui ogni giorno alle 02:30
-        // Elimina tenant demo scaduti (is_demo=true, demo_expires_at < now)
-        $schedule->command('tenants:cleanup-expired-demos --force')
+        // Elimina tenant demo scaduti dopo il periodo di grace (configurabile in config/demo.php)
+        $schedule->command('demo:cleanup --force')
             ->dailyAt('02:30')
             ->timezone('Europe/Rome')
             ->withoutOverlapping()
