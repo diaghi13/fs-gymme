@@ -5,7 +5,7 @@ Sistema completo di gestione abbonamenti multi-tier con features modulari acquis
 
 ---
 
-## ✅ COMPLETATO (20/24 - 83%)
+## ✅ COMPLETATO (21/24 - 88%)
 
 ### Database Migrations ✅
 - [x] `create_plan_features_table.php` - Tabella features disponibili nel sistema
@@ -125,20 +125,27 @@ Sistema completo di gestione abbonamenti multi-tier con features modulari acquis
 
 ---
 
-## 📋 DA FARE (4/24 - 17%)
+### Electronic Invoicing Provisioning ✅ COMPLETATO
+- [x] `ElectronicInvoicingProvisioningService`:
+  - ✅ `provision()` - Crea account API fatturazione
+  - ✅ `deprovision()` - Disattiva fatturazione
+  - ✅ `isProvisioned()` - Verifica stato provisioning
+  - ✅ `createProviderAccount()` - Integrazione provider (placeholder)
+  - ✅ `storeCredentials()` - Salva credenziali criptate
+  - ✅ Gestione tenant context con try-finally
+  - ✅ Logging completo operazioni
+  - ✅ TODO comments per integrazione provider reale
 
-### Gestione Addons (UI Futuro)
+---
+
+## 📋 DA FARE (3/24 - 13%)
+
+### Gestione Addons (UI Futuro - OPZIONALE)
 - [ ] `TenantAddonController`:
   - `index()` - Lista addons disponibili per il piano
   - `store()` - Acquista addon
   - `destroy()` - Cancella addon
   - `upgrade()` - Aumenta quota addon esistente
-
-### Electronic Invoicing Provisioning (Enhancement Futuro)
-- [ ] `ElectronicInvoicingProvisioningService`:
-  - Creazione account API fatturazione elettronica
-  - Configurazione credenziali tenant
-  - Attivazione al momento upgrade a Gold/Platinum
 
 ### Testing (Quality Assurance) - OPZIONALE
 - [ ] Test Features System (opzionale):
@@ -339,10 +346,11 @@ public function getUsage(Tenant $tenant, string $featureName): int
 - ✅ **Fase 3**: Services & Logic (COMPLETATA - 2 ore)
 - ✅ **Fase 4**: Usage Tracking & Scheduled Tasks (COMPLETATA - 1 ora)
 - ✅ **Fase 5**: Pagamento Bonifico (COMPLETATA - 1.5 ore)
-- 📋 **Fase 6**: Controllers & UI Addons (Opzionale - 3-4 ore)
-- 📋 **Fase 7**: Testing (Raccomandato - 2-3 ore)
+- ✅ **Fase 6**: Provisioning Fatturazione Elettronica (COMPLETATA - 0.5 ore)
+- 📋 **Fase 7**: Controllers & UI Addons (Opzionale - 3-4 ore)
+- 📋 **Fase 8**: Testing (Raccomandato - 2-3 ore)
 
-**Completato**: ~8 ore di sviluppo core (83%)
+**Completato**: ~8.5 ore di sviluppo core (88%)
 **Rimanente opzionale**: ~5-7 ore per UI addons e test
 
 ---
@@ -354,12 +362,14 @@ public function getUsage(Tenant $tenant, string $featureName): int
 3. ✅ Implementare tracking usage per features chiave
 4. ✅ Aggiungere scheduled task per cleanup demo tenants
 5. ✅ Implementare supporto pagamento bonifico
-6. 🎨 Creare UI per visualizzare features disponibili (opzionale)
-7. 🎨 Creare UI per acquisto addons (opzionale)
-8. 🎨 Creare UI admin per conferma pagamenti bonifico (opzionale)
-9. 🧪 Scrivere test per FeatureAccessService (opzionale)
-10. 📧 Implementare notifiche email per demo in scadenza (opzionale)
+6. ✅ Creare service provisioning fatturazione elettronica
+7. 🎨 Creare UI per visualizzare features disponibili (opzionale)
+8. 🎨 Creare UI per acquisto addons (opzionale)
+9. 🎨 Creare UI admin per conferma pagamenti bonifico (opzionale)
+10. 🔌 Integrare provider reale fatturazione elettronica (Aruba/Infocert)
+11. 🧪 Scrivere test per FeatureAccessService (opzionale)
+12. 📧 Implementare notifiche email per demo in scadenza (opzionale)
 
 ---
 
-Ultimo aggiornamento: 2025-12-01 (Sistema Core COMPLETATO AL 83%)
+Ultimo aggiornamento: 2025-12-01 (Sistema Core COMPLETATO AL 88%)
