@@ -228,7 +228,7 @@ export const centralMenuList = () => ([
     Icon: StorageIcon
   },
   {
-    name: 'Subscription System',
+    name: 'Abbonamenti',
     Icon: WorkIcon,
     items: [
       {
@@ -238,10 +238,6 @@ export const centralMenuList = () => ([
       {
         name: 'Features & Addons',
         href: route('central.plan-features.index')
-      },
-      {
-        name: 'Associazione Features',
-        href: '#' // TODO: gestione pivot
       },
       {
         name: 'Pagamenti Pendenti',

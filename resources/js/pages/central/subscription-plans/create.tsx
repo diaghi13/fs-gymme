@@ -8,12 +8,12 @@ import CreateForm from '@/components/central/subscription-plans/CreateForm';
 import { router } from '@inertiajs/react';
 
 const Create: React.FC<PageProps> = ({ auth }) => {
-  const formik: FormikConfig<Partial<SubscriptionPlan>> = {
+  const formik: FormikConfig<any> = {
     initialValues: {
       name: '',
       slug: '',
       description: '',
-      price: 0,
+      price: '0', // MoneyTextField usa string
       currency: 'EUR',
       interval: 'monthly',
       trial_days: 0,

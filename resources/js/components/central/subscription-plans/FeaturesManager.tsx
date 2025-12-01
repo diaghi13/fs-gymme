@@ -27,6 +27,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { useFormikContext } from 'formik';
+import { NumericFormat } from 'react-number-format';
 
 interface PlanFeature {
   id: number;
@@ -308,13 +309,22 @@ const FeaturesManager: React.FC<FeaturesManagerProps> = ({ availableFeatures, cu
 
                 {selectedFeature.is_addon_purchasable && (
                   <Grid size={6}>
-                    <TextField
+                    <NumericFormat
+                      customInput={TextField}
                       fullWidth
-                      label="Prezzo Addon (centesimi)"
-                      type="number"
-                      value={formData.price_cents}
-                      onChange={(e) => setFormData({ ...formData, price_cents: Number(e.target.value) })}
-                      helperText={`€${((formData.price_cents || 0) / 100).toFixed(2)}`}
+                      label="Prezzo Addon"
+                      thousandSeparator="."
+                      decimalSeparator=","
+                      valueIsNumericString
+                      prefix="€"
+                      decimalScale={2}
+                      fixedDecimalScale
+                      value={formData.price_cents ? (formData.price_cents / 100) : 0}
+                      onValueChange={(values) => {
+                        const euros = values.floatValue || 0;
+                        setFormData({ ...formData, price_cents: Math.round(euros * 100) });
+                      }}
+                      helperText="Prezzo in euro"
                     />
                   </Grid>
                 )}

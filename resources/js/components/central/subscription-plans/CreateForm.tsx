@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Form} from 'formik';
 import { Button, FormControlLabel, Grid, Stack } from '@mui/material';
 import TextField from '@/components/ui/TextField';
+import MoneyTextField from '@/components/ui/MoneyTextField';
 import Select from '@/components/ui/Select';
 import FormikSaveButton from '@/components/ui/FormikSaveButton';
 import { router } from '@inertiajs/react';
@@ -28,17 +29,13 @@ const CreateForm = () => {
         </Grid>
 
         {/* Pricing Section */}
-        <Grid size={2}>
-          <TextField
+        <Grid size={3}>
+          <MoneyTextField
             name="price"
-            label="Prezzo (centesimi)"
-            type="number"
+            label="Prezzo Mensile"
             required
-            helperText="Es: 4900 = €49.00"
+            helperText="Prezzo in euro"
           />
-        </Grid>
-        <Grid size={1}>
-          <TextField name="currency" label="Valuta" required />
         </Grid>
         <Grid size={3}>
           <Select

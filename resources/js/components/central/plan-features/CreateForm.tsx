@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Form, useFormikContext } from 'formik';
 import { Button, FormControlLabel, Grid, Stack } from '@mui/material';
 import TextField from '@/components/ui/TextField';
+import MoneyTextField from '@/components/ui/MoneyTextField';
 import Select from '@/components/ui/Select';
 import FormikSaveButton from '@/components/ui/FormikSaveButton';
 import { router } from '@inertiajs/react';
@@ -75,11 +76,10 @@ const CreateForm = () => {
         {values.is_addon_purchasable && (
           <>
             <Grid size={4}>
-              <TextField
+              <MoneyTextField
                 name="default_addon_price_cents"
-                label="Prezzo Addon Default (centesimi)"
-                type="number"
-                helperText="Es: 1000 = €10.00"
+                label="Prezzo Addon Default"
+                helperText="Prezzo in euro"
               />
             </Grid>
             <Grid size={4}>

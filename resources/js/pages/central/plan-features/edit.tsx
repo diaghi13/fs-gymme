@@ -15,7 +15,7 @@ interface PlanFeature {
   feature_type: 'boolean' | 'quota' | 'metered';
   is_active: boolean;
   is_addon_purchasable: boolean;
-  default_addon_price_cents: number;
+  default_addon_price_cents: number; // Dal backend arriva in centesimi
   default_addon_quota: number;
   sort_order: number;
 }
@@ -26,7 +26,7 @@ interface EditProps extends PageProps {
 }
 
 const Edit: React.FC<EditProps> = ({ auth, feature }) => {
-  const formik: FormikConfig<PlanFeature> = {
+  const formik: FormikConfig<any> = {
     enableReinitialize: true,
     initialValues: {
       id: feature.id,
@@ -36,7 +36,10 @@ const Edit: React.FC<EditProps> = ({ auth, feature }) => {
       feature_type: feature.feature_type,
       is_active: feature.is_active,
       is_addon_purchasable: feature.is_addon_purchasable,
-      default_addon_price_cents: feature.default_addon_price_cents || 0,
+      // Converti centesimi in euro per MoneyTextField (string)
+      default_addon_price_cents: feature.default_addon_price_cents
+        ? (feature.default_addon_price_cents / 100).toString()
+        : '0',
       default_addon_quota: feature.default_addon_quota || 0,
       sort_order: feature.sort_order || 0,
     },
