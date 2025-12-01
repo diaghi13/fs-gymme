@@ -79,6 +79,10 @@ export default function Drawer({open, setOpen, menuList}: DrawerProps){
         setSubMenu((prevState) => !prevState);
     };
 
+    // Debug: log the menu items
+    const menuItems = menuList(props.currentTenantId);
+    console.log('[Drawer] Menu items:', menuItems);
+
     return (
         <StyledDrawer variant="permanent" open={open} ref={containerRef}>
             <DrawerHeader open={open} setOpen={setOpen} />
@@ -104,7 +108,7 @@ export default function Drawer({open, setOpen, menuList}: DrawerProps){
                     }
                 >
                     <List sx={{ width: drawerWidth }}>
-                        {menuList(props.currentTenantId).map((item, index) => (
+                        {menuItems.map((item, index) => (
                             <DrawerItem {...item} key={index} />
                         ))}
                         <ListItemButton onClick={toggleSubMenu}>
