@@ -11,12 +11,17 @@ const Create: React.FC<PageProps> = ({ auth }) => {
   const formik: FormikConfig<Partial<SubscriptionPlan>> = {
     initialValues: {
       name: '',
+      slug: '',
       description: '',
       price: 0,
       currency: 'EUR',
       interval: 'monthly',
       trial_days: 0,
-      is_active: true
+      tier: '',
+      is_trial_plan: false,
+      is_active: true,
+      sort_order: 0,
+      stripe_price_id: '',
     },
     onSubmit: (values) => {
       router.post(

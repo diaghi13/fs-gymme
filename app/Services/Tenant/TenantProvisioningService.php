@@ -216,25 +216,40 @@ class TenantProvisioningService
     /**
      * Assign trial subscription plan to tenant.
      *
+     * Uses the trial_days configured in the plan itself, not from global config.
+     * Each plan can have different trial periods.
+     *
      * @param  string  $paymentMethod  Payment method chosen by tenant
      */
     protected function assignTrialPlan(Tenant $tenant, string $paymentMethod = 'stripe'): void
     {
-        // Find a trial or free plan
-        $trialPlan = SubscriptionPlan::where('is_trial', true)
-            ->orWhere('price', 0)
+        // Find a trial plan first, otherwise fallback to free or cheapest plan
+        $trialPlan = SubscriptionPlan::where('is_trial_plan', true)
+            ->where('is_active', true)
             ->first();
 
         if (! $trialPlan) {
-            // If no trial plan exists, find the cheapest plan or create a default one
-            $trialPlan = SubscriptionPlan::orderBy('price', 'asc')->first();
+            // Try to find a free plan
+            $trialPlan = SubscriptionPlan::where('price', 0)
+                ->where('is_active', true)
+                ->first();
+        }
+
+        if (! $trialPlan) {
+            // If no trial/free plan exists, find the cheapest active plan
+            $trialPlan = SubscriptionPlan::where('is_active', true)
+                ->orderBy('price', 'asc')
+                ->first();
         }
 
         if ($trialPlan) {
+            // Use plan-specific trial_days, fallback to 14 if not set
+            $trialDays = $trialPlan->trial_days ?? 14;
+
             $subscriptionData = [
                 'is_trial' => true,
                 'starts_at' => now(),
-                'trial_ends_at' => now()->addDays(config('app.trial_days', 14)),
+                'trial_ends_at' => $trialDays > 0 ? now()->addDays($trialDays) : null,
                 'payment_method' => $paymentMethod,
             ];
 

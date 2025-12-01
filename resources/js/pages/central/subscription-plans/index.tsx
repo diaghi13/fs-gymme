@@ -11,48 +11,70 @@ import { router } from '@inertiajs/react';
 import MyCard from '@/components/ui/MyCard';
 
 const columns: GridColDef<SubscriptionPlan>[] = [
-  { field: 'id', headerName: 'ID', flex: 0.5 },
+  { field: 'id', headerName: 'ID', width: 70 },
   {
     field: 'name',
-    headerName: 'Name',
-    flex: 1
+    headerName: 'Nome',
+    flex: 1,
+    minWidth: 150
   },
   {
-    field: 'description',
-    headerName: 'Descrizione',
-    flex: 1,
-    valueGetter: (value, row) => row.description || 'Nessuna descrizione'
+    field: 'tier',
+    headerName: 'Livello',
+    width: 100,
+    valueGetter: (value, row) => {
+      if (!row.tier) return '-';
+      const tiers: Record<string, string> = {
+        base: 'Base',
+        gold: 'Gold',
+        platinum: 'Platinum'
+      };
+      return tiers[row.tier] || row.tier;
+    }
   },
   {
     field: 'price',
     headerName: 'Prezzo',
     type: 'number',
-    valueFormatter: (value, row) => row.price ? `€ ${row.price.toFixed(2)}` : 'Gratuito',
+    valueFormatter: (value, row) => {
+      if (row.price === 0) return 'Gratuito';
+      // Convert cents to euros
+      return `€${(row.price / 100).toFixed(2)}`;
+    },
     width: 120
-  },
-  {
-    field: 'currency',
-    headerName: 'Valuta',
-    width: 100,
-    valueGetter: (value, row) => row.currency || 'EUR'
   },
   {
     field: 'interval',
     headerName: 'Intervallo',
-    width: 120,
-    valueGetter: (value, row) => row.interval || 'Mensile'
+    width: 100,
+    valueGetter: (value, row) => {
+      const intervals: Record<string, string> = {
+        monthly: 'Mensile',
+        yearly: 'Annuale',
+        weekly: 'Settimanale',
+        daily: 'Giornaliero'
+      };
+      return intervals[row.interval] || row.interval;
+    }
   },
   {
-    field: 'trial_period_days',
-    headerName: 'Giorni di prova',
+    field: 'trial_days',
+    headerName: 'Trial',
     type: 'number',
-    width: 150,
+    width: 80,
     valueGetter: (value, row) => row.trial_days || 0
   },
   {
+    field: 'is_trial_plan',
+    headerName: 'Piano Trial',
+    type: 'boolean',
+    width: 100
+  },
+  {
     field: 'is_active',
-    headerName: 'Active',
-    type: 'boolean'
+    headerName: 'Attivo',
+    type: 'boolean',
+    width: 80
   },
   {
     field: 'actions',

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Casts\MoneyCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -27,7 +26,9 @@ class SubscriptionPlan extends Model
     ];
 
     protected $casts = [
-        'price' => MoneyCast::class,
+        'price' => 'integer', // Stored as cents
+        'trial_days' => 'integer',
+        'sort_order' => 'integer',
         'is_active' => 'boolean',
         'is_trial_plan' => 'boolean',
         'tier' => \App\Enums\SubscriptionPlanTier::class,

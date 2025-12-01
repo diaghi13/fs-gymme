@@ -15,12 +15,17 @@ const Edit: React.FC<EditProps> = ({ auth, subscriptionPlan }) => {
   const formik: FormikConfig<Partial<SubscriptionPlan>> = {
     initialValues: {
       name: subscriptionPlan.name,
+      slug: subscriptionPlan.slug,
       description: subscriptionPlan.description,
       price: subscriptionPlan.price,
       currency: subscriptionPlan.currency,
       interval: subscriptionPlan.interval,
-      trial_days: subscriptionPlan.trial_days,
-      is_active: subscriptionPlan.is_active
+      trial_days: subscriptionPlan.trial_days ?? 0,
+      tier: subscriptionPlan.tier ?? '',
+      is_trial_plan: subscriptionPlan.is_trial_plan ?? false,
+      is_active: subscriptionPlan.is_active ?? true,
+      sort_order: subscriptionPlan.sort_order ?? 0,
+      stripe_price_id: subscriptionPlan.stripe_price_id ?? '',
     },
     onSubmit: (values) => {
       router.patch(

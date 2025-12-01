@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Central;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\SubscriptionPlanRequest;
 use App\Models\SubscriptionPlan;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class SubscriptionPlanController extends Controller
@@ -33,11 +32,18 @@ class SubscriptionPlanController extends Controller
      */
     public function store(SubscriptionPlanRequest $request)
     {
-        SubscriptionPlan::create($request->validated());
+        $data = $request->validated();
+
+        // Auto-generate slug if not provided or empty
+        if (empty($data['slug'])) {
+            $data['slug'] = \Str::slug($data['name']);
+        }
+
+        SubscriptionPlan::create($data);
 
         return redirect()->route('central.subscription-plans.index')
             ->with('status', 'success')
-            ->with('message', 'Subscription plan created successfully.');
+            ->with('message', 'Piano di abbonamento creato con successo.');
     }
 
     /**
@@ -65,11 +71,18 @@ class SubscriptionPlanController extends Controller
      */
     public function update(SubscriptionPlanRequest $request, SubscriptionPlan $subscriptionPlan)
     {
-        $subscriptionPlan->update($request->validated());
+        $data = $request->validated();
+
+        // Auto-generate slug if not provided or empty
+        if (empty($data['slug'])) {
+            $data['slug'] = \Str::slug($data['name']);
+        }
+
+        $subscriptionPlan->update($data);
 
         return redirect()->route('central.subscription-plans.index')
             ->with('status', 'success')
-            ->with('message', 'Subscription plan updated successfully.');
+            ->with('message', 'Piano di abbonamento aggiornato con successo.');
     }
 
     /**
@@ -81,6 +94,6 @@ class SubscriptionPlanController extends Controller
 
         return redirect()->route('central.subscription-plans.index')
             ->with('status', 'success')
-            ->with('message', 'Subscription plan deleted successfully.');
+            ->with('message', 'Piano di abbonamento eliminato con successo.');
     }
 }
