@@ -23,6 +23,24 @@ class DatabaseSeeder extends Seeder
 //        }
 
         $user = CentralUser::create([
+            'first_name' => 'Davide',
+            'last_name' => 'Donghi',
+            'email' => 'davide.d.donghi@gmail.com',
+            'password' => bcrypt('password'),
+            'phone' => '+1234567890',
+            'birth_date' => '1990-01-01',
+            'tax_code' => 'DNGDVD91C28F205S',
+            'is_active' => true,
+            'gdpr_consent' => true,
+            'gdpr_consent_at' => now(),
+            'marketing_consent' => true,
+            'marketing_consent_at' => now(),
+            'data_retention_until' => now()->addYears(5),
+            'fcm_token' => 'sample-fcm-token',
+            'app_version' => '1.0.0',
+        ]);
+
+        $user2 = CentralUser::create([
             'first_name' => 'Mario',
             'last_name' => 'Rossi',
             'email' => 'mario.rossi@example.com',
@@ -50,7 +68,7 @@ class DatabaseSeeder extends Seeder
         DB::statement('DROP SCHEMA IF EXISTS `gymme-tenant_60876426-2e31-4a9b-a163-1e46be4a425f`');
 
         if (! tenancy()->find('60876426-2e31-4a9b-a163-1e46be4a425f')) {
-            DB::statement('CREATE SCHEMA `gymme-tenant_60876426-2e31-4a9b-a163-1e46be4a425f`');
+            //DB::statement('CREATE SCHEMA `gymme-tenant_60876426-2e31-4a9b-a163-1e46be4a425f`');
 
             $tenant = $this->createTenant(id: '60876426-2e31-4a9b-a163-1e46be4a425f');
 

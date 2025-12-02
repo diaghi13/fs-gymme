@@ -47,10 +47,12 @@ class TenantAddonController extends Controller
 
         $currentPlan = $tenant->active_subscription_plan;
 
-        // Get all available features that can be purchased as addons
-        $availableFeatures = PlanFeature::active()
-            ->addonPurchasable()
-            ->get();
+        // Get all available features that can be purchased as addons (from central DB)
+        $availableFeatures = tenancy()->central(function () {
+            return PlanFeature::active()
+                ->addonPurchasable()
+                ->get();
+        });
 
         $availableAddons = [];
         foreach ($availableFeatures as $feature) {
@@ -136,7 +138,9 @@ class TenantAddonController extends Controller
             return redirect()->back()->with('error', 'Nessun piano attivo.');
         }
 
-        $feature = PlanFeature::findOrFail($validated['feature_id']);
+        $feature = tenancy()->central(function () use ($validated) {
+            return PlanFeature::findOrFail($validated['feature_id']);
+        });
 
         // Check if feature is purchasable
         if (! $feature->is_addon_purchasable) {

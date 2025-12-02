@@ -18,7 +18,7 @@ class CleanupExpiredDemoTenants extends Command
 
     public function handle(): int
     {
-        if (! config('demo.auto_delete_enabled')) {
+        if (!config('demo.auto_delete_enabled')) {
             $this->warn('Automatic demo deletion is disabled in config/demo.php');
 
             return self::SUCCESS;
@@ -50,7 +50,7 @@ class CleanupExpiredDemoTenants extends Command
             return self::SUCCESS;
         }
 
-        if (! $this->option('force') && ! $this->confirm('⚠️  Do you want to proceed with deletion?', false)) {
+        if (!$this->option('force') && !$this->confirm('⚠️  Do you want to proceed with deletion?', false)) {
             $this->info('Operation cancelled.');
 
             return self::SUCCESS;
@@ -91,21 +91,22 @@ class CleanupExpiredDemoTenants extends Command
     {
         $cutoffDate = now()->subDays($gracePeriod);
 
-        return Tenant::where(function ($query) use ($cutoffDate) {
-            // Method 1: Using demo_expires_at field directly on tenant
-            $query->where('is_demo', true)
-                ->whereNotNull('demo_expires_at')
-                ->where('demo_expires_at', '<=', $cutoffDate);
-        })
+        return Tenant::query()
+            ->where(function ($query) use ($cutoffDate) {
+                // Method 1: Using demo_expires_at field directly on tenant
+                $query->where('is_demo', true)
+                    ->whereNotNull('demo_expires_at')
+                    ->where('demo_expires_at', '<=', $cutoffDate);
+            })
             ->orWhereHas('active_subscription_plan', function ($query) use ($cutoffDate) {
                 // Method 2: Active subscription with is_trial_plan AND expired
-                $query->join('subscription_plans', 'subscription_plans.id', '=', 'subscription_plan_tenant.subscription_plan_id')
+                $query->join('subscription_plans as sp', 'sp.id', '=', 'subscription_plan_tenant.subscription_plan_id')
                     ->where('subscription_plans.is_trial_plan', true)
                     ->where('subscription_plan_tenant.status', 'expired')
                     ->whereNotNull('subscription_plan_tenant.ends_at')
                     ->where('subscription_plan_tenant.ends_at', '<=', $cutoffDate);
             })
-            ->with(['active_subscription_plan.pivot', 'users'])
+            ->with([/*'active_subscription_plan.pivot', */'users'])
             ->get();
     }
 
@@ -180,7 +181,8 @@ class CleanupExpiredDemoTenants extends Command
      */
     protected function deleteTenantStorage(Tenant $tenant): void
     {
-        $tenantStoragePath = "tenant{$tenant->id}";
+        $suffixBase = config('tenancy.filesystem.suffix_base', 'tenant_');
+        $tenantStoragePath = "{$suffixBase}{$tenant->id}";
 
         // Check if tenant storage exists
         if (Storage::exists($tenantStoragePath)) {

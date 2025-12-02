@@ -62,8 +62,9 @@ export default function SubscriptionStatus({
   const tenant = subscriptionTenant;
   const [loading, setLoading] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [changePlanDialogOpen, setChangePlanDialogOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+
+  // Demo plans shouldn't show change plan dialog - they should redirect to payment page
+  const isDemo = activeSubscription?.is_trial_plan;
 
   const handleCancelSubscription = async () => {
     setLoading(true);
@@ -98,25 +99,8 @@ export default function SubscriptionStatus({
     }
   };
 
-  const handleChangePlan = async (plan: SubscriptionPlan, action: 'upgrade' | 'downgrade') => {
-    setLoading(true);
-    try {
-      await axios.post(
-        route('subscription.change-plan', { tenant: tenant.id }),
-        {
-          tenant_id: tenant.id,
-          plan_id: plan.id,
-          action,
-        }
-      );
-
-      router.reload();
-    } catch (error) {
-      console.error('Failed to change plan:', error);
-    } finally {
-      setLoading(false);
-      setChangePlanDialogOpen(false);
-    }
+  const handleUpgradeToParied = () => {
+    router.get(route('app.subscription-plans.index', { tenant: tenant.id }));
   };
 
   const getStatusColor = (status: string) => {
@@ -237,31 +221,32 @@ export default function SubscriptionStatus({
                       <Divider />
 
                       <Stack direction="row" spacing={2}>
-                        {cashierSubscription?.on_grace_period ? (
+                        {isDemo ? (
                           <Button
                             variant="contained"
-                            color="success"
-                            onClick={handleResumeSubscription}
+                            color="primary"
+                            size="large"
+                            onClick={handleUpgradeToParied}
                             disabled={loading}
                           >
-                            Riattiva Abbonamento
+                            Passa a Piano a Pagamento
                           </Button>
                         ) : (
                           <>
-                            {activeSubscription.is_trial_plan ? (
+                            {cashierSubscription?.on_grace_period ? (
                               <Button
                                 variant="contained"
-                                color="primary"
-                                onClick={() => router.get(route('app.subscription-plans.index', { tenant: tenant.id }))}
+                                color="success"
+                                onClick={handleResumeSubscription}
                                 disabled={loading}
                               >
-                                Passa a Piano Pagamento
+                                Riattiva Abbonamento
                               </Button>
                             ) : (
                               <>
                                 <Button
                                   variant="outlined"
-                                  onClick={() => setChangePlanDialogOpen(true)}
+                                  onClick={handleUpgradeToParied}
                                   disabled={loading}
                                 >
                                   Cambia Piano
@@ -314,92 +299,25 @@ export default function SubscriptionStatus({
         )}
 
         {/* Cancel Confirmation Dialog */}
-        <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
-          <DialogTitle>Conferma Cancellazione</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Sei sicuro di voler cancellare il tuo abbonamento? L'abbonamento rimarrà attivo fino
-              alla fine del periodo di fatturazione corrente.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setCancelDialogOpen(false)} disabled={loading}>
-              Annulla
-            </Button>
-            <Button onClick={handleCancelSubscription} color="error" disabled={loading} autoFocus>
-              Conferma Cancellazione
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Change Plan Dialog */}
-        <Dialog
-          open={changePlanDialogOpen}
-          onClose={() => setChangePlanDialogOpen(false)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>Cambia Piano</DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              {availablePlans
-                .filter((plan) => plan.id !== activeSubscription?.id)
-                .map((plan) => (
-                  <Grid size={{ xs: 12, sm: 6 }} key={plan.id}>
-                    <Card
-                      variant="outlined"
-                      sx={{
-                        cursor: 'pointer',
-                        '&:hover': { borderColor: 'primary.main' },
-                      }}
-                      onClick={() => setSelectedPlan(plan)}
-                    >
-                      <CardContent>
-                        <Typography variant="h6">{plan.name}</Typography>
-                        <Typography variant="h5" color="primary" sx={{ my: 1 }}>
-                          €{plan.price.toFixed(2)}
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          {plan.interval}
-                        </Typography>
-                        <Typography variant="body2" sx={{ mt: 2, whiteSpace: 'pre-line' }}>
-                          {plan.description}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setChangePlanDialogOpen(false)} disabled={loading}>
-              Annulla
-            </Button>
-            {selectedPlan && (
-              <>
-                {selectedPlan.price > (activeSubscription?.price ?? 0) ? (
-                  <Button
-                    onClick={() => handleChangePlan(selectedPlan, 'upgrade')}
-                    color="primary"
-                    variant="contained"
-                    disabled={loading}
-                  >
-                    Upgrade
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => handleChangePlan(selectedPlan, 'downgrade')}
-                    color="primary"
-                    variant="contained"
-                    disabled={loading}
-                  >
-                    Downgrade
-                  </Button>
-                )}
-              </>
-            )}
-          </DialogActions>
-        </Dialog>
+        {!isDemo && (
+          <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
+            <DialogTitle>Conferma Cancellazione</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Sei sicuro di voler cancellare il tuo abbonamento? L'abbonamento rimarrà attivo fino
+                alla fine del periodo di fatturazione corrente.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setCancelDialogOpen(false)} disabled={loading}>
+                Annulla
+              </Button>
+              <Button onClick={handleCancelSubscription} color="error" disabled={loading} autoFocus>
+                Conferma Cancellazione
+              </Button>
+            </DialogActions>
+          </Dialog>
+        )}
       </Container>
     </AppLayout>
   );
