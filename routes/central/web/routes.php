@@ -5,7 +5,28 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    $user = auth()->user();
+    $dashboardRoute = null;
+
+    if ($user) {
+        // Determine dashboard route based on user type
+        if ($user->hasRole('super-admin')) {
+            $dashboardRoute = route('central.dashboard');
+        } else {
+            // Get user's first tenant for redirect
+            $tenant = $user->tenants()->first();
+            if ($tenant) {
+                $dashboardRoute = route('central.redirectToApp', ['tenant' => $tenant->id]);
+            }
+        }
+    }
+
+    return Inertia::render('users/landing-new', [
+        'auth' => [
+            'user' => $user?->only(['id', 'first_name', 'last_name', 'email']),
+        ],
+        'dashboardRoute' => $dashboardRoute,
+    ]);
 })->name('home');
 
 // Stripe Webhooks (must be outside middleware to avoid CSRF protection)

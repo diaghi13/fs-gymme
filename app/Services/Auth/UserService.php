@@ -2,8 +2,8 @@
 
 namespace App\Services\Auth;
 
-use App\Models\Company;
 use App\Models\Structure;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -21,14 +21,14 @@ class UserService
 
             $user->save();
 
-            $company = new Company([
-                ...$data['company']
+            $company = new Tenant([
+                ...$data['company'],
             ]);
 
             $company->save();
 
             $structure = new Structure([
-                ...$data['structure']
+                ...$data['structure'],
             ]);
 
             $structure->save();

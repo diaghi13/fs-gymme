@@ -24,8 +24,11 @@ class TenantRegistrationController extends Controller
      */
     public function create(): Response
     {
+        $isDemo = request()->query('demo', false);
+
         return Inertia::render('central/tenant-registration', [
             'trialDays' => config('app.trial_days', 14),
+            'isDemo' => filter_var($isDemo, FILTER_VALIDATE_BOOLEAN),
         ]);
     }
 
@@ -38,8 +41,11 @@ class TenantRegistrationController extends Controller
             // Validate data with the service
             $this->provisioningService->validateProvisioningData($request->validated());
 
+            // Check if this is a demo registration
+            $isDemo = $request->input('is_demo', false);
+
             // Provision the tenant
-            $tenant = $this->provisioningService->provision($request->validated());
+            $tenant = $this->provisioningService->provision($request->validated(), $isDemo);
 
             // Get the central user
             $centralUser = $tenant->owner;
