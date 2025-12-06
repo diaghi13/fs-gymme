@@ -6,7 +6,7 @@ import { useFormikContext } from 'formik';
 import { SaleRowFormValues } from '@/support/createCartItem';
 import CartItem from '@/components/sales/CartItem';
 import { SaleFormValues } from '@/pages/sales/sales';
-import { SaleDiscountTypes, useSaleContext } from '@/Contexts/Sale/SaleContext';
+import { SaleDiscountTypes, useSaleContext } from '@/contexts/Sale/SaleContext';
 import { useQuickCalculate } from '@/hooks/useQuickCalculate';
 
 export default function() {

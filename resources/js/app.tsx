@@ -10,7 +10,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { it } from 'date-fns/locale/it';
 import { configureEcho } from '@laravel/echo-react';
-import { OnlineUsersProvider } from '@/Contexts/OnlineUserContext';
+import { OnlineUsersProvider } from '@/contexts/OnlineUserContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 

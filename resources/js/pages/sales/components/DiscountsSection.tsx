@@ -6,7 +6,7 @@ import TextField from '@/components/ui/TextField';
 import DiscountIcon from '@mui/icons-material/Discount';
 import PercentIcon from '@mui/icons-material/Percent';
 import EuroIcon from '@mui/icons-material/Euro';
-import { useSaleContext, SaleDiscountTypes } from '@/Contexts/Sale/SaleContext';
+import { useSaleContext, SaleDiscountTypes } from '@/contexts/Sale/SaleContext';
 
 export default function DiscountsSection() {
   const { values, setFieldValue } = useFormikContext<SaleFormValues>();

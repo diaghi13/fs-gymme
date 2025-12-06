@@ -18,7 +18,7 @@ import useLocalStorage from '@/hooks/useLocalStorage';
 import axios from 'axios';
 import { menuList } from '@/layouts/index';
 import { echo } from '@laravel/echo-react';
-import { OnlineUsersProvider } from '@/Contexts/OnlineUserContext';
+import { OnlineUsersProvider } from '@/contexts/OnlineUserContext';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
 import { AuthorizationProvider } from '@/contexts/AuthorizationContext';
 

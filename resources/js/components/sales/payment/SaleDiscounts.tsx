@@ -2,7 +2,7 @@ import * as React from 'react';
 import { NumericFormat } from 'react-number-format';
 import { Stack, TextField as MuiTextField } from '@mui/material';
 import MoneyTextField from '@/components/ui/MoneyTextField';
-import { useSaleContext } from '@/Contexts/Sale/SaleContext';
+import { useSaleContext } from '@/contexts/Sale/SaleContext';
 import { useFormikContext } from 'formik';
 import { SaleFormValues } from '@/pages/sales/sales';
 

@@ -14,7 +14,7 @@ import {
   Sale,
   AllPriceLists,
 } from '@/types';
-import { SaleContextProvider } from '@/Contexts/Sale/SaleContext';
+import { SaleContextProvider } from '@/contexts/Sale/SaleContext';
 import SaleHeader from './components/SaleHeader';
 import ProductSearch from './components/ProductSearch';
 import DiscountsSection from './components/DiscountsSection';

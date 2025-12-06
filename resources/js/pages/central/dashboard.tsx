@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { PageProps } from '@/types';
 import CentralLayout from '@/layouts/CentralLayout';
-import { useOnlineUsers } from '@/Contexts/OnlineUserContext';
+import { useOnlineUsers } from '@/contexts/OnlineUserContext';
 import { Grid } from '@mui/material';
 import StyledCard from '@/components/ui/StyledCard';
 

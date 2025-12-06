@@ -112,18 +112,18 @@ export const menuList = (tenant: string): MenuItem[] => ([
   {
     name: 'Contabilità',
     Icon: MonetizationOnIcon,
-    permission: [Permission.SALES_VIEW_PROFITS, Permission.CUSTOMERS_VIEW_FINANCIAL],
+    permission: [Permission.ACCOUNTING_VIEW_JOURNAL, Permission.ACCOUNTING_VIEW_RECEIVABLES],
     feature: 'advanced_reporting',
     items: [
       {
         name: 'Prima Nota',
-        href: '/accounting/journal-entries',
-        permission: Permission.SALES_VIEW_PROFITS,
+        href: route('app.accounting.journal-entries', { tenant }),
+        permission: Permission.ACCOUNTING_VIEW_JOURNAL,
       },
       {
         name: 'Pagamenti In Sospeso',
-        href: '/accounting/pending-payments',
-        permission: Permission.SALES_VIEW_PROFITS,
+        href: route('app.accounting.pending-payments', { tenant }),
+        permission: Permission.ACCOUNTING_VIEW_RECEIVABLES,
       },
     ],
   },

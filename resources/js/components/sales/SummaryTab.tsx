@@ -17,7 +17,7 @@ import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRig
 import { usePage } from '@inertiajs/react';
 import { SaleFormValues, SalePageProps } from '@/pages/sales/sales';
 import { itNumberForma } from '@/support/format';
-import { useSaleContext } from '@/Contexts/Sale/SaleContext';
+import { useSaleContext } from '@/contexts/Sale/SaleContext';
 import { ARTICLE, MEMBERSHIP, SUBSCRIPTION } from '@/pages/price-lists/price-lists';
 import { expiryDateCalculator } from '@/components/sales/CartItem';
 import FormattedDate from '@/components/ui/FormattedDate';

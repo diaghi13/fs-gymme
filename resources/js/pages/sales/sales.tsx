@@ -21,7 +21,7 @@ import { SaleRowFormValues } from '@/support/createCartItem';
 import Cart from '@/components/sales/Cart';
 import PaymentCard, { CalculatorProps, SaleInstallmentFormValues } from '@/components/sales/cards/PaymentCard';
 import { addMonths } from 'date-fns';
-import { SaleContextProvider } from '@/Contexts/Sale/SaleContext';
+import { SaleContextProvider } from '@/contexts/Sale/SaleContext';
 import SummaryTab from '@/components/sales/SummaryTab';
 import { format } from 'date-fns/format';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
