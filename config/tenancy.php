@@ -18,9 +18,8 @@ return [
      */
     'central_domains' => [
         // '127.0.0.1',
-        env('APP_ENV') === 'local'
-            ? 'localhost'
-            : 'gymme-v2.ddns.net',
+        'gymme-v2.ddns.net',
+        'localhost',
     ],
 
     /**
