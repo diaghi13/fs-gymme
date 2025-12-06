@@ -48,7 +48,7 @@ const CompanyConfiguration: React.FC<CompanyConfigurationProps> = ({ auth, compa
       website: company.website ?? '',
     },
     onSubmit: (values, { setSubmitting }) => {
-      router.patch(route('app.configurations.company', { tenant: currentTenantId }), values as any, {
+      router.patch(route('app.configurations.company.update', { tenant: currentTenantId }), values as any, {
         onFinish: () => setSubmitting(false),
         preserveScroll: true,
       });

@@ -20,7 +20,7 @@ Route::middleware(['web', 'auth'])->prefix('/configurations')->group(function ()
     Route::patch('/company', [
         \App\Http\Controllers\Application\Configurations\CompanyConfigurationController::class,
         'update',
-    ])->name('app.configurations.company');
+    ])->name('app.configurations.company.update');
 
     Route::get('/structure', [
         \App\Http\Controllers\Application\Configurations\StructureConfigurationController::class,
@@ -30,7 +30,7 @@ Route::middleware(['web', 'auth'])->prefix('/configurations')->group(function ()
     Route::patch('/structure', [
         \App\Http\Controllers\Application\Configurations\StructureConfigurationController::class,
         'update',
-    ])->name('app.configurations.structure');
+    ])->name('app.configurations.structure.update');
 
     Route::resource('/financial-resources', \App\Http\Controllers\Application\Configurations\FinancialResourceConfigurationController::class)
         ->only(['index', 'show', 'update', 'store'])
