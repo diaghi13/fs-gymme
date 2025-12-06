@@ -18,7 +18,7 @@ import { FieldArray, useFormikContext } from 'formik';
 import { usePage } from '@inertiajs/react';
 import { SaleFormValues, SalePageProps } from '@/pages/sales/sales';
 import MoneyTextField from '@/components/ui/MoneyTextField';
-import { SaleDiscountTypes, useSaleContext } from '@/Contexts/Sale/SaleContext';
+import { SaleDiscountTypes, useSaleContext } from '@/contexts/Sale/SaleContext';
 import MyMath from '@/support/Math';
 import Autocomplete from '@/components/ui/Autocomplete';
 import { AutocompleteOption, FinancialResource, PaymentCondition, PaymentMethod } from '@/types';
