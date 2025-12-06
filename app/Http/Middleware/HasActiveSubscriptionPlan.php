@@ -30,14 +30,18 @@ class HasActiveSubscriptionPlan
         if (tenancy()->initialized) {
             $tenant = tenancy()->tenant;
 
+            if ($tenant->isDemo()) {
+                return $next($request);
+            }
+
             // Check if tenant has active subscription or trial
-            if (!$tenant->trial_ends_at && !$tenant->subscribed('default')) {
+            if (! $tenant->trial_ends_at && ! $tenant->subscribed('default')) {
                 return redirect()->route('app.subscription-plans.index', ['tenant' => $tenant->id])
                     ->with('error', 'You need an active subscription plan to access this resource.');
             }
 
             // Check if trial has expired
-            if ($tenant->trial_ends_at && now()->isAfter($tenant->trial_ends_at) && !$tenant->subscribed('default')) {
+            if ($tenant->trial_ends_at && now()->isAfter($tenant->trial_ends_at) && ! $tenant->subscribed('default')) {
                 return redirect()->route('app.subscription-plans.index', ['tenant' => $tenant->id])
                     ->with('error', 'Your trial has expired. Please subscribe to continue.');
             }
@@ -46,7 +50,7 @@ class HasActiveSubscriptionPlan
         }
 
         // For central routes, check company subscription
-        if ($user->company && !$user->company->active_subscription_plan) {
+        if ($user->company && ! $user->company->active_subscription_plan) {
             return redirect()->route('app.subscription-plans.index', ['tenant' => $user->company->id])
                 ->with('error', 'You need an active subscription plan to access this resource.');
         }

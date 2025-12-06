@@ -35,8 +35,9 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // If the user is not active, log them out and redirect to the login page with an error message
-        if (!Auth::user()->is_active) {
+        if (! Auth::user()->is_active) {
             Auth::logout();
+
             return redirect()
                 ->route('login')
                 ->withErrors(['email' => __('auth.inactive')]);
@@ -54,11 +55,11 @@ class AuthenticatedSessionController extends Controller
         }
 
         // If the user is not a central user, redirect to the tenant selection page
-        if (!Auth::user() instanceof CentralUser) {
+        if (! Auth::user() instanceof CentralUser) {
             return redirect()->route('app.tenants.select');
         }
 
-        if (!Auth::user()->tenants) {
+        if (! Auth::user()->tenants) {
             // If the user has no tenants, redirect to the tenant creation page
             return redirect()->route('app.tenants.create');
         }

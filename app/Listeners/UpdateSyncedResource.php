@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Stancl\Tenancy\Contracts\SyncMaster;
@@ -16,8 +15,7 @@ class UpdateSyncedResource extends BaseUpdateSyncedResource
     protected function updateResourceInCentralDatabaseAndGetTenants($event, $syncedAttributes)
     {
         /** @var Model|SyncMaster $centralModel */
-        $centralModel = $event->model->getCentralModelName()
-            ::where($event->model->getGlobalIdentifierKeyName(), $event->model->getGlobalIdentifierKey())
+        $centralModel = $event->model->getCentralModelName()::where($event->model->getGlobalIdentifierKeyName(), $event->model->getGlobalIdentifierKey())
             ->first();
 
         // We disable events for this call, to avoid triggering this event & listener again.

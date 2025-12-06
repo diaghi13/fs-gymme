@@ -1,31 +1,19 @@
-import React, { useEffect } from 'react';
-import { Head, router } from '@inertiajs/react';
+import React, { useEffect, useState } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Form, Formik } from 'formik';
-import { Container } from '@mui/material';
+import { Container, Alert } from '@mui/material';
 import AuthLayout from '@/layouts/auth/AuthLayout';
 import { useTheme } from '@mui/material/styles';
 import TenantRegistrationForm from '@/components/auth/TenantRegistrationForm';
 import * as Yup from 'yup';
 
-const steps = ['Tenant', 'Utente', 'Azienda', 'Struttura'];
+const steps = ['Utente', 'Azienda', 'Struttura'];
 
 interface TenantRegistrationProps {
     trialDays: number;
 }
 
 const validationSchema = Yup.object().shape({
-    tenant: Yup.object().shape({
-        name: Yup.string()
-            .required('Il nome del tenant è obbligatorio')
-            .min(3, 'Il nome deve essere almeno 3 caratteri')
-            .max(255, 'Il nome non può superare 255 caratteri'),
-        email: Yup.string()
-            .required('L\'email è obbligatoria')
-            .email('Inserisci un\'email valida'),
-        phone: Yup.string()
-            .nullable()
-            .matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/, 'Numero di telefono non valido'),
-    }),
     user: Yup.object().shape({
         first_name: Yup.string()
             .required('Il nome è obbligatorio')
@@ -62,20 +50,41 @@ const validationSchema = Yup.object().shape({
         zip_code: Yup.string()
             .required('Il CAP è obbligatorio')
             .max(20),
+        phone: Yup.string()
+            .required('Il telefono è obbligatorio')
+            .matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/, 'Numero di telefono non valido'),
+        email: Yup.string()
+            .required('L\'email è obbligatoria')
+            .email('Inserisci un\'email valida'),
+        pec_email: Yup.string()
+            .required('La PEC è obbligatoria')
+            .email('Inserisci una PEC valida'),
+        sdi_code: Yup.string()
+            .nullable()
+            .max(7, 'Il codice SDI non può superare 7 caratteri'),
     }),
     structure: Yup.object().shape({
-        name: Yup.string()
-            .required('Il nome della struttura è obbligatorio')
-            .max(255),
-        street: Yup.string()
-            .required('La via è obbligatoria')
-            .max(255),
-        city: Yup.string()
-            .required('La città è obbligatoria')
-            .max(100),
-        zip_code: Yup.string()
-            .required('Il CAP è obbligatorio')
-            .max(20),
+        same_as_company: Yup.boolean(),
+        name: Yup.string().when('same_as_company', {
+            is: false,
+            then: (schema) => schema.required('Il nome della struttura è obbligatorio').max(255),
+            otherwise: (schema) => schema.nullable(),
+        }),
+        street: Yup.string().when('same_as_company', {
+            is: false,
+            then: (schema) => schema.required('La via è obbligatoria').max(255),
+            otherwise: (schema) => schema.nullable(),
+        }),
+        city: Yup.string().when('same_as_company', {
+            is: false,
+            then: (schema) => schema.required('La città è obbligatoria').max(100),
+            otherwise: (schema) => schema.nullable(),
+        }),
+        zip_code: Yup.string().when('same_as_company', {
+            is: false,
+            then: (schema) => schema.required('Il CAP è obbligatorio').max(20),
+            otherwise: (schema) => schema.nullable(),
+        }),
     }),
     terms_accepted: Yup.boolean()
         .oneOf([true], 'Devi accettare i termini e condizioni'),
@@ -84,6 +93,17 @@ const validationSchema = Yup.object().shape({
 export default function TenantRegistration({ trialDays }: TenantRegistrationProps) {
     const [activeStep, setActiveStep] = React.useState(0);
     const theme = useTheme();
+    const { errors } = usePage().props;
+    const [serverError, setServerError] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Check for server errors
+        if (errors && Object.keys(errors).length > 0) {
+            // Get first error message
+            const firstError = Object.values(errors)[0];
+            setServerError(typeof firstError === 'string' ? firstError : 'Si è verificato un errore durante la registrazione.');
+        }
+    }, [errors]);
 
     useEffect(() => {
         return () => {
@@ -109,19 +129,6 @@ export default function TenantRegistration({ trialDays }: TenantRegistrationProp
 
             <Formik
                 initialValues={{
-                    tenant: {
-                        name: '',
-                        email: '',
-                        phone: '',
-                        vat_number: '',
-                        tax_code: '',
-                        address: '',
-                        city: '',
-                        postal_code: '',
-                        country: 'IT',
-                        pec_email: '',
-                        sdi_code: '',
-                    },
                     user: {
                         first_name: '',
                         last_name: '',
@@ -139,8 +146,13 @@ export default function TenantRegistration({ trialDays }: TenantRegistrationProp
                         zip_code: '',
                         province: '',
                         country: 'IT',
+                        phone: '',
+                        email: '',
+                        pec_email: '',
+                        sdi_code: '',
                     },
                     structure: {
+                        same_as_company: false,
                         name: '',
                         street: '',
                         number: '',
@@ -190,6 +202,8 @@ export default function TenantRegistration({ trialDays }: TenantRegistrationProp
                                 trialDays={trialDays}
                                 isSubmitting={isSubmitting}
                                 isValid={isValid}
+                                serverError={serverError}
+                                onClearError={() => setServerError(null)}
                             />
                         </Container>
                     </Form>

@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -16,7 +17,6 @@ return new class extends Migration {
             $table->unsignedBigInteger('customer_id')->nullable();
             $table->unsignedBigInteger('sale_id')->nullable();
             $table->unsignedBigInteger('document_type_electronic_invoice_id');
-
 
             $table->string('tipo_documento', 4)->default('TD01'); // es: TD01=Fattura
             $table->string('divisa', 3)->default('EUR');
@@ -115,55 +115,55 @@ return new class extends Migration {
     public function cedentePrestatore(Blueprint $table): void
     {
         // <CedentePrestatore>
-// <DatiAnagrafici>
-// <IdFiscaleIVA>
+        // <DatiAnagrafici>
+        // <IdFiscaleIVA>
         $table->string('cp_id_paese', 2)->default('IT'); // Paese del cedente prestatore, es: IT
         $table->string('cp_id_codice', 28)->default('0000000'); // Codice del cedente prestatore, es: 0000000 PIVA o CF
-// </IdFiscaleIVA>
+        // </IdFiscaleIVA>
         $table->string('cp_codice_fiscale', 16)->nullable(); // Codice fiscale del cedente prestatore, es: 00000000000 PIVA o CF
-// <Anagrafica> obbligatorio
+        // <Anagrafica> obbligatorio
         $table->string('cp_denominazione', 80)->nullable(); // Denominazione del cedente prestatore, es: Nome Azienda
         $table->string('cp_nome', 60)->nullable(); // Nome del cedente prestatore, es: Mario
         $table->string('cp_cognome', 60)->nullable(); // Cognome del cedente prestatore, es: Rossi
         $table->string('cp_titolo', 10)->nullable(); // Titolo del cedente prestatore, es: Sig.
         $table->string('cp_cod_eroi', 17)->nullable(); // Codice EROI del cedente prestatore, es: 1234567890
-// </Anagrafica>
+        // </Anagrafica>
         $table->string('cp_albo_professionale', 60)->nullable(); // Albo professionale del cedente prestatore, es: Ordine degli Avvocati
         $table->string('cp_provincia_albo', 2)->nullable(); // Provincia dell'albo professionale, es: RM)
         $table->string('cp_numero_iscrizione_albo', 60)->nullable(); // Numero di iscrizione all'albo professionale, es: 123456)
         $table->date('cp_data_iscrizione_albo')->nullable(); // Data di iscrizione all'albo professionale, es: 2023-01-01)
         $table->string('cp_regime_fiscale', 2); // Regime fiscale del cedente prestatore, es: RF01 (Ordinario), RF02 (Forfettario), RF03 (Minimi), RF04 (Agricolo), RF05 (IVA non applicabile), RF06 (IVA assolta in altro stato membro)
-// </DatiAnagrafici>
-// <Sede>
+        // </DatiAnagrafici>
+        // <Sede>
         $table->string('cp_indirizzo', 60); // Indirizzo del cedente prestatore, es: Via Roma 1
         $table->string('cp_numero_civico', 8)->nullable(); // Numero civico del cedente prestatore, es: 1
         $table->string('cp_cap', 5); // CAP del cedente prestatore, es: 00100
         $table->string('cp_comune', 60); // Comune del cedente prestatore, es: Roma
         $table->string('cp_provincia', 2)->nullable(); // Provincia del cedente prestatore, es: RM
         $table->string('cp_nazione', 2)->default('IT'); // Nazione del cedente prestatore, es: IT
-// </Sede>
-// <StabileOrganizzazione> nullable
+        // </Sede>
+        // <StabileOrganizzazione> nullable
         $table->string('cp_indirizzo_stab_org', 60)->nullable(); // Indirizzo della stabile organizzazione, es: Via Milano 2
         $table->string('cp_numero_civico_stab_org', 8)->nullable(); // Numero civico della stabile organizzazione, es: 2
         $table->string('cp_cap_stab_org', 5)->nullable(); // CAP della stabile organizzazione, es: 00100
         $table->string('cp_comune_stab_org', 60)->nullable(); // Comune della stabile organizzazione, es: Milano
         $table->string('cp_provincia_stab_org', 2)->nullable(); // Provincia della stabile organizzazione, es: MI
         $table->string('cp_nazione_stab_org', 2)->nullable(); // Nazione della stabile organizzazione, es: IT
-// </StabileOrganizzazione>
-// <IscrizioneRea> nullable
+        // </StabileOrganizzazione>
+        // <IscrizioneRea> nullable
         $table->string('cp_ufficio', 2)->nullable(); // Ufficio REA del cedente prestatore, es: RM
         $table->string('cp_numero_rea', 20)->nullable(); // Numero REA del cedente prestatore, es: RM-123456
         $table->string('cp_capitale_sociale', 15)->nullable(); // Capitale sociale del cedente prestatore, es: 10000
         $table->string('cp_socio_unico', 2)->nullable(); // Socio unico del cedente prestatore, es: SU (socio unico), SM (più soci)
         $table->string('cp_stato_liquidazione', 2)->nullable(); // Stato di liquidazione del cedente prestatore, es: LS (in liquidazione), LN (non in liquidazione)
-// </IscrizioneRea>
-// <Contatti> nullable
+        // </IscrizioneRea>
+        // <Contatti> nullable
         $table->string('cp_telefono', 12)->nullable(); // Telefono del cedente prestatore, es: 1234567890
         $table->string('cp_fax', 12)->nullable(); // Fax del cedente prestatore, es: 0987654321
         $table->string('cp_email', 256)->nullable(); // Email del cedente prestatore, es:
-// </Contatti>
+        // </Contatti>
         $table->string('cp_riferimento_amministrazione', 20)->nullable(); // Riferimento amministrazione del cedente prestatore, es: 123456
-// </CedentePrestatore>
+        // </CedentePrestatore>
     }
 
     public function rappresentanteFiscale(Blueprint $table): void

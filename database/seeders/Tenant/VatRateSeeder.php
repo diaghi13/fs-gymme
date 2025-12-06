@@ -114,7 +114,8 @@ class VatRateSeeder extends Seeder
         });
     }
 
-    private function vateRatesMapping(): array {
+    private function vateRatesMapping(): array
+    {
         return [
             [
                 'CodiceIvaId' => 1,
@@ -130,7 +131,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 2,
@@ -146,7 +147,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 10,
@@ -162,7 +163,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 14,
@@ -178,7 +179,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 201,
@@ -194,7 +195,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 202,
@@ -210,7 +211,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 203,
@@ -226,7 +227,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 204,
@@ -242,7 +243,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 182,
@@ -258,7 +259,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 183,
@@ -274,7 +275,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 200,
@@ -290,7 +291,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 205,
@@ -306,7 +307,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 184,
@@ -322,7 +323,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 185,
@@ -338,7 +339,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 186,
@@ -354,7 +355,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 187,
@@ -370,7 +371,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 188,
@@ -386,7 +387,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 189,
@@ -402,7 +403,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 190,
@@ -418,7 +419,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 191,
@@ -434,7 +435,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 206,
@@ -450,7 +451,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 192,
@@ -466,7 +467,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 193,
@@ -482,7 +483,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 49,
@@ -498,7 +499,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 50,
@@ -514,7 +515,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 51,
@@ -530,7 +531,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 52,
@@ -546,7 +547,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 53,
@@ -562,7 +563,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 54,
@@ -578,7 +579,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 55,
@@ -594,7 +595,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 56,
@@ -610,7 +611,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 57,
@@ -626,7 +627,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 58,
@@ -642,7 +643,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 59,
@@ -658,7 +659,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 60,
@@ -674,7 +675,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 61,
@@ -690,7 +691,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 62,
@@ -706,7 +707,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 63,
@@ -722,7 +723,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 64,
@@ -738,7 +739,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 65,
@@ -754,7 +755,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 66,
@@ -770,7 +771,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 67,
@@ -786,7 +787,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 68,
@@ -802,7 +803,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 69,
@@ -818,7 +819,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 70,
@@ -834,7 +835,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 71,
@@ -850,7 +851,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 72,
@@ -866,7 +867,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 73,
@@ -882,7 +883,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 74,
@@ -898,7 +899,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 75,
@@ -914,7 +915,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 76,
@@ -930,7 +931,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 77,
@@ -946,7 +947,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 78,
@@ -962,7 +963,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 79,
@@ -978,7 +979,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 80,
@@ -994,7 +995,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 81,
@@ -1010,7 +1011,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 82,
@@ -1026,7 +1027,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 3,
@@ -1042,7 +1043,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 4,
@@ -1058,7 +1059,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 5,
@@ -1074,7 +1075,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 6,
@@ -1090,7 +1091,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 7,
@@ -1106,7 +1107,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 83,
@@ -1122,7 +1123,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 84,
@@ -1138,7 +1139,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 85,
@@ -1154,7 +1155,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 86,
@@ -1170,7 +1171,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 87,
@@ -1186,7 +1187,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 88,
@@ -1202,7 +1203,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 89,
@@ -1218,7 +1219,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 90,
@@ -1234,7 +1235,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 91,
@@ -1250,7 +1251,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 198,
@@ -1266,7 +1267,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 92,
@@ -1282,7 +1283,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 93,
@@ -1298,7 +1299,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 94,
@@ -1314,7 +1315,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 95,
@@ -1330,7 +1331,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 96,
@@ -1346,7 +1347,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 97,
@@ -1362,7 +1363,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 98,
@@ -1378,7 +1379,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 99,
@@ -1394,7 +1395,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 100,
@@ -1410,7 +1411,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 8,
@@ -1426,7 +1427,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 199,
@@ -1442,7 +1443,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 101,
@@ -1458,7 +1459,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 102,
@@ -1474,7 +1475,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 103,
@@ -1490,7 +1491,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 207,
@@ -1506,7 +1507,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 104,
@@ -1522,7 +1523,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 106,
@@ -1538,7 +1539,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 107,
@@ -1554,7 +1555,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 108,
@@ -1570,7 +1571,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 109,
@@ -1586,7 +1587,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 110,
@@ -1602,7 +1603,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 111,
@@ -1618,7 +1619,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 112,
@@ -1634,7 +1635,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 113,
@@ -1650,7 +1651,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 114,
@@ -1666,7 +1667,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 115,
@@ -1682,7 +1683,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 116,
@@ -1698,7 +1699,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 117,
@@ -1714,7 +1715,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 118,
@@ -1730,7 +1731,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 119,
@@ -1746,7 +1747,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 120,
@@ -1762,7 +1763,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 121,
@@ -1778,7 +1779,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 122,
@@ -1794,7 +1795,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 123,
@@ -1810,7 +1811,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 124,
@@ -1826,7 +1827,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 125,
@@ -1842,7 +1843,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 126,
@@ -1858,7 +1859,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 127,
@@ -1874,7 +1875,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 128,
@@ -1890,7 +1891,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 129,
@@ -1906,7 +1907,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 130,
@@ -1922,7 +1923,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 131,
@@ -1938,7 +1939,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 132,
@@ -1954,7 +1955,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 133,
@@ -1970,7 +1971,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 9,
@@ -1986,7 +1987,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 134,
@@ -2002,7 +2003,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 135,
@@ -2018,7 +2019,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 136,
@@ -2034,7 +2035,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 194,
@@ -2050,7 +2051,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 137,
@@ -2066,7 +2067,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 138,
@@ -2082,7 +2083,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 139,
@@ -2098,7 +2099,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 140,
@@ -2114,7 +2115,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 141,
@@ -2130,7 +2131,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 142,
@@ -2146,7 +2147,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 143,
@@ -2162,7 +2163,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 144,
@@ -2178,7 +2179,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 145,
@@ -2194,7 +2195,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 146,
@@ -2210,7 +2211,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 147,
@@ -2226,7 +2227,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 148,
@@ -2242,7 +2243,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 149,
@@ -2258,7 +2259,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 150,
@@ -2274,7 +2275,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 151,
@@ -2290,7 +2291,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 152,
@@ -2306,7 +2307,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 153,
@@ -2322,7 +2323,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 154,
@@ -2338,7 +2339,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 155,
@@ -2354,7 +2355,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 156,
@@ -2370,7 +2371,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 157,
@@ -2386,7 +2387,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 195,
@@ -2402,7 +2403,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 196,
@@ -2418,7 +2419,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 197,
@@ -2434,7 +2435,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 158,
@@ -2450,7 +2451,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 159,
@@ -2466,7 +2467,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 160,
@@ -2482,7 +2483,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 161,
@@ -2498,7 +2499,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => false,
                 'ApplicaCasse' => true,
                 'ApplicaRitenutaAcconto' => true,
-                'ApplicaRitenutaPrevidenziale' => true
+                'ApplicaRitenutaPrevidenziale' => true,
             ],
             [
                 'CodiceIvaId' => 201,
@@ -2514,7 +2515,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 202,
@@ -2530,7 +2531,7 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
+                'ApplicaRitenutaPrevidenziale' => false,
             ],
             [
                 'CodiceIvaId' => 203,
@@ -2546,8 +2547,8 @@ class VatRateSeeder extends Seeder
                 'VisibileInAttivita' => true,
                 'ApplicaCasse' => false,
                 'ApplicaRitenutaAcconto' => false,
-                'ApplicaRitenutaPrevidenziale' => false
-            ]
+                'ApplicaRitenutaPrevidenziale' => false,
+            ],
         ];
     }
 }

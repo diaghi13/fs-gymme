@@ -16,11 +16,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-//        if (app()->environment('production')) {
-//            $this->command->error('This seeder should not be run in production!');
-//
-//            return;
-//        }
+        //        if (app()->environment('production')) {
+        //            $this->command->error('This seeder should not be run in production!');
+        //
+        //            return;
+        //        }
 
         $user = CentralUser::create([
             'first_name' => 'Davide',
@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
         DB::statement('DROP SCHEMA IF EXISTS `gymme-tenant_60876426-2e31-4a9b-a163-1e46be4a425f`');
 
         if (! tenancy()->find('60876426-2e31-4a9b-a163-1e46be4a425f')) {
-            //DB::statement('CREATE SCHEMA `gymme-tenant_60876426-2e31-4a9b-a163-1e46be4a425f`');
+            // DB::statement('CREATE SCHEMA `gymme-tenant_60876426-2e31-4a9b-a163-1e46be4a425f`');
 
             $tenant = $this->createTenant(id: '60876426-2e31-4a9b-a163-1e46be4a425f');
 

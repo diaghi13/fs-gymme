@@ -30,11 +30,11 @@ class ExportXml extends Controller
 
         $sale->append('summary_data');
 
-        //dd($sale->summary_data);
+        // dd($sale->summary_data);
 
         $company = Company::query()->first();
 
-        //dd($sale->rows);
+        // dd($sale->rows);
 
         $xml = view('sales.export-xml', [
             'sale' => $sale,
@@ -44,28 +44,28 @@ class ExportXml extends Controller
         // Download the XML file
         return response($xml)->withHeaders([
             'Content-Type' => 'application/xml',
-            'Content-Disposition' => 'attachment; filename="vendita_' . $sale->progressive_number . '_' . $sale->year . '_' . $sale->date->format('YmdHis') . '_' . $sale->customer->uuid . '.xml"',
+            'Content-Disposition' => 'attachment; filename="vendita_'.$sale->progressive_number.'_'.$sale->year.'_'.$sale->date->format('YmdHis').'_'.$sale->customer->uuid.'.xml"',
         ]);
 
         $documentoXML = $xml; // File XML da firmare
-        $chiavePrivata = 'file://' . Storage::disk('local')->path('/certificates/key.pem');  // File della chiave privata
+        $chiavePrivata = 'file://'.Storage::disk('local')->path('/certificates/key.pem');  // File della chiave privata
         $certificato = Storage::disk('local')->get('/certificates/cert.pem');   // File del certificato
-        $outputP7M =  base_path(__FILE__) . 'vendita_' . $sale->progressive_number . '_' . $sale->year . '_' . $sale->date->format('YmdHis') . '_' . $sale->customer->uuid . 'firmato.p7m';       // File P7M da creare
+        $outputP7M = base_path(__FILE__).'vendita_'.$sale->progressive_number.'_'.$sale->year.'_'.$sale->date->format('YmdHis').'_'.$sale->customer->uuid.'firmato.p7m';       // File P7M da creare
         $hashAlgoritmo = 'SHA256';       // Algoritmo di hash (SHA1, SHA256, etc.)
 
-        //dd($chiavePrivata);
+        // dd($chiavePrivata);
 
-// Leggi il documento XML
-        //$documento = file_get_contents($documentoXML);
+        // Leggi il documento XML
+        // $documento = file_get_contents($documentoXML);
 
-        //dd($documento);
+        // dd($documento);
 
-// Crea il file P7M con la firma
-        if (openssl_pkcs7_sign($documentoXML, $outputP7M, $certificato, $chiavePrivata, array('hash' => $hashAlgoritmo, 'sign-algorithm' => 'sha256'))) {
-            echo "Firma P7M creata con successo: " . $outputP7M . "\n";
+        // Crea il file P7M con la firma
+        if (openssl_pkcs7_sign($documentoXML, $outputP7M, $certificato, $chiavePrivata, ['hash' => $hashAlgoritmo, 'sign-algorithm' => 'sha256'])) {
+            echo 'Firma P7M creata con successo: '.$outputP7M."\n";
         } else {
             $errore = openssl_error_string();
-            echo "Errore durante la firma P7M: " . $errore . "\n";
+            echo 'Errore durante la firma P7M: '.$errore."\n";
         }
     }
 }

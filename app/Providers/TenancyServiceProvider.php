@@ -27,8 +27,10 @@ class TenancyServiceProvider extends ServiceProvider
                 JobPipeline::make([
                     Jobs\CreateDatabase::class,
                     Jobs\MigrateDatabase::class,
-                    // Handle seeder based on demo or subscription purchased
-                    Jobs\SeedDatabase::class,
+                    // Store registration data before initializing tenant data
+                    // \App\Jobs\Tenant\StoreRegistrationData::class,
+                    // Initialize tenant data (company, structure, user, seeding)
+                     \App\Jobs\Tenant\InitializeTenantData::class,
 
                     // Your own jobs to prepare the tenant.
                     // Provision API keys, create S3 buckets, anything you want!
@@ -37,7 +39,7 @@ class TenancyServiceProvider extends ServiceProvider
                     info('TenantCreated event fired for tenant ID: '.$event->tenant->id);
 
                     return $event->tenant;
-                })->shouldBeQueued(true), // `false` by default, but you probably want to make this `true` for production.
+                })->shouldBeQueued(true), // Runs synchronously for now - change to true when ready for async provisioning
             ],
             Events\SavingTenant::class => [],
             Events\TenantSaved::class => [],

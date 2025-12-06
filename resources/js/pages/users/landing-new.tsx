@@ -132,10 +132,15 @@ const Navbar = ({ auth, dashboardRoute }: NavbarProps) => {
              className="px-4 py-2 text-sm font-medium text-brand-muted hover:text-white hover:bg-white/5 rounded-lg transition-colors">
             Features
           </a>
-          <a href="#demo"
-             className="px-4 py-2 text-sm font-medium text-brand-muted hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+          {/*<a href="#demo"*/}
+          {/*   className="px-4 py-2 text-sm font-medium text-brand-muted hover:text-white hover:bg-white/5 rounded-lg transition-colors">*/}
+          {/*  Demo*/}
+          {/*</a>*/}
+          <Link
+            href={route('tenant.register.demo')}
+            className="px-4 py-2 text-sm font-medium text-brand-muted hover:text-white hover:bg-white/5 rounded-lg transition-colors">
             Demo
-          </a>
+          </Link>
           <a href="#pricing"
              className="px-4 py-2 text-sm font-medium text-brand-muted hover:text-white hover:bg-white/5 rounded-lg transition-colors">
             Prezzi

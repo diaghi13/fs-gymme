@@ -41,11 +41,11 @@ class DemoSubscriptionPlanSeeder extends Seeder
         $this->command->line('');
         $this->command->info('Demo Plan Summary:');
         $this->command->line("  - Name: {$demoPlan->name}");
-        $this->command->line("  - Price: FREE");
-        $this->command->line("  - Duration: 14 days (managed via ends_at)");
-        $this->command->line("  - Max Users: 5");
-        $this->command->line("  - Storage: 1 GB");
-        $this->command->line("  - Electronic Invoicing: NO (can purchase as addon)");
+        $this->command->line('  - Price: FREE');
+        $this->command->line('  - Duration: 14 days (managed via ends_at)');
+        $this->command->line('  - Max Users: 5');
+        $this->command->line('  - Storage: 1 GB');
+        $this->command->line('  - Electronic Invoicing: NO (can purchase as addon)');
         $this->command->line('');
         $this->command->warn('After 14 days, tenants on this plan should be prompted to upgrade.');
     }

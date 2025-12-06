@@ -3,7 +3,6 @@
 namespace Database\Factories\Customer;
 
 use App\Enums\GenderEnum;
-use App\Models\Structure;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

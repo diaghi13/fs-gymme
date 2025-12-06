@@ -66,7 +66,7 @@ class CustomerController extends Controller
             'payment_methods' => \App\Models\Support\PaymentMethod::where('is_active', true)
                 ->orderBy('order')
                 ->get()
-                ->map(fn($pm) => [
+                ->map(fn ($pm) => [
                     'id' => $pm->id,
                     'description' => $pm->description,
                 ]),
@@ -74,14 +74,14 @@ class CustomerController extends Controller
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get()
-                ->map(fn($pl) => [
+                ->map(fn ($pl) => [
                     'id' => $pl->id,
                     'name' => $pl->name,
                     'price' => $pl->price,
                     'entrances' => $pl->entrances,
                     'days_duration' => $pl->days_duration,
                     'months_duration' => $pl->months_duration,
-                ])
+                ]),
         ]);
     }
 

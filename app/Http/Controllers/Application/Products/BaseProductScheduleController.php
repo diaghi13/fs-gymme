@@ -25,7 +25,7 @@ class BaseProductScheduleController extends Controller
         return to_route('app.base-products.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
             'base_product' => $product->id,
-            'tab' => 2
+            'tab' => 2,
         ])
             ->with('status', 'success')
             ->with('message', 'Schedule created successfully');
@@ -45,7 +45,7 @@ class BaseProductScheduleController extends Controller
         return to_route('app.base-products.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
             'base_product' => $schedule->product->id,
-            'tab' => 2
+            'tab' => 2,
         ])
             ->with('status', 'success')
             ->with('message', 'Schedule updated successfully');
@@ -63,7 +63,7 @@ class BaseProductScheduleController extends Controller
         return to_route('app.base-products.show', [
             'tenant' => session()->get('current_tenant_id'),
             'base_product' => $product->id,
-            'tab' => 2
+            'tab' => 2,
         ])
             ->with('status', 'success')
             ->with('message', 'Schedule deleted successfully');

@@ -38,7 +38,7 @@ class FinancialResourceConfigurationController extends Controller
             'bic' => 'nullable|string|max:255|regex:/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/',
         ]);
 
-        //dd($validated);
+        // dd($validated);
 
         FinancialResource::create($validated);
 

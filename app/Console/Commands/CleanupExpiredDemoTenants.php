@@ -18,7 +18,7 @@ class CleanupExpiredDemoTenants extends Command
 
     public function handle(): int
     {
-        if (!config('demo.auto_delete_enabled')) {
+        if (! config('demo.auto_delete_enabled')) {
             $this->warn('Automatic demo deletion is disabled in config/demo.php');
 
             return self::SUCCESS;
@@ -50,7 +50,7 @@ class CleanupExpiredDemoTenants extends Command
             return self::SUCCESS;
         }
 
-        if (!$this->option('force') && !$this->confirm('⚠️  Do you want to proceed with deletion?', false)) {
+        if (! $this->option('force') && ! $this->confirm('⚠️  Do you want to proceed with deletion?', false)) {
             $this->info('Operation cancelled.');
 
             return self::SUCCESS;
@@ -106,7 +106,7 @@ class CleanupExpiredDemoTenants extends Command
                     ->whereNotNull('subscription_plan_tenant.ends_at')
                     ->where('subscription_plan_tenant.ends_at', '<=', $cutoffDate);
             })
-            ->with([/*'active_subscription_plan.pivot', */'users'])
+            ->with([/* 'active_subscription_plan.pivot', */ 'users'])
             ->get();
     }
 

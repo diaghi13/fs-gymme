@@ -12,13 +12,13 @@ class EnsureUserIsInTenantMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             abort(403, 'Non autorizzato per questo tenant.');
         }
 
@@ -37,7 +37,7 @@ class EnsureUserIsInTenantMiddleware
         }
 
         // Check tenant access via pivot table
-        if ($tenantId && !$user->tenants->contains('id', $tenantId)) {
+        if ($tenantId && ! $user->tenants->contains('id', $tenantId)) {
             abort(403, 'Non autorizzato per questo tenant.');
         }
 

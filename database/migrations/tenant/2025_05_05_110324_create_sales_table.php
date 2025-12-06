@@ -39,12 +39,12 @@ return new class extends Migration
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
 
-            //$table->bigInteger('payment_condition_id')->nullable();
+            // $table->bigInteger('payment_condition_id')->nullable();
             $table->foreignIdFor(\App\Models\Support\PaymentCondition::class)
                 ->constrained()
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
-            //$table->bigInteger('financial_resource_id')->nullable();
+            // $table->bigInteger('financial_resource_id')->nullable();
             $table->foreignIdFor(\App\Models\Support\FinancialResource::class)
                 ->constrained()
                 ->cascadeOnUpdate()

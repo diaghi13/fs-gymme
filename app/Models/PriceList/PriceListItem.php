@@ -41,7 +41,7 @@ class PriceListItem extends Model
         'valid_to',
         'is_active',
         'last_updated_by',
-        'last_update_reason'
+        'last_update_reason',
     ];
 
     protected $casts = [
@@ -60,7 +60,7 @@ class PriceListItem extends Model
         'is_locked' => 'boolean',
         'is_active' => 'boolean',
         'valid_from' => 'date',
-        'valid_to' => 'date'
+        'valid_to' => 'date',
     ];
 
     public function priceList()

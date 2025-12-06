@@ -32,7 +32,7 @@ class PriceListSalesUpdate extends Controller
 
         return to_route($route['routeName'], [
             'tenant' => $request->session()->get('current_tenant_id'),
-            $route['parameterName'] => $priceList->id
+            $route['parameterName'] => $priceList->id,
         ])
             ->with('status', 'success')
             ->with('message', __('Price list sales updated successfully.'));

@@ -21,7 +21,7 @@ return new class extends Migration
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
 
-            $table->enum("day", ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]);
+            $table->enum('day', ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']);
             $table->time('time');
             $table->integer('duration_in_minutes');
             $table->unsignedBigInteger('instructor_id')->nullable();

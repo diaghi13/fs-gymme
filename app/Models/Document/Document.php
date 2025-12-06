@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Document extends Model
 {
     /** @use HasFactory<\Database\Factories\Document\DocumentFactory> */
-    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, HasStructure;
+    use HasFactory, HasStructure, \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $fillable = [
         'structure_id',

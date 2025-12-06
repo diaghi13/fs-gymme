@@ -52,6 +52,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
-        //->middleware(\Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class)
+        // ->middleware(\Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class)
         ->name('logout');
 });

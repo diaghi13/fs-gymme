@@ -15,7 +15,7 @@ class BaseProductServiceTest extends TestCase
 
     public function test_update_preserves_existing_settings(): void
     {
-        $service = new BaseProductService();
+        $service = new BaseProductService;
 
         $product = BaseProduct::factory()->create([
             'settings' => [
@@ -43,7 +43,7 @@ class BaseProductServiceTest extends TestCase
 
     public function test_update_throws_exception_for_nonexistent_product(): void
     {
-        $service = new BaseProductService();
+        $service = new BaseProductService;
 
         $dto = new BaseProductDto([
             'id' => 9999, // Nonexistent ID

@@ -18,7 +18,7 @@ class PaymentMethodSeeder extends Seeder
         $collection = collect($json_a);
 
         $collection->map(function ($item) {
-            /** @var $paymentMethod PaymentMethod*/
+            /** @var $paymentMethod PaymentMethod */
             if ($item->ModalitaPagamentoCodice !== null) {
                 $paymentMethod = PaymentMethod::updateOrCreate([
                     'code' => $item->ModalitaPagamentoCodice,

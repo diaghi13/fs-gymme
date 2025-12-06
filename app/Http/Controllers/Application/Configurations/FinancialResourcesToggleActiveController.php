@@ -14,7 +14,7 @@ class FinancialResourcesToggleActiveController extends Controller
     public function __invoke(Request $request, FinancialResource $financialResource)
     {
         $financialResource->update([
-            'is_active' => !$financialResource->is_active,
+            'is_active' => ! $financialResource->is_active,
         ]);
 
         return redirect()->back()

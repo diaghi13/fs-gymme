@@ -29,15 +29,15 @@ return new class extends Migration
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
 
-            $table->string("name");
+            $table->string('name');
             $table->string('slug')->nullable()->unique();
-            $table->string("color");
+            $table->string('color');
             $table->longText('description')->nullable();
             $table->string('short_description')->nullable();
             $table->string('sku')->nullable()->unique();
 
             // Tipi di prodotto
-            $table->string("type")->nullable();
+            $table->string('type')->nullable();
 
             // Configurazioni base
             $table->string('unit_type')->default(\App\Enums\UnitType::PIECE->value);
@@ -70,7 +70,7 @@ return new class extends Migration
             $table->string('image_path', 500)->nullable(); // Percorso dell'immagine del prodotto
             $table->boolean('is_active')->default(true); // Indica se il prodotto è attivo
             $table->boolean('saleable_in_subscription')->default(true); // Indica se il prodotto è vendibile in abbonamento
-            $table->longText("selling_description")->nullable();
+            $table->longText('selling_description')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

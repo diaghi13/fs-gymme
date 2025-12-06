@@ -20,7 +20,7 @@ class LogPageView
             return $next($request); // Disabilita in locale e testing
         }
 
-        if (!Auth::check() || !$request->isMethod('get')) {
+        if (! Auth::check() || ! $request->isMethod('get')) {
             return $next($request); // Solo GET e solo utenti loggati
         }
 
@@ -43,29 +43,29 @@ class LogPageView
             return $next($request);
         }
 
-        //tenancy()->central(function () use ($request, $user) {
-            $routeName = $request->route()?->getName();
-            $uri = $request->path();
-            $routeParams = $request->route()?->parameters();
+        // tenancy()->central(function () use ($request, $user) {
+        $routeName = $request->route()?->getName();
+        $uri = $request->path();
+        $routeParams = $request->route()?->parameters();
 
-            $log = activity()
-                ->causedBy($user)
-                ->withProperties([
-                    'uri' => $uri,
-                    'route_name' => $routeName,
-                    'ip' => $request->ip(),
-                    'user_agent' => $request->header('User-Agent'),
-                ]);
+        $log = activity()
+            ->causedBy($user)
+            ->withProperties([
+                'uri' => $uri,
+                'route_name' => $routeName,
+                'ip' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+            ]);
 
-            // Se ci sono parametri modello Eloquent (es. user, post, ecc.)
-            foreach ($routeParams as $param) {
-                if (is_object($param) && method_exists($param, 'getKey')) {
-                    $log->performedOn($param);
-                }
+        // Se ci sono parametri modello Eloquent (es. user, post, ecc.)
+        foreach ($routeParams as $param) {
+            if (is_object($param) && method_exists($param, 'getKey')) {
+                $log->performedOn($param);
             }
+        }
 
-            $log->log("Pagina visitata: " . ($routeName ?: $uri));
-        //});
+        $log->log('Pagina visitata: '.($routeName ?: $uri));
+        // });
 
         return $next($request);
     }

@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\CentralUser;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
@@ -56,24 +55,24 @@ class UserFactory extends Factory
         ]);
     }
 
-//    public function configure()
-//    {
-//        return $this->afterCreating(function (User $user) {
-////            $tenant = tenancy()->find('test');
-////
-////            if ($tenant) {
-////                $user->tenants()->attach($tenant);
-////            }
-//
-//            tenancy()->central(function () use ($user) {
-//                $centralUser = CentralUser::query()
-//                    ->where('global_id', $user->global_id)
-//                    ->first();
-//
-//                $centralUser->assignRole('customer');
-//
-//                //$user->tenants()->attach(tenancy()->find('test'));
-//            });
-//        });
-//    }
+    //    public function configure()
+    //    {
+    //        return $this->afterCreating(function (User $user) {
+    // //            $tenant = tenancy()->find('test');
+    // //
+    // //            if ($tenant) {
+    // //                $user->tenants()->attach($tenant);
+    // //            }
+    //
+    //            tenancy()->central(function () use ($user) {
+    //                $centralUser = CentralUser::query()
+    //                    ->where('global_id', $user->global_id)
+    //                    ->first();
+    //
+    //                $centralUser->assignRole('customer');
+    //
+    //                //$user->tenants()->attach(tenancy()->find('test'));
+    //            });
+    //        });
+    //    }
 }

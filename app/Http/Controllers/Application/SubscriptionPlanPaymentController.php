@@ -20,7 +20,7 @@ class SubscriptionPlanPaymentController extends Controller
         });
 
         // Check if the subscription plan is active
-        if (!$subscriptionPlan->is_active) {
+        if (! $subscriptionPlan->is_active) {
             return redirect()->route('app.subscription-plan.index', ['tenant' => $request->user()->company->id])
                 ->with('error', 'The selected subscription plan is not active.');
         }

@@ -25,6 +25,6 @@ class DocumentTypeElectronicInvoice extends Model
 
     public function getLabelAttribute()
     {
-        return $this->code . ' - ' . $this->description;
+        return $this->code.' - '.$this->description;
     }
 }

@@ -10,7 +10,7 @@ class DocumentItem extends Model
     /** @use HasFactory<\Database\Factories\Document\DocumentItemFactory> */
     use HasFactory;
 
-    protected $fillable =[
+    protected $fillable = [
         'document_id',
         'product_id',
         'description',

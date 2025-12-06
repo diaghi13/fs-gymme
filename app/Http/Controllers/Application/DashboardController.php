@@ -45,9 +45,9 @@ class DashboardController extends Controller
 
         for ($i = 0; $i < 7; $i++) {
             $next = Payment::query()
-                    ->whereDate('payed_at', $date)
-                    ->sum('amount') / 100;
-            $dailyCollectionDiffSum[$date->format("d/m/y")] = $dailyCollectionSum - $next;
+                ->whereDate('payed_at', $date)
+                ->sum('amount') / 100;
+            $dailyCollectionDiffSum[$date->format('d/m/y')] = $dailyCollectionSum - $next;
             $dailyCollectionSum = $next;
             $date->subDay();
         }
@@ -80,7 +80,7 @@ class DashboardController extends Controller
                         ->orWhere('end_date', '>=', $date);
                 })->count();
 
-            $subscriptionDiffPerDate[$date->format("d/m/y")] = $activeSubscriptionsCount - $next;
+            $subscriptionDiffPerDate[$date->format('d/m/y')] = $activeSubscriptionsCount - $next;
             $activeSubscriptionsCount = $next;
             $date->subDay();
         }

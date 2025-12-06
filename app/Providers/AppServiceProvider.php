@@ -45,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
             if ($user instanceof \App\Models\CentralUser) {
                 $result = $user->hasRole('super-admin') ? true : null;
                 \Log::debug('CentralUser check', ['has_super_admin' => $result]);
+
                 return $result;
             }
 
@@ -54,17 +55,20 @@ class AppServiceProvider extends ServiceProvider
                 // IMPORTANT: Only add your own email here for development/debugging
                 if ($user->email === 'davide.d.donghi@gmail.com') {
                     \Log::debug('Super admin email match - granting full access');
+
                     return true;
                 }
 
                 // Owner has full access within their tenant
                 if ($user->isOwner()) {
                     \Log::debug('Owner role detected - granting full access');
+
                     return true;
                 }
             }
 
             \Log::debug('Gate::before returning null - checking policies');
+
             return null;
         });
 

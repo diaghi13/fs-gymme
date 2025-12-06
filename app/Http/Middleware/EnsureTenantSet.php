@@ -16,7 +16,7 @@ class EnsureTenantSet
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && !$request->session()->has('current_tenant_id')) {
+        if (Auth::check() && ! $request->session()->has('current_tenant_id')) {
             $user = Auth::user();
 
             if ($user->hasRole('super-admin') && $user->tenants->isEmpty()) {

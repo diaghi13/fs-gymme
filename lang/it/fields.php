@@ -16,6 +16,6 @@ return [
     'dimensions' => [
         'length' => 'Lunghezza',
         'width' => 'Larghezza',
-        'height' => 'Altezza'
+        'height' => 'Altezza',
     ],
 ];

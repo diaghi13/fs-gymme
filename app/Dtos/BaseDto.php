@@ -178,7 +178,7 @@ abstract class BaseDto
 
     private function handleEloquentModel(string $modelClass, mixed $value): mixed
     {
-        $model = new $modelClass();
+        $model = new $modelClass;
         $primaryKey = $model->getKeyName();
 
         if (is_array($value) && isset($value[$primaryKey])) {

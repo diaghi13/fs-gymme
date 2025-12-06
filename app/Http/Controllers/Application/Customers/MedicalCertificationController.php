@@ -26,7 +26,7 @@ class MedicalCertificationController extends Controller
 
         return redirect()->route('app.customers.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'customer' => $customer->id
+            'customer' => $customer->id,
         ])
             ->with('status', 'success')
             ->with('message', 'Medical certification created successfully.');
@@ -44,7 +44,7 @@ class MedicalCertificationController extends Controller
 
         return redirect()->route('app.customers.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'customer' => $medicalCertification->medical_certifiable_id
+            'customer' => $medicalCertification->medical_certifiable_id,
         ])
             ->with('status', 'success')
             ->with('message', 'Medical certification updated successfully.');
@@ -56,7 +56,7 @@ class MedicalCertificationController extends Controller
 
         return redirect()->route('app.customers.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'customer' => $medicalCertification->customer_id
+            'customer' => $medicalCertification->customer_id,
         ])
             ->with('status', 'success')
             ->with('message', 'Medical certification deleted successfully.');

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class FinancialResourceType extends Model
 {
     protected $fillable = [
-        'name'
+        'name',
     ];
 
     public function financial_resources()

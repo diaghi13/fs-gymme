@@ -29,112 +29,18 @@ interface TenantRegistrationFormProps {
     trialDays: number;
     isSubmitting: boolean;
     isValid: boolean;
+    serverError?: string | null;
+    onClearError?: () => void;
 }
 
-// Step 1: Tenant Information
-const TenantStep = ({ trialDays }: { trialDays: number }) => {
+// Step 1: User (Owner) Information
+const UserStep = ({ trialDays }: { trialDays: number }) => {
     return (
         <Grid container spacing={2}>
             <Grid size={12}>
                 <Alert severity="info" sx={{ mb: 2 }}>
                     Inizia la tua prova gratuita di {trialDays} giorni! Nessuna carta di credito richiesta.
                 </Alert>
-            </Grid>
-            <Grid size={12}>
-                <TextField
-                    name="tenant.name"
-                    label="Nome Tenant / Organizzazione"
-                    required
-                    fullWidth
-                    autoFocus
-                    helperText="Il nome della tua palestra o organizzazione"
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                    name="tenant.email"
-                    label="Email Tenant"
-                    type="email"
-                    required
-                    fullWidth
-                    helperText="Email principale del tenant"
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                    name="tenant.phone"
-                    label="Telefono"
-                    fullWidth
-                    helperText="Numero di telefono principale"
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                    name="tenant.vat_number"
-                    label="Partita IVA"
-                    fullWidth
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                    name="tenant.tax_code"
-                    label="Codice Fiscale"
-                    fullWidth
-                />
-            </Grid>
-            <Grid size={12}>
-                <TextField
-                    name="tenant.address"
-                    label="Indirizzo"
-                    fullWidth
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                    name="tenant.city"
-                    label="Città"
-                    fullWidth
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 3 }}>
-                <TextField
-                    name="tenant.postal_code"
-                    label="CAP"
-                    fullWidth
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 3 }}>
-                <TextField
-                    name="tenant.country"
-                    label="Paese"
-                    fullWidth
-                    defaultValue="IT"
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                    name="tenant.pec_email"
-                    label="PEC Email"
-                    type="email"
-                    fullWidth
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                    name="tenant.sdi_code"
-                    label="Codice SDI"
-                    fullWidth
-                />
-            </Grid>
-        </Grid>
-    );
-};
-
-// Step 2: User (Owner) Information
-const UserStep = () => {
-    return (
-        <Grid container spacing={2}>
-            <Grid size={12}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                     Crea il tuo account amministratore
                 </Typography>
@@ -189,7 +95,7 @@ const UserStep = () => {
     );
 };
 
-// Step 3: Company Information
+// Step 2: Company Information
 const CompanyStep = () => {
     return (
         <Grid container spacing={2}>
@@ -269,13 +175,77 @@ const CompanyStep = () => {
                     defaultValue="IT"
                 />
             </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                    name="company.phone"
+                    label="Telefono"
+                    required
+                    fullWidth
+                    helperText="Numero di telefono principale"
+                />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                    name="company.email"
+                    label="Email Aziendale"
+                    type="email"
+                    required
+                    fullWidth
+                />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                    name="company.pec_email"
+                    label="PEC"
+                    type="email"
+                    required
+                    fullWidth
+                    helperText="Posta Elettronica Certificata"
+                />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                    name="company.sdi_code"
+                    label="Codice SDI"
+                    fullWidth
+                    helperText="Opzionale - Sistema di Interscambio"
+                />
+            </Grid>
         </Grid>
     );
 };
 
-// Step 4: Structure Information
+// Step 3: Structure Information
 const StructureStep = () => {
-    const { values } = useFormikContext<any>();
+    const { values, setFieldValue } = useFormikContext<any>();
+    const sameAsCompany = values.structure.same_as_company;
+
+    const handleSameAsCompanyChange = (checked: boolean) => {
+        setFieldValue('structure.same_as_company', checked);
+
+        if (checked) {
+            // Auto-copy company data to structure
+            setFieldValue('structure.name', values.company.business_name);
+            setFieldValue('structure.street', values.company.street);
+            setFieldValue('structure.number', values.company.number);
+            setFieldValue('structure.city', values.company.city);
+            setFieldValue('structure.zip_code', values.company.zip_code);
+            setFieldValue('structure.province', values.company.province);
+            setFieldValue('structure.country', values.company.country);
+            setFieldValue('structure.phone', values.company.phone);
+            setFieldValue('structure.email', values.company.email);
+        } else {
+            // Clear structure data when unchecked
+            setFieldValue('structure.name', '');
+            setFieldValue('structure.street', '');
+            setFieldValue('structure.number', '');
+            setFieldValue('structure.city', '');
+            setFieldValue('structure.zip_code', '');
+            setFieldValue('structure.province', '');
+            setFieldValue('structure.phone', '');
+            setFieldValue('structure.email', '');
+        }
+    };
 
     return (
         <Grid container spacing={2}>
@@ -284,21 +254,42 @@ const StructureStep = () => {
                     Informazioni sulla prima struttura/sede
                 </Typography>
             </Grid>
+
+            {/* Same as Company Checkbox */}
+            <Grid size={12}>
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={sameAsCompany}
+                            onChange={(e) => handleSameAsCompanyChange(e.target.checked)}
+                        />
+                    }
+                    label={
+                        <Typography variant="body2">
+                            La struttura ha gli stessi dati dell'azienda
+                        </Typography>
+                    }
+                />
+            </Grid>
+
+            {/* Structure fields - disabled when same_as_company is checked */}
             <Grid size={12}>
                 <TextField
                     name="structure.name"
                     label="Nome Struttura"
-                    required
+                    required={!sameAsCompany}
                     fullWidth
-                    autoFocus
+                    autoFocus={!sameAsCompany}
+                    disabled={sameAsCompany}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 9 }}>
                 <TextField
                     name="structure.street"
                     label="Via"
-                    required
+                    required={!sameAsCompany}
                     fullWidth
+                    disabled={sameAsCompany}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 3 }}>
@@ -306,22 +297,25 @@ const StructureStep = () => {
                     name="structure.number"
                     label="Numero"
                     fullWidth
+                    disabled={sameAsCompany}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                     name="structure.city"
                     label="Città"
-                    required
+                    required={!sameAsCompany}
                     fullWidth
+                    disabled={sameAsCompany}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 3 }}>
                 <TextField
                     name="structure.zip_code"
                     label="CAP"
-                    required
+                    required={!sameAsCompany}
                     fullWidth
+                    disabled={sameAsCompany}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 3 }}>
@@ -329,6 +323,7 @@ const StructureStep = () => {
                     name="structure.province"
                     label="Provincia"
                     fullWidth
+                    disabled={sameAsCompany}
                 />
             </Grid>
             <Grid size={12}>
@@ -337,6 +332,7 @@ const StructureStep = () => {
                     label="Paese"
                     fullWidth
                     defaultValue="IT"
+                    disabled={sameAsCompany}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -344,6 +340,7 @@ const StructureStep = () => {
                     name="structure.phone"
                     label="Telefono"
                     fullWidth
+                    disabled={sameAsCompany}
                 />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -352,6 +349,7 @@ const StructureStep = () => {
                     label="Email"
                     type="email"
                     fullWidth
+                    disabled={sameAsCompany}
                 />
             </Grid>
 
@@ -394,6 +392,8 @@ export default function TenantRegistrationForm({
     trialDays,
     isSubmitting,
     isValid,
+    serverError,
+    onClearError,
 }: TenantRegistrationFormProps) {
     const { values, errors, touched, validateForm } = useFormikContext<any>();
 
@@ -402,10 +402,9 @@ export default function TenantRegistrationForm({
 
         // Check if current step has errors
         const currentStepFields = {
-            0: 'tenant',
-            1: 'user',
-            2: 'company',
-            3: 'structure',
+            0: 'user',
+            1: 'company',
+            2: 'structure',
         };
 
         const currentField = currentStepFields[activeStep as keyof typeof currentStepFields];
@@ -477,11 +476,16 @@ export default function TenantRegistrationForm({
                                     />
                                 )}
 
+                                {serverError && (
+                                    <Alert severity="error" onClose={onClearError} sx={{ mt: 2, width: '100%' }}>
+                                        {serverError}
+                                    </Alert>
+                                )}
+
                                 <Box sx={{ mt: 3, width: '100%' }}>
-                                    {activeStep === 0 && <TenantStep trialDays={trialDays} />}
-                                    {activeStep === 1 && <UserStep />}
-                                    {activeStep === 2 && <CompanyStep />}
-                                    {activeStep === 3 && <StructureStep />}
+                                    {activeStep === 0 && <UserStep trialDays={trialDays} />}
+                                    {activeStep === 1 && <CompanyStep />}
+                                    {activeStep === 2 && <StructureStep />}
 
                                     <Grid container sx={{ mt: 2 }}>
                                         <Grid size={12}>

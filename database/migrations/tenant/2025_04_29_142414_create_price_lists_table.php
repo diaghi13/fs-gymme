@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -33,15 +34,15 @@ return new class extends Migration {
                 ->constrained('structures')
                 ->nullOnDelete();
 
-//            $table->foreignId('customer_group_id')
-//                ->nullable()
-//                ->constrained('customer_groups')
-//                ->nullOnDelete();
+            //            $table->foreignId('customer_group_id')
+            //                ->nullable()
+            //                ->constrained('customer_groups')
+            //                ->nullOnDelete();
 
             // GERARCHIA E PRIORITÀ
-            //$table->integer('level')->default(0);
-            //$table->string('path', 500)->nullable();
-            //$table->integer('priority')->default(0);
+            // $table->integer('level')->default(0);
+            // $table->string('path', 500)->nullable();
+            // $table->integer('priority')->default(0);
 
             // EREDITARIETÀ
             $table->boolean('inherit_from_parent')->default(true);
@@ -75,10 +76,10 @@ return new class extends Migration {
             $table->timestamps();
             $table->softDeletes();
 
-            //$table->unique(['company_id', 'slug']);
+            // $table->unique(['company_id', 'slug']);
             $table->index('parent_id');
-            //$table->index('path');
-            //$table->index(['facility_id', 'customer_group_id']);
+            // $table->index('path');
+            // $table->index(['facility_id', 'customer_group_id']);
             $table->index(['valid_from', 'valid_to']);
         });
     }

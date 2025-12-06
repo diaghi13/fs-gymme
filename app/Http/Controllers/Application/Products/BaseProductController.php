@@ -50,14 +50,14 @@ class BaseProductController extends Controller
 
             return to_route('app.base-products.show', [
                 'tenant' => $request->session()->get('current_tenant_id'),
-                'base_product' => $product->id
+                'base_product' => $product->id,
             ])
                 ->with('status', 'success');
         } catch (\Throwable $e) {
             return back()
                 ->with('status', 'error')
                 ->with('message', 'Failed to create the product.')
-                ->withErrors(['error' => 'Failed to create the product: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Failed to create the product: '.$e->getMessage()]);
         }
     }
 
@@ -90,7 +90,7 @@ class BaseProductController extends Controller
             return back()
                 ->with('status', 'error')
                 ->with('message', 'Failed to create the product.')
-                ->withErrors(['error' => 'Failed to update the product: ' . $e->getMessage()]);
+                ->withErrors(['error' => 'Failed to update the product: '.$e->getMessage()]);
         }
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CentralUser;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -16,7 +17,7 @@ Route::get('/', function () {
             // Get user's first tenant for redirect
             $tenant = $user->tenants()->first();
             if ($tenant) {
-                $dashboardRoute = route('central.redirectToApp', ['tenant' => $tenant->id]);
+                $dashboardRoute = route('central.app.redirect', ['tenant' => $tenant->id]);
             }
         }
     }
@@ -36,6 +37,9 @@ Route::post('stripe/webhook', [\App\Http\Controllers\Central\WebhookController::
 Route::middleware('guest')->group(function () {
     Route::get('register-tenant', [\App\Http\Controllers\Central\TenantRegistrationController::class, 'create'])
         ->name('tenant.register');
+
+    Route::get('register-demo', [\App\Http\Controllers\Central\TenantRegistrationController::class, 'createDemo'])
+        ->name('tenant.register.demo');
 
     Route::post('register-tenant', [\App\Http\Controllers\Central\TenantRegistrationController::class, 'store'])
         ->name('tenant.register.store');
@@ -87,15 +91,32 @@ Route::middleware([
         ->name('central.redirectToCentral');
 });
 
-Route::middleware(['verified'])->group(function () {
-    Route::get('profile', function () {
-        $user = auth()->user();
+Route::middleware(['auth'])->group(function () {
+    // Tenant provisioning status check (for async provisioning)
+    Route::get('tenants/{tenant}/status', \App\Http\Controllers\Central\TenantProvisioningStatusController::class)
+        ->name('central.tenant.status');
 
-        // Passa solo i dati essenziali per evitare memory leak
-        return Inertia::render('Profile', [
-            'user' => $user?->only(['id', 'name', 'email']),
+    // Provisioning page (shown while tenant is being created)
+    Route::get('tenants/{tenant}/provisioning', function (Tenant $tenant) {
+        return Inertia::render('central/tenant-provisioning', [
+            'tenant' => $tenant->only(['id', 'name']),
         ]);
-    })->name('central.profile');
+    })->name('central.tenant.provisioning');
+
+    // Redirect to tenant app (for newly registered users or tenant owners)
+    Route::get('app/{tenant}', \App\Http\Controllers\Central\RedirectToAppController::class)
+        ->name('central.app.redirect');
+
+    Route::middleware(['verified'])->group(function () {
+        Route::get('profile', function () {
+            $user = auth()->user();
+
+            // Passa solo i dati essenziali per evitare memory leak
+            return Inertia::render('Profile', [
+                'user' => $user?->only(['id', 'name', 'email']),
+            ]);
+        })->name('central.profile');
+    });
 });
 
 require __DIR__.'/auth.php';

@@ -28,7 +28,7 @@ class ProductUtil
             $part = '';
             $vowelIndex = 0;
 
-            if (count($consonants) < 3 && !empty($vowels)) {
+            if (count($consonants) < 3 && ! empty($vowels)) {
                 // Prima vocale prima delle consonanti
                 $part .= $vowels[$vowelIndex++];
             }
@@ -47,7 +47,8 @@ class ProductUtil
         }
 
         $paddedId = str_pad($id, 4, '0', STR_PAD_LEFT);
-        return "{$prefix}-" . implode('-', $skuParts) . "-{$paddedId}";
+
+        return "{$prefix}-".implode('-', $skuParts)."-{$paddedId}";
     }
 
     public static function generateProductSlug(string $name, int $id): string
@@ -55,7 +56,7 @@ class ProductUtil
         $slug = str($name)
             ->slug(language: 'it')
             ->toString()
-            . '-' . $id;
+            .'-'.$id;
 
         return $slug;
     }

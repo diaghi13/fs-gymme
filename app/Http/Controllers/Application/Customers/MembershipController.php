@@ -26,7 +26,7 @@ class MembershipController extends Controller
 
         return redirect()->route('app.customers.show', [
             'tenant' => $request->session()->get('current_tenant_id'),
-            'customer' => $customerSubscription->customer_id
+            'customer' => $customerSubscription->customer_id,
         ])
             ->with('status', 'success')
             ->with('message', 'Membership updated successfully.');

@@ -22,7 +22,7 @@ trait HasSettings
 
         static::updating(function ($model) {
             $original = $model->getOriginal('settings') ?? [];
-            //$model->settings = self::deepMerge($original, $model->settings ?? []);
+            // $model->settings = self::deepMerge($original, $model->settings ?? []);
             // TODO: forse non serve fare il merge in updating, altrimenti non si possono rimuovere le chiavi
             $model->settings = $model->settings ?? $original;
             $model->validateSettings();
@@ -105,6 +105,7 @@ trait HasSettings
         foreach ($dotArray as $key => $value) {
             data_set($nested, $key, $value);
         }
+
         return $nested;
     }
 }

@@ -45,6 +45,7 @@ class Payment extends Model
         if ($this->due_date && $this->due_date->isPast()) {
             return 'expired';
         }
+
         return 'pending';
     }
 

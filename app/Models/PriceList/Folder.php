@@ -3,7 +3,6 @@
 namespace App\Models\PriceList;
 
 use App\Enums\PriceListItemTypeEnum;
-use Illuminate\Database\Eloquent\Model;
 use Parental\HasParent;
 
 class Folder extends PriceList
@@ -11,12 +10,12 @@ class Folder extends PriceList
     use HasParent;
 
     protected $fillable = [
-        "structure_id",
-        "name",
-        "saleable",
-        "parent_id",
-        "saleable_from",
-        "saleable_to",
+        'structure_id',
+        'name',
+        'saleable',
+        'parent_id',
+        'saleable_from',
+        'saleable_to',
     ];
 
     protected $casts = [

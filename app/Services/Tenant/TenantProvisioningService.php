@@ -10,7 +10,6 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -31,6 +30,10 @@ class TenantProvisioningService
     /**
      * Provision a new tenant with all initial setup.
      *
+     * This method creates the tenant and central user synchronously,
+     * then delegates database setup and data initialization to the
+     * async JobPipeline configured in TenancyServiceProvider.
+     *
      * @param  array  $data  Tenant registration data
      * @param  bool  $isDemo  Whether this is a demo tenant
      * @param  string  $paymentMethod  Payment method (stripe, bank_transfer, manual)
@@ -40,26 +43,49 @@ class TenantProvisioningService
      */
     public function provision(array $data, bool $isDemo = false, string $paymentMethod = 'stripe'): Tenant
     {
-        return DB::transaction(function () use ($data, $isDemo, $paymentMethod) {
-            // 1. Create tenant in central database
-            $tenant = $this->createTenant($data['tenant'], $isDemo);
+        return \DB::transaction(function () use ($data, $isDemo, $paymentMethod) {
+            \Log::info('[TenantProvisioningService] Starting tenant provisioning', [
+                'email' => $data['user']['email'],
+                'is_demo' => $isDemo,
+            ]);
 
-            // 2. Create and setup tenant database
-            $this->setupTenantDatabase($tenant);
-
-            // 3. Create central user
+            // 1. Create user in central database FIRST (before tenant creation)
+            // This is critical because TenantCreated event fires JobPipeline immediately
             $centralUser = $this->createCentralUser($data['user']);
+            $centralUser->assignRole(['admin', 'manager']); // Assign default roles
 
-            // 4. Associate user with tenant
-            $this->associateUserWithTenant($centralUser, $tenant);
+            \Log::info('[TenantProvisioningService] CentralUser created', [
+                'global_id' => $centralUser->global_id,
+                'email' => $centralUser->email,
+            ]);
 
-            // 5. Initialize tenant context and create tenant data
-            $this->initializeTenantData($tenant, $data, $isDemo);
+            // 2. Create tenant in central database with registration data
+            // This triggers TenantCreated event which queues JobPipeline
+            $tenant = $this->createTenant($data, $isDemo);
 
-            // 6. Assign trial subscription plan if available
-            $this->assignTrialPlan($tenant, $paymentMethod);
+            // Mark provisioning as in progress
+            $tenant->markProvisioningInProgress();
 
-            return $tenant->fresh();
+            // 3. DO NOT attach user here - it will be done in InitializeTenantData
+            // Attaching here causes Stancl to try syncing to tenant DB which doesn't exist yet
+
+            // 4. Create domain for tenant
+            $this->createTenantDomain($tenant);
+
+            \Log::info('[TenantProvisioningService] Tenant provisioning queued', [
+                'tenant_id' => $tenant->id,
+                'tenant_name' => $tenant->name,
+                'user_global_id' => $centralUser->global_id,
+            ]);
+
+            // Note: The JobPipeline (TenancyServiceProvider) will handle:
+            // - Database creation (Jobs\CreateDatabase)
+            // - Migrations (Jobs\MigrateDatabase)
+            // - Data initialization (InitializeTenantData job)
+            // When shouldBeQueued = true, jobs start AFTER this transaction commits
+            // This ensures CentralUser is available when InitializeTenantData runs
+
+            return $tenant;
         });
     }
 
@@ -68,32 +94,81 @@ class TenantProvisioningService
      */
     protected function createTenant(array $data, bool $isDemo = false): Tenant
     {
-        $slug = $this->generateUniqueSlug($data['name']);
-
-        $tenantData = [
-            'name' => $data['name'],
-            'slug' => $slug,
-            'email' => $data['email'],
-            'phone' => $data['phone'] ?? null,
-            'vat_number' => $data['vat_number'] ?? null,
-            'tax_code' => $data['tax_code'] ?? null,
-            'address' => $data['address'] ?? null,
-            'city' => $data['city'] ?? null,
-            'postal_code' => $data['postal_code'] ?? null,
-            'country' => $data['country'] ?? 'IT',
-            'pec_email' => $data['pec_email'] ?? null,
-            'sdi_code' => $data['sdi_code'] ?? null,
-            'is_active' => true,
-            'is_demo' => $isDemo,
-        ];
-
-        // Set demo expiration if this is a demo
+        // For demo: use fake realistic data
+        // For paid: use company business_name
         if ($isDemo) {
-            $demoDays = config('app.demo_duration_days', 15);
-            $tenantData['demo_expires_at'] = now()->addDays($demoDays);
+            // Generate realistic demo name
+            $demoNames = [
+                'Palestra Fitness Demo',
+                'Centro Sportivo Demo',
+                'Gym Evolution Demo',
+                'FitClub Demo',
+                'Athletic Center Demo',
+            ];
+            $name = $demoNames[array_rand($demoNames)].' '.Str::random(4);
+            $email = $data['user']['email'];
+            $slug = $this->generateUniqueSlug($name);
+
+            $demoDays = config('demo.duration_days', 14);
+
+            $tenantData = [
+                'name' => $name,
+                'slug' => $slug,
+                'email' => $email,
+                'phone' => '+39 02 '.rand(1000000, 9999999),
+                'vat_number' => '0'.rand(1000000, 9999999).'000',
+                'tax_code' => 'DMO'.rand(10000, 99999).'00A',
+                'address' => 'Via Demo '.rand(1, 100),
+                'city' => 'Milano',
+                'province' => 'MI',
+                'postal_code' => '20100',
+                'country' => 'IT',
+                'pec_email' => 'demo.'.Str::random(8).'@pec.it',
+                'sdi_code' => Str::upper(Str::random(7)),
+                'is_active' => true,
+                'is_demo' => true,
+                'demo_expires_at' => now()->addDays($demoDays),
+                'registration_data' => $data, // Stancl stores this in data JSON automatically
+            ];
+        } else {
+            $name = $data['company']['business_name'];
+            $email = $data['company']['email'];
+            $slug = $this->generateUniqueSlug($name);
+
+            $tenantData = [
+                'name' => $name,
+                'slug' => $slug,
+                'email' => $email,
+                'phone' => $data['company']['phone'] ?? null,
+                'vat_number' => $data['company']['vat_number'] ?? null,
+                'tax_code' => $data['company']['tax_code'] ?? null,
+                'address' => ($data['company']['street'] ?? '').' '.($data['company']['number'] ?? ''),
+                'city' => $data['company']['city'] ?? null,
+                'province' => $data['company']['province'] ?? null,
+                'postal_code' => $data['company']['zip_code'] ?? null,
+                'country' => $data['company']['country'] ?? 'IT',
+                'pec_email' => $data['company']['pec_email'] ?? null,
+                'sdi_code' => $data['company']['sdi_code'] ?? null,
+                'is_active' => true,
+                'is_demo' => false,
+                'registration_data' => $data, // Stancl stores this in data JSON automatically
+            ];
         }
 
         return Tenant::create($tenantData);
+    }
+
+    /**
+     * Create tenant domain.
+     */
+    protected function createTenantDomain(Tenant $tenant): void
+    {
+        // Get the central domain from tenancy config
+        $centralDomain = config('tenancy.central_domains')[0] ?? 'localhost';
+
+        $tenant->domains()->create([
+            'domain' => $tenant->slug.'.'.$centralDomain,
+        ]);
     }
 
     /**
@@ -115,14 +190,18 @@ class TenantProvisioningService
      */
     protected function createCentralUser(array $data): CentralUser
     {
-        return CentralUser::create([
+        $user = CentralUser::create([
             'global_id' => Str::uuid(),
             'first_name' => $data['first_name'],
             'last_name' => $data['last_name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'email_verified_at' => now(), // Auto-verify for self-registration
+            // 'email_verified_at' => now(), // Auto-verify for self-registration
         ]);
+
+        // $user->assignRole(['admin', 'manager']); // Assign default 'user' role
+
+        return $user;
     }
 
     /**
@@ -313,29 +392,46 @@ class TenantProvisioningService
      */
     public function validateProvisioningData(array $data): void
     {
-        $required = [
-            'tenant.name',
-            'tenant.email',
-            'user.first_name',
-            'user.last_name',
-            'user.email',
-            'user.password',
-            'company.business_name',
-            'company.tax_code',
-            'company.vat_number',
-            'structure.name',
-            'structure.city',
-        ];
+        $isDemo = Arr::get($data, 'is_demo', false);
+
+        // For demo registration, only user data is required
+        if ($isDemo) {
+            $required = [
+                'user.first_name',
+                'user.last_name',
+                'user.email',
+                'user.password',
+            ];
+        } else {
+            // For paid registration, full data is required
+            $required = [
+                'user.first_name',
+                'user.last_name',
+                'user.email',
+                'user.password',
+                'company.business_name',
+                'company.tax_code',
+                'company.vat_number',
+                'company.email',
+                'company.phone',
+                'company.pec_email',
+            ];
+
+            // Structure fields are required only if same_as_company is false
+            if (! Arr::get($data, 'structure.same_as_company', false)) {
+                $required = array_merge($required, [
+                    'structure.name',
+                    'structure.street',
+                    'structure.city',
+                    'structure.zip_code',
+                ]);
+            }
+        }
 
         foreach ($required as $key) {
             if (! Arr::has($data, $key)) {
                 throw new \InvalidArgumentException("Missing required field: {$key}");
             }
-        }
-
-        // Check if tenant with email already exists
-        if (Tenant::where('email', Arr::get($data, 'tenant.email'))->exists()) {
-            throw new \InvalidArgumentException('A tenant with this email already exists.');
         }
 
         // Check if user with email already exists

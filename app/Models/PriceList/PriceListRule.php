@@ -29,7 +29,7 @@ class PriceListRule extends Model
         'custom_conditions',
         'priority',
         'can_combine_with_other_rules',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
@@ -43,7 +43,7 @@ class PriceListRule extends Model
         'can_combine_with_other_rules' => 'boolean',
         'is_active' => 'boolean',
         'valid_from_date' => 'date',
-        'valid_to_date' => 'date'
+        'valid_to_date' => 'date',
     ];
 
     public function priceList()

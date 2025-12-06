@@ -8,7 +8,6 @@ use App\Http\Requests\Customer\CustomerSubscriptionUpdateRequest;
 use App\Models\Customer\Customer;
 use App\Models\Customer\CustomerSubscription;
 use App\Models\PriceList\PriceList;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class CustomerSubscriptionController extends Controller

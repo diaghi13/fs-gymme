@@ -3,28 +3,25 @@
 namespace App\Models\PriceList;
 
 use App\Casts\MoneyCast;
-use App\Contracts\PriceListContract;
 use App\Contracts\VatRateable;
 use App\Enums\PriceListItemTypeEnum;
-use App\Models\VatRate;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Parental\HasParent;
-use Spatie\Activitylog\Traits\LogsActivity;
 
 class Article extends PriceList implements VatRateable
 {
     use HasParent;
 
     protected $fillable = [
-        "structure_id",
-        "name",
-        "color",
-        "saleable",
-        "parent_id",
-        "saleable_from",
-        "saleable_to",
+        'structure_id',
+        'name',
+        'color',
+        'saleable',
+        'parent_id',
+        'saleable_from',
+        'saleable_to',
         'price',
-        'vat_rate_id'
+        'vat_rate_id',
     ];
 
     protected $casts = [

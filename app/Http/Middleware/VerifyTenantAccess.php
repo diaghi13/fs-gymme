@@ -22,13 +22,13 @@ class VerifyTenantAccess
         // Only check on tenant routes (routes with {tenant} parameter)
         $tenantId = $request->route('tenant');
 
-        if (!$tenantId) {
+        if (! $tenantId) {
             return $next($request);
         }
 
         // If user is not authenticated, let auth middleware handle it
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
@@ -43,7 +43,7 @@ class VerifyTenantAccess
             ->where('tenant_id', $tenantId)
             ->exists();
 
-        if (!$hasAccess) {
+        if (! $hasAccess) {
             abort(403, 'Non hai accesso a questo tenant.');
         }
 

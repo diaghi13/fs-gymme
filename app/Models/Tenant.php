@@ -16,15 +16,46 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     protected $guarded = [];
 
+//    protected $fillable = [
+//        'id',
+//        'name',
+//        'slug',
+//        'vat_number',
+//        'tax_code',
+//        'address',
+//        'city',
+//        'postal_code',
+//        'province',
+//        'country',
+//        'phone',
+//        'email',
+//        'website',
+//        'pec_email',
+//        'sdi_code',
+//        'fiscal_regime',
+//        'is_active',
+//        'is_demo',
+//        'demo_expires_at',
+//        'payment_method',
+//        'data', // For storing registration data and other metadata
+//        'onboarding_completed_at',
+//        'stripe_id',
+//        'pm_type',
+//        'pm_last_four',
+//        'trial_ends_at',
+//        'registration_data',
+//    ];
+
     protected $casts = [
         'id' => 'string',
         'is_active' => 'boolean',
-        'is_demo' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'trial_ends_at' => 'datetime',
+        'is_demo' => 'boolean',
         'demo_expires_at' => 'datetime',
         'onboarding_completed_at' => 'datetime',
+        'data' => 'array', // For storing registration data and other metadata
     ];
 
     /**
@@ -43,6 +74,43 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         $this->update(['onboarding_completed_at' => now()]);
     }
 
+    /**
+     * Check if provisioning is complete.
+     */
+    public function isProvisioningComplete(): bool
+    {
+        return $this->provisioning_status === 'completed';
+    }
+
+    /**
+     * Mark provisioning as completed.
+     */
+    public function markProvisioningComplete(): void
+    {
+        $this->provisioning_status = 'completed';
+        $this->provisioning_completed_at = now();
+        $this->save();
+    }
+
+    /**
+     * Mark provisioning as in progress.
+     */
+    public function markProvisioningInProgress(): void
+    {
+        $this->provisioning_status = 'in_progress';
+        $this->save();
+    }
+
+    /**
+     * Mark provisioning as failed.
+     */
+    public function markProvisioningFailed(string $error = null): void
+    {
+        $this->provisioning_status = 'failed';
+        $this->provisioning_error = $error;
+        $this->save();
+    }
+
     public static function getCustomColumns(): array
     {
         return [
@@ -54,12 +122,19 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'address',
             'city',
             'postal_code',
+            'province',
             'country',
             'phone',
             'email',
+            'website',
             'pec_email',
             'sdi_code',
+            'fiscal_regime',
             'is_active',
+            'is_demo',
+            'demo_expires_at',
+            'payment_method',
+            'onboarding_completed_at',
             'stripe_id',
             'pm_type',
             'pm_last_four',

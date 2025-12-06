@@ -27,7 +27,7 @@ class DtoServiceProvider extends ServiceProvider
 
             $app->bind(
                 $dto,
-                fn($container) => $dto::fromRequest($container['request'])
+                fn ($container) => $dto::fromRequest($container['request'])
             );
         });
     }

@@ -12,6 +12,7 @@ class CustomerSubscription extends Model
 {
     /** @use HasFactory<\Database\Factories\Customer\CustomerSubscriptionFactory> */
     use HasFactory;
+
     use LogsActivity;
 
     protected $fillable = [
@@ -88,7 +89,7 @@ class CustomerSubscription extends Model
     {
         $endDate = $this->end_date ? \Illuminate\Support\Carbon::parse($this->end_date) : null;
 
-        if (!$endDate) {
+        if (! $endDate) {
             return null;
         }
 
