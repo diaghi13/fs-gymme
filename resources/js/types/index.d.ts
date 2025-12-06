@@ -34,6 +34,8 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
       features: string[];
     };
     active_features: string[];
+    is_demo: boolean;
+    demo_expiry_date: string | null;
   };
   structures?: {
     list: Array<{
@@ -494,7 +496,7 @@ export interface PriceListDayPass extends PriceList {
 }
 
 export interface PriceListToken extends PriceList {
-  entrances: number;
+  //entrances: number;
   color: string;
   type: 'token';
   price: number;

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { usePage } from '@inertiajs/react';
 import { PageProps } from '@/types';
 
+
 interface AuthUser {
     id: number;
     first_name: string;
