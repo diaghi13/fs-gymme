@@ -11,7 +11,8 @@ class CustomerStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return tenancy()->central(fn () => $this->user()->can('create-customer'));
+        // Permissions are stored in tenant database, not central
+        return $this->user()->can('customers.create');
     }
 
     /**

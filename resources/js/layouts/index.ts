@@ -19,102 +19,133 @@ import NewReleasesIcon from '@mui/icons-material/NewReleases';
 import StorageIcon from '@mui/icons-material/Storage';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import CardMembershipIcon from '@mui/icons-material/CardMembership';
+import { Permission } from '@/types/permissions';
 
 export const productType = {
   baseProduct: 'BASE_PRODUCT',
   courseProduct: 'COURSE_PRODUCT'
 };
 
-export const menuList = (tenant: string) => ([
+export interface MenuItem {
+  name: string;
+  href?: string;
+  Icon: any;
+  permission?: string | string[];  // Required permission(s) - user must have at least one
+  feature?: string | string[];      // Required feature(s) - tenant must have at least one
+  role?: string | string[];         // Required role(s) - user must have at least one
+  items?: Omit<MenuItem, 'Icon' | 'items'>[];
+}
+
+export const menuList = (tenant: string): MenuItem[] => ([
   {
     name: 'Dashboard',
     href: route('app.dashboard', { tenant }),
     Icon: DashboardIcon,
+    // No permission required - everyone can see dashboard
   },
   {
     name: 'Clienti',
     Icon: PeopleIcon,
+    permission: [Permission.CUSTOMERS_VIEW_ALL, Permission.CUSTOMERS_VIEW_ASSIGNED],
     items: [
       {
         name: 'Aggiungi',
         href: route('app.customers.create', { tenant }),
+        permission: Permission.CUSTOMERS_CREATE,
       },
       {
         name: 'Attivi',
         href: route('app.customers.index', { tenant, active: 'true' }),
+        permission: [Permission.CUSTOMERS_VIEW_ALL, Permission.CUSTOMERS_VIEW_ASSIGNED],
       },
       {
         name: 'Tutti',
         href: route('app.customers.index', { tenant }),
+        permission: [Permission.CUSTOMERS_VIEW_ALL, Permission.CUSTOMERS_VIEW_ASSIGNED],
       },
     ],
   },
   {
     name: 'Attività',
     Icon: AssignmentIcon,
+    permission: Permission.PRODUCTS_VIEW,
     items: [
       {
         name: 'Prodotti Base',
         href: route('app.base-products.index', { tenant }),
+        permission: Permission.PRODUCTS_VIEW,
       },
       {
         name: 'Corsi',
         href: route('app.course-products.index', { tenant }),
+        permission: Permission.PRODUCTS_VIEW,
       },
       {
         name: 'Servizi Prenotabili',
         href: route('app.bookable-services.index', { tenant }),
+        permission: Permission.PRODUCTS_VIEW,
       },
       {
         name: 'Listini',
         href: route('app.price-lists.index', { tenant }),
+        permission: Permission.PRICELISTS_VIEW,
       },
     ],
   },
   {
     name: 'Vendite',
     Icon: PointOfSaleIcon,
+    permission: Permission.SALES_VIEW,
     items: [
       {
         name: 'Nuova Vendita',
         href: route('app.sales.create', { tenant }),
+        permission: Permission.SALES_CREATE,
       },
       {
         name: 'Effettuate',
         href: route('app.sales.index', { tenant }),
+        permission: Permission.SALES_VIEW,
       },
     ],
   },
   {
     name: 'Contabilità',
     Icon: MonetizationOnIcon,
+    permission: [Permission.SALES_VIEW_PROFITS, Permission.CUSTOMERS_VIEW_FINANCIAL],
+    feature: 'advanced_reporting',
     items: [
       {
         name: 'Prima Nota',
         href: '/accounting/journal-entries',
+        permission: Permission.SALES_VIEW_PROFITS,
       },
       {
         name: 'Pagamenti In Sospeso',
         href: '/accounting/pending-payments',
+        permission: Permission.SALES_VIEW_PROFITS,
       },
     ],
   },
   {
     name: 'Gestione Utenti',
     Icon: AdminPanelSettingsIcon,
-    permission: 'users.manage',
+    permission: Permission.USERS_MANAGE,
     items: [
       {
         name: 'Tutti gli utenti',
         href: route('app.users.index', { tenant }),
+        permission: Permission.USERS_VIEW,
       },
       {
         name: 'Invita utente',
         href: route('app.users.create', { tenant }),
+        permission: Permission.USERS_INVITE,
       },
       {
         name: 'Ruoli e permessi',
         href: route('app.roles.index', { tenant }),
+        permission: Permission.USERS_MANAGE,
       },
     ],
   },

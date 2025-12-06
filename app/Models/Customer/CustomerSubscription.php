@@ -16,6 +16,7 @@ class CustomerSubscription extends Model
     use LogsActivity;
 
     protected $fillable = [
+        'customer_id',
         'sale_row_id',
         'type',
         'price_list_id',

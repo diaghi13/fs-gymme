@@ -20,14 +20,41 @@ class HandleInertiaRequests extends Middleware
     protected $rootView = 'app';
 
     /**
-     * Map subscription to active features
-     * TODO: Implement based on your subscription plans
+     * Map subscription to active features based on subscription plan
+     * Subscription plans and features are stored in central database
      */
     protected function getSubscriptionFeatures($subscription): array
     {
-        // For now, return empty array
-        // This will be populated based on subscription plan tiers
-        return [];
+        return tenancy()->central(function () use ($subscription) {
+            // Get the subscription plan from Stripe price ID
+            $subscriptionPlan = \App\Models\SubscriptionPlan::where('stripe_price_id', $subscription->stripe_price)->first();
+
+            if (! $subscriptionPlan) {
+                return [];
+            }
+
+            // Get all features included in this plan
+            $features = $subscriptionPlan->features()
+                ->wherePivot('is_included', true)
+                ->get()
+                ->pluck('name')
+                ->toArray();
+
+            return $features;
+        });
+    }
+
+    /**
+     * Get all available features (for demo tenants)
+     * Features are stored in central database
+     */
+    protected function getAllFeatures(): array
+    {
+        return tenancy()->central(function () {
+            return \App\Models\PlanFeature::where('is_active', true)
+                ->pluck('name')
+                ->toArray();
+        });
     }
 
     /**
@@ -119,22 +146,34 @@ class HandleInertiaRequests extends Middleware
                 // Get active subscription plan and features
                 $subscriptionPlan = null;
                 $activeFeatures = [];
+                $isDemo = $tenant->is_demo;
 
-                if ($tenant->subscribed('default')) {
+                // Demo tenants get ALL features to encourage upgrade
+                if ($isDemo) {
+                    $activeFeatures = $this->getAllFeatures();
+                    $subscriptionPlan = [
+                        'name' => 'demo',
+                        'status' => 'active',
+                        'is_demo' => true,
+                        'demo_expires_at' => $tenant->demo_expires_at?->toISOString(),
+                        'demo_remaining_days' => $tenant->demoRemainingDays(),
+                    ];
+                } elseif ($tenant->subscribed('default')) {
                     $subscription = $tenant->subscription('default');
                     $subscriptionPlan = [
                         'name' => $subscription->stripe_price,
                         'status' => $subscription->stripe_status,
+                        'is_demo' => false,
                     ];
 
-                    // TODO: Map subscription plan to features
-                    // This will be implemented based on your subscription plans
+                    // Get features based on subscription plan
                     $activeFeatures = $this->getSubscriptionFeatures($subscription);
                 }
 
                 return [
                     'id' => $tenant->id,
                     'name' => $tenant->name,
+                    'is_demo' => $isDemo,
                     'onboarding_completed_at' => $tenant->onboarding_completed_at?->toISOString(),
                     'trial_ends_at' => $tenant->trial_ends_at?->toISOString(),
                     'subscription_plan' => $subscriptionPlan,

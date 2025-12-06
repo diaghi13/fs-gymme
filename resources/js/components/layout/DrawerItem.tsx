@@ -14,7 +14,6 @@ import IconExpandMore from '@mui/icons-material/ExpandMore';
 import IconExpandLess from '@mui/icons-material/ExpandLess';
 import { useTheme } from '@mui/material/styles';
 import { Link } from '@inertiajs/react';
-import { useAuthorization } from '@/hooks/useAuthorization';
 
 interface DrawerCollapsableProps {
   open: boolean;
@@ -41,33 +40,14 @@ export interface DrawerItemProps {
   href?: string;
   items?: DrawerItemProps[];
   sub?: boolean;
-  permission?: string;
 }
 
-const DrawerItem = ({ name, Icon, href, items, sub, permission }: DrawerItemProps) => {
-  const authorization = useAuthorization();
+const DrawerItem = ({ name, Icon, href, items, sub }: DrawerItemProps) => {
   const url = window.location.href;
   const [open, setOpen] =
     useState(items ? items.some(item => url.includes(item.href!)) : false);
   const isExpandable = items && items.length > 0;
   const theme = useTheme();
-
-  // DEBUG: Log permission check
-  if (permission) {
-    console.log(`[DrawerItem] ${name}:`, {
-      permission,
-      hasPermission: authorization.can(permission),
-      userPermissions: authorization.userPermissions,
-      user: authorization.user,
-      userDebug: (authorization.user as any)._debug,
-    });
-  }
-
-  // Check permission - if permission is specified and user doesn't have it, don't render
-  if (permission && !authorization.can(permission)) {
-    console.log(`[DrawerItem] HIDING ${name} - no permission: ${permission}`);
-    return null;
-  }
 
   // Fix active state: exact match of pathname AND query params
   const currentUrl = new URL(url);

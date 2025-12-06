@@ -25,6 +25,7 @@ import {drawerWidth} from "@/layouts/AppLayout";
 import {menuList, subMenuList} from '@/layouts';
 import { PageProps } from '@/types';
 import { usePage } from '@inertiajs/react';
+import { useFilteredMenu } from '@/hooks/useFilteredMenu';
 
 const openedMixin = (theme: Theme): CSSObject => ({
     width: drawerWidth,
@@ -79,9 +80,9 @@ export default function Drawer({open, setOpen, menuList}: DrawerProps){
         setSubMenu((prevState) => !prevState);
     };
 
-    // Debug: log the menu items
-    const menuItems = menuList(props.currentTenantId);
-    console.log('[Drawer] Menu items:', menuItems);
+    // Get raw menu items and filter based on permissions/features
+    const rawMenuItems = menuList(props.currentTenantId);
+    const filteredMenuItems = useFilteredMenu(rawMenuItems);
 
     return (
         <StyledDrawer variant="permanent" open={open} ref={containerRef}>
@@ -108,7 +109,7 @@ export default function Drawer({open, setOpen, menuList}: DrawerProps){
                     }
                 >
                     <List sx={{ width: drawerWidth }}>
-                        {menuItems.map((item, index) => (
+                        {filteredMenuItems.map((item, index) => (
                             <DrawerItem {...item} key={index} />
                         ))}
                         <ListItemButton onClick={toggleSubMenu}>
