@@ -4,12 +4,9 @@ namespace App\Jobs\Tenant;
 
 use App\Models\CentralUser;
 use App\Models\Tenant;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
-
 
 /**
  * Initialize tenant data after database creation.
@@ -27,14 +24,12 @@ use Stancl\Tenancy\Contracts\TenantWithDatabase;
  */
 class InitializeTenantData
 {
-    use Dispatchable, SerializesModels;
-
     public function __construct(
         public TenantWithDatabase $tenant
     ) {}
 
     /**
-     * Execute the job.
+     * Execute the tenant initialization.
      */
     public function handle(): void
     {
