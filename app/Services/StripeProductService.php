@@ -99,7 +99,7 @@ class StripeProductService
                 'currency' => strtolower($plan->currency),
                 'unit_amount' => $plan->getRawOriginal('price'), // Get cents from DB
                 'recurring' => [
-                    'interval' => $plan->interval,
+                    'interval' => $this->normalizeInterval($plan->interval),
                 ],
                 'active' => $plan->is_active,
                 'metadata' => [
@@ -231,5 +231,22 @@ class StripeProductService
         }
 
         return $results;
+    }
+
+    /**
+     * Normalize interval value for Stripe.
+     *
+     * Stripe accepts: 'day', 'week', 'month', 'year'
+     * Our DB might have: 'daily', 'weekly', 'monthly', 'yearly'
+     */
+    protected function normalizeInterval(string $interval): string
+    {
+        return match (strtolower($interval)) {
+            'daily' => 'day',
+            'weekly' => 'week',
+            'monthly' => 'month',
+            'yearly', 'annual', 'annually' => 'year',
+            default => $interval, // Already correct or unknown
+        };
     }
 }
