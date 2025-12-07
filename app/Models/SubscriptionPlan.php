@@ -61,7 +61,8 @@ class SubscriptionPlan extends Model
     public function features()
     {
         return $this->belongsToMany(PlanFeature::class, 'subscription_plan_features')
-            ->withPivot(['is_included', 'quota_limit', 'price_cents'])
+            ->withPivot(['is_included', 'quota_limit', 'price'])
+            ->using(SubscriptionPlanFeature::class)
             ->withTimestamps();
     }
 

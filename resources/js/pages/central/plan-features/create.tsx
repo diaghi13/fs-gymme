@@ -14,7 +14,7 @@ interface PlanFeatureFormValues {
   feature_type: 'boolean' | 'quota' | 'metered';
   is_active: boolean;
   is_addon_purchasable: boolean;
-  default_addon_price_cents: string; // MoneyTextField usa string
+  default_addon_price: string; // MoneyTextField usa string
   default_addon_quota: number;
   sort_order: number;
 }
@@ -32,7 +32,7 @@ const Create: React.FC<CreateProps> = ({ auth }) => {
       feature_type: 'boolean',
       is_active: true,
       is_addon_purchasable: false,
-      default_addon_price_cents: '0',
+      default_addon_price: '0',
       default_addon_quota: 0,
       sort_order: 0,
     },

@@ -20,7 +20,7 @@ class PlanFeatureSeeder extends Seeder
                 'description' => 'Emissione e gestione fatture elettroniche XML',
                 'feature_type' => FeatureType::Quota->value,
                 'is_addon_purchasable' => true,
-                'default_addon_price_cents' => 15.00, // €15/mese
+                'default_addon_price' => 15.00, // €15/mese
                 'default_addon_quota' => 50, // 50 fatture/mese
                 'sort_order' => 1,
             ],
@@ -30,7 +30,7 @@ class PlanFeatureSeeder extends Seeder
                 'description' => 'Gestione di più sedi/strutture',
                 'feature_type' => FeatureType::Quota->value,
                 'is_addon_purchasable' => true,
-                'default_addon_price_cents' => 10.00, // €10/mese per sede extra
+                'default_addon_price' => 10.00, // €10/mese per sede extra
                 'default_addon_quota' => 1, // 1 sede extra
                 'sort_order' => 2,
             ],
@@ -40,7 +40,7 @@ class PlanFeatureSeeder extends Seeder
                 'description' => 'Report personalizzati, export e analytics avanzate',
                 'feature_type' => FeatureType::Boolean->value,
                 'is_addon_purchasable' => true,
-                'default_addon_price_cents' => 20.00, // €20/mese
+                'default_addon_price' => 20.00, // €20/mese
                 'default_addon_quota' => null,
                 'sort_order' => 3,
             ],
@@ -50,7 +50,7 @@ class PlanFeatureSeeder extends Seeder
                 'description' => 'Accesso alle API REST per integrazioni',
                 'feature_type' => FeatureType::Boolean->value,
                 'is_addon_purchasable' => true,
-                'default_addon_price_cents' => 25.00, // €25/mese
+                'default_addon_price' => 25.00, // €25/mese
                 'default_addon_quota' => null,
                 'sort_order' => 4,
             ],
@@ -60,7 +60,7 @@ class PlanFeatureSeeder extends Seeder
                 'description' => 'Logo personalizzato, colori e branding',
                 'feature_type' => FeatureType::Boolean->value,
                 'is_addon_purchasable' => true,
-                'default_addon_price_cents' => 15.00, // €15/mese
+                'default_addon_price' => 15.00, // €15/mese
                 'default_addon_quota' => null,
                 'sort_order' => 5,
             ],
@@ -70,7 +70,7 @@ class PlanFeatureSeeder extends Seeder
                 'description' => 'Supporto tecnico prioritario via email e telefono',
                 'feature_type' => FeatureType::Boolean->value,
                 'is_addon_purchasable' => false, // Solo nei piani top
-                'default_addon_price_cents' => null,
+                'default_addon_price' => null,
                 'default_addon_quota' => null,
                 'sort_order' => 6,
             ],
@@ -80,7 +80,7 @@ class PlanFeatureSeeder extends Seeder
                 'description' => 'Numero illimitato di clienti nel database',
                 'feature_type' => FeatureType::Quota->value,
                 'is_addon_purchasable' => false, // Solo upgrade piano
-                'default_addon_price_cents' => null,
+                'default_addon_price' => null,
                 'default_addon_quota' => null,
                 'sort_order' => 7,
             ],
@@ -90,7 +90,7 @@ class PlanFeatureSeeder extends Seeder
                 'description' => 'Numero illimitato di utenti staff',
                 'feature_type' => FeatureType::Quota->value,
                 'is_addon_purchasable' => true,
-                'default_addon_price_cents' => 5.00, // €5 per utente extra
+                'default_addon_price' => 5.00, // €5 per utente extra
                 'default_addon_quota' => 1, // 1 utente
                 'sort_order' => 8,
             ],

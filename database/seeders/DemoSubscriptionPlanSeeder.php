@@ -65,7 +65,7 @@ class DemoSubscriptionPlanSeeder extends Seeder
             $demoPlan->features()->attach($maxUsers->id, [
                 'is_included' => true,
                 'quota_limit' => 5, // Only 5 users for demo
-                'price_cents' => null,
+                'price' => null,
             ]);
             $this->command->line('  ✓ Max Users: 5 (included)');
         }
@@ -75,7 +75,7 @@ class DemoSubscriptionPlanSeeder extends Seeder
             $demoPlan->features()->attach($storage->id, [
                 'is_included' => true,
                 'quota_limit' => 1, // Only 1 GB
-                'price_cents' => null,
+                'price' => null,
             ]);
             $this->command->line('  ✓ Storage: 1 GB (included)');
         }
@@ -85,7 +85,7 @@ class DemoSubscriptionPlanSeeder extends Seeder
             $demoPlan->features()->attach($electronicInvoicing->id, [
                 'is_included' => false, // Not included in demo
                 'quota_limit' => null,
-                'price_cents' => null, // Can't purchase as addon on demo
+                'price' => null, // Can't purchase as addon on demo
             ]);
             $this->command->line('  ✓ Electronic Invoicing: Not included');
         }

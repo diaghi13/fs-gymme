@@ -736,6 +736,165 @@ import FormattedCurrency from '@/components/ui/FormattedCurrency';
 
 ---
 
+## MONEY/PRICE HANDLING SYSTEM (MANDATORY - CRITICALLY IMPORTANT!)
+
+### **THE GOLDEN RULE: EVERYTHING IN CODE IS FLOAT (EUROS), ONLY DATABASE STORES CENTESIMI**
+
+This is a **MANDATORY** convention that must be followed throughout the entire application. Violating this rule causes exponential price errors.
+
+### Core Principle
+- **Application Logic**: ALL prices are FLOAT in EUROS (e.g., 15.00, 286.89, 1500.00)
+- **Database Storage**: ALL prices stored as INTEGER in CENTESIMI (e.g., 1500, 28689, 150000)
+- **Conversion**: Handled AUTOMATICALLY by `MoneyCast` at the database boundary ONLY
+
+### MoneyCast Behavior
+```php
+// MoneyCast.php
+class MoneyCast implements CastsAttributes {
+    // Reading from DB: centesimi → euros
+    public function get(...) {
+        return $value / 100;  // 1500 → 15.00
+    }
+
+    // Writing to DB: euros → centesimi
+    public function set(...) {
+        return $value * 100;  // 15.00 → 1500
+    }
+}
+```
+
+### Application in Models
+**EVERY price field** in models must use `MoneyCast`:
+
+```php
+// Example: SubscriptionPlan
+protected $casts = [
+    'price' => MoneyCast::class,  // €49.00 in code, 4900 in DB
+];
+
+// Example: Pivot model
+class SubscriptionPlanFeature extends Pivot {
+    protected $casts = [
+        'price' => MoneyCast::class,  // €15.00 in code, 1500 in DB
+    ];
+}
+```
+
+### Frontend Display
+**UI Formatting** (for DISPLAY only, not forms):
+```typescript
+// Helper function for displaying prices
+import { Str } from '@/lib/helpers';
+
+// Shows: "€15,00" with Italian formatting
+Str.EURO(15.00).format();
+```
+
+**Forms** (for INPUT):
+```tsx
+// MoneyTextField component (wraps Formik)
+import MoneyTextField from '@/components/ui/MoneyTextField';
+
+<MoneyTextField
+  name="price"
+  label="Prezzo"
+  // Backend sends 15.00 (already converted by MoneyCast)
+  // User sees: €15,00
+  // User edits to: €20,00
+  // Formik sends: 20.00
+  // MoneyCast saves: 2000
+/>
+```
+
+### CRITICAL RULES (MUST FOLLOW!)
+
+✅ **DO:**
+1. Always use FLOAT values in euros when working with prices in code
+2. Apply `MoneyCast` to ALL price-related database columns
+3. Let MoneyCast handle ALL conversions automatically
+4. Use `Str.EURO(value).format()` for display formatting
+5. Use `MoneyTextField` for price input forms
+6. Trust that backend returns euros (not centesimi) thanks to MoneyCast
+
+❌ **NEVER:**
+1. Manually multiply or divide by 100 in application logic
+2. Work with centesimi values outside of database layer
+3. Mix cents and euros in calculations (causes exponential errors!)
+4. Forget to apply MoneyCast to price columns
+5. Create price fields without MoneyCast
+
+### Common Fields That Use MoneyCast
+**Models:**
+- `SubscriptionPlan::price`
+- `SaleRow::unit_price_net`, `unit_price_gross`, `vat_amount`, `total_net`, `total_gross`
+- `Sale::total_amount`, `paid_amount`, `remaining_amount`
+- `PlanFeature::default_addon_price_cents` (name is legacy but uses MoneyCast!)
+- `TenantAddon::price_cents` (name is legacy but uses MoneyCast!)
+
+**Pivot Tables:**
+- `SubscriptionPlanFeature::price` (subscription_plan_features pivot)
+- And any other pivot table with price fields
+
+### Example: Correct Flow
+```
+Frontend Form → User enters €15,00
+              ↓
+Formik        → Sends 15.00 (float)
+              ↓
+Controller    → Receives 15.00 (float)
+              ↓
+Model::create(['price' => 15.00])
+              ↓
+MoneyCast     → Converts to 1500 (int)
+              ↓
+Database      → Stores 1500 in price column
+              ↓
+Model::find() → Reads 1500 from DB
+              ↓
+MoneyCast     → Converts to 15.00 (float)
+              ↓
+Backend       → Returns 15.00 to frontend
+              ↓
+Display       → Str.EURO(15.00).format() → "€15,00"
+```
+
+### Anti-Pattern Example (WRONG!)
+```php
+❌ WRONG:
+$price = $product->price; // 15.00 (from MoneyCast)
+$centesimi = $price * 100; // 1500
+Model::create(['price' => $centesimi]); // WRONG! Will store 150000 (x100 again!)
+
+✅ CORRECT:
+$price = $product->price; // 15.00 (from MoneyCast)
+Model::create(['price' => $price]); // MoneyCast handles conversion
+```
+
+### Validation Rules
+```php
+// For price fields in FormRequests
+'price' => ['required', 'numeric', 'min:0'], // Accept float/decimal
+// NOT 'integer' - that's for the database!
+```
+
+### Why This Matters
+**Without MoneyCast consistency:** Price errors compound exponentially
+- Frontend sends 15.00
+- Backend multiplies by 100 → 1500
+- Saves 1500
+- Reads 1500
+- Multiplies by 100 again → 150000 (€1,500.00 instead of €15.00!)
+
+**With MoneyCast:** Perfect precision
+- Frontend sends 15.00
+- MoneyCast converts → 1500
+- Saves 1500
+- Reads 1500
+- MoneyCast converts → 15.00
+- Always correct!
+
+---
+
 ## Common Anti-Patterns (AVOID!)
 
 ### ❌ Backend Anti-Patterns

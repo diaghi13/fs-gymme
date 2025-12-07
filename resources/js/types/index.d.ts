@@ -194,6 +194,8 @@ export interface Tenant {
 }
 
 export interface SubscriptionPlan {
+  sort_order: number;
+  is_trial_plan: boolean;
   tier: string|number;
   id: number;
   name: string;

@@ -80,7 +80,7 @@ class TenantAddonController extends Controller
                 'feature_type' => $feature->feature_type->value,
                 'included_in_plan' => $includedInPlan,
                 'plan_quota' => $planFeature?->pivot->quota_limit,
-                'addon_price' => $planFeature?->pivot->price_cents ?? $feature->default_addon_price_cents,
+                'addon_price' => $planFeature?->pivot->price ?? $feature->default_addon_price,
                 'addon_quota' => $feature->default_addon_quota,
                 'has_active_addon' => $existingAddon !== null,
                 'current_addon' => $existingAddon ? [
@@ -174,7 +174,7 @@ class TenantAddonController extends Controller
                 ->where('plan_feature_id', $feature->id)
                 ->first();
 
-            $price = $planFeature?->pivot->price_cents ?? $feature->default_addon_price_cents;
+            $price = $planFeature?->pivot->price ?? $feature->default_addon_price;
             $quota = $feature->default_addon_quota;
 
             $paymentMethod = $validated['payment_method'] ?? 'stripe';

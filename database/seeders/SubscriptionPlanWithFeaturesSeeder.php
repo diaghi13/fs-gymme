@@ -43,37 +43,37 @@ class SubscriptionPlanWithFeaturesSeeder extends Seeder
             $features['unlimited_customers']->id => [
                 'is_included' => true,
                 'quota_limit' => 100, // Max 100 clienti
-                'price_cents' => null, // Incluso
+                'price' => null, // Incluso
             ],
             $features['multi_location']->id => [
                 'is_included' => true,
                 'quota_limit' => 1, // 1 sede
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['unlimited_users']->id => [
                 'is_included' => true,
                 'quota_limit' => 3, // Max 3 utenti staff
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['electronic_invoicing']->id => [
                 'is_included' => false, // NON incluso - acquistabile come addon
                 'quota_limit' => 50, // Se acquistato come addon: 50 fatture
-                'price_cents' => 15.00, // €15/mese come addon
+                'price' => 15.00, // €15/mese come addon
             ],
             $features['advanced_reporting']->id => [
                 'is_included' => false,
                 'quota_limit' => null,
-                'price_cents' => 20.00, // €20/mese
+                'price' => 20.00, // €20/mese
             ],
             $features['api_access']->id => [
                 'is_included' => false,
                 'quota_limit' => null,
-                'price_cents' => 25.00, // €25/mese
+                'price' => 25.00, // €25/mese
             ],
             $features['custom_branding']->id => [
                 'is_included' => false,
                 'quota_limit' => null,
-                'price_cents' => 1500, // €15/mese
+                'price' => 15.00, // €15/mese
             ],
         ]);
 
@@ -100,42 +100,42 @@ class SubscriptionPlanWithFeaturesSeeder extends Seeder
             $features['unlimited_customers']->id => [
                 'is_included' => true,
                 'quota_limit' => 500, // Max 500 clienti
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['multi_location']->id => [
                 'is_included' => true,
                 'quota_limit' => 3, // Fino a 3 sedi
-                'price_cents' => 10.00, // €10 per sede extra oltre le 3
+                'price' => 10.00, // €10 per sede extra oltre le 3
             ],
             $features['unlimited_users']->id => [
                 'is_included' => true,
                 'quota_limit' => 10, // Max 10 utenti
-                'price_cents' => 5.00, // €5 per utente extra
+                'price' => 5.00, // €5 per utente extra
             ],
             $features['electronic_invoicing']->id => [
                 'is_included' => true, // INCLUSO!
                 'quota_limit' => 200, // 200 fatture/mese incluse
-                'price_cents' => 10.00, // €10 per pacchetti extra (+100 fatture)
+                'price' => 10.00, // €10 per pacchetti extra (+100 fatture)
             ],
             $features['advanced_reporting']->id => [
                 'is_included' => true, // INCLUSO!
                 'quota_limit' => null,
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['api_access']->id => [
                 'is_included' => true, // INCLUSO!
                 'quota_limit' => null,
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['custom_branding']->id => [
                 'is_included' => false,
                 'quota_limit' => null,
-                'price_cents' => 10.00, // €10/mese
+                'price' => 10.00, // €10/mese
             ],
             $features['priority_support']->id => [
                 'is_included' => false,
                 'quota_limit' => null,
-                'price_cents' => null, // Non acquistabile - solo Platinum
+                'price' => null, // Non acquistabile - solo Platinum
             ],
         ]);
 
@@ -162,42 +162,42 @@ class SubscriptionPlanWithFeaturesSeeder extends Seeder
             $features['unlimited_customers']->id => [
                 'is_included' => true,
                 'quota_limit' => null, // ILLIMITATI!
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['multi_location']->id => [
                 'is_included' => true,
                 'quota_limit' => null, // ILLIMITATE!
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['unlimited_users']->id => [
                 'is_included' => true,
                 'quota_limit' => null, // ILLIMITATI!
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['electronic_invoicing']->id => [
                 'is_included' => true,
                 'quota_limit' => null, // ILLIMITATE!
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['advanced_reporting']->id => [
                 'is_included' => true,
                 'quota_limit' => null,
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['api_access']->id => [
                 'is_included' => true,
                 'quota_limit' => null,
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['custom_branding']->id => [
                 'is_included' => true, // INCLUSO!
                 'quota_limit' => null,
-                'price_cents' => null,
+                'price' => null,
             ],
             $features['priority_support']->id => [
                 'is_included' => true, // INCLUSO!
                 'quota_limit' => null,
-                'price_cents' => null,
+                'price' => null,
             ],
         ]);
 

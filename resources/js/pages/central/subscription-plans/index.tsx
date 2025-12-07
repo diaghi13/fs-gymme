@@ -39,7 +39,7 @@ const columns: GridColDef<SubscriptionPlan>[] = [
     valueFormatter: (value, row) => {
       if (row.price === 0) return 'Gratuito';
       // Convert cents to euros
-      return Str.EURO(row.price);
+      return Str.EURO(row.price).format();
     },
     width: 120
   },

@@ -36,7 +36,7 @@ class PlanFeatureController extends Controller
                 'feature_type' => $feature->feature_type->value,
                 'is_active' => $feature->is_active,
                 'is_addon_purchasable' => $feature->is_addon_purchasable,
-                'default_addon_price_cents' => $feature->default_addon_price_cents,
+                'default_addon_price' => $feature->default_addon_price,
                 'default_addon_quota' => $feature->default_addon_quota,
                 'sort_order' => $feature->sort_order,
             ]);
@@ -71,7 +71,7 @@ class PlanFeatureController extends Controller
             'feature_type' => 'required|string|in:boolean,quota,metered',
             'is_active' => 'boolean',
             'is_addon_purchasable' => 'boolean',
-            'default_addon_price_cents' => 'nullable|integer|min:0',
+            'default_addon_price' => 'nullable|numeric|min:0',
             'default_addon_quota' => 'nullable|integer|min:1',
             'sort_order' => 'nullable|integer|min:0',
         ]);
@@ -90,7 +90,7 @@ class PlanFeatureController extends Controller
     {
         // Get plans that include this feature
         $plansWithFeature = $planFeature->plans()
-            ->withPivot(['is_included', 'quota_limit', 'price_cents'])
+            ->withPivot(['is_included', 'quota_limit', 'price'])
             ->get()
             ->map(fn ($plan) => [
                 'id' => $plan->id,
@@ -98,7 +98,7 @@ class PlanFeatureController extends Controller
                 'tier' => $plan->tier?->value,
                 'is_included' => $plan->pivot->is_included,
                 'quota_limit' => $plan->pivot->quota_limit,
-                'price_cents' => $plan->pivot->price_cents,
+                'price' => $plan->pivot->price,
             ]);
 
         return Inertia::render('central/plan-features/show', [
@@ -110,7 +110,7 @@ class PlanFeatureController extends Controller
                 'feature_type' => $planFeature->feature_type->value,
                 'is_active' => $planFeature->is_active,
                 'is_addon_purchasable' => $planFeature->is_addon_purchasable,
-                'default_addon_price_cents' => $planFeature->default_addon_price_cents,
+                'default_addon_price' => $planFeature->default_addon_price,
                 'default_addon_quota' => $planFeature->default_addon_quota,
                 'sort_order' => $planFeature->sort_order,
             ],
@@ -132,7 +132,7 @@ class PlanFeatureController extends Controller
                 'feature_type' => $planFeature->feature_type->value,
                 'is_active' => $planFeature->is_active,
                 'is_addon_purchasable' => $planFeature->is_addon_purchasable,
-                'default_addon_price_cents' => $planFeature->default_addon_price_cents ?? 0,
+                'default_addon_price' => $planFeature->default_addon_price ?? 0,
                 'default_addon_quota' => $planFeature->default_addon_quota ?? 0,
                 'sort_order' => $planFeature->sort_order ?? 0,
             ],
@@ -155,7 +155,7 @@ class PlanFeatureController extends Controller
             'feature_type' => 'required|string|in:boolean,quota,metered',
             'is_active' => 'boolean',
             'is_addon_purchasable' => 'boolean',
-            'default_addon_price_cents' => 'nullable|integer|min:0',
+            'default_addon_price' => 'nullable|numeric|min:0',
             'default_addon_quota' => 'nullable|integer|min:1',
             'sort_order' => 'nullable|integer|min:0',
         ]);

@@ -9,6 +9,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { router } from '@inertiajs/react';
 import MyCard from '@/components/ui/MyCard';
+import { Str } from '@/support/Str';
 
 interface PlanFeature {
   id: number;
@@ -18,7 +19,7 @@ interface PlanFeature {
   feature_type: 'boolean' | 'quota' | 'metered';
   is_active: boolean;
   is_addon_purchasable: boolean;
-  default_addon_price_cents: number | null;
+  default_addon_price: number | null;
   default_addon_quota: number | null;
   sort_order: number | null;
 }
@@ -67,12 +68,12 @@ const columns: GridColDef<PlanFeature>[] = [
     width: 80
   },
   {
-    field: 'default_addon_price_cents',
+    field: 'default_addon_price',
     headerName: 'Prezzo Addon',
     width: 130,
     valueFormatter: (value, row) => {
-      if (!row.is_addon_purchasable || !row.default_addon_price_cents) return '-';
-      return `€${(row.default_addon_price_cents / 100).toFixed(2)}`;
+      if (!row.is_addon_purchasable || !row.default_addon_price) return '-';
+      return Str.EURO(row.default_addon_price).format();
     }
   },
   {

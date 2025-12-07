@@ -15,7 +15,7 @@ interface PlanFeature {
   feature_type: 'boolean' | 'quota' | 'metered';
   is_active: boolean;
   is_addon_purchasable: boolean;
-  default_addon_price_cents: number; // Dal backend arriva in centesimi
+  default_addon_price: number; // Dal backend arriva già in euro (MoneyCast)
   default_addon_quota: number;
   sort_order: number;
 }
@@ -36,9 +36,9 @@ const Edit: React.FC<EditProps> = ({ auth, feature }) => {
       feature_type: feature.feature_type,
       is_active: feature.is_active,
       is_addon_purchasable: feature.is_addon_purchasable,
-      // Converti centesimi in euro per MoneyTextField (string)
-      default_addon_price_cents: feature.default_addon_price_cents
-        ? (feature.default_addon_price_cents / 100).toString()
+      // Backend già ritorna in euro grazie a MoneyCast, convertiamo solo a string per MoneyTextField
+      default_addon_price: feature.default_addon_price
+        ? feature.default_addon_price.toString()
         : '0',
       default_addon_quota: feature.default_addon_quota || 0,
       sort_order: feature.sort_order || 0,

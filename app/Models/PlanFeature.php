@@ -15,7 +15,7 @@ class PlanFeature extends Model
         'description',
         'feature_type',
         'is_addon_purchasable',
-        'default_addon_price_cents',
+        'default_addon_price',
         'default_addon_quota',
         'is_active',
         'sort_order',
@@ -27,7 +27,7 @@ class PlanFeature extends Model
             'feature_type' => FeatureType::class,
             'is_addon_purchasable' => 'boolean',
             'is_active' => 'boolean',
-            'default_addon_price_cents' => MoneyCast::class,
+            'default_addon_price' => MoneyCast::class,
         ];
     }
 
@@ -37,7 +37,8 @@ class PlanFeature extends Model
     public function subscriptionPlans(): BelongsToMany
     {
         return $this->belongsToMany(SubscriptionPlan::class, 'subscription_plan_features')
-            ->withPivot(['is_included', 'quota_limit', 'price_cents'])
+            ->withPivot(['is_included', 'quota_limit', 'price'])
+            ->using(SubscriptionPlanFeature::class)
             ->withTimestamps();
     }
 

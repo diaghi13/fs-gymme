@@ -16,7 +16,7 @@ interface PlanFeature {
   feature_type: 'boolean' | 'quota' | 'metered';
   is_active: boolean;
   is_addon_purchasable: boolean;
-  default_addon_price_cents: number | null;
+  default_addon_price: number | null;
   default_addon_quota: number | null;
   sort_order: number | null;
 }
@@ -27,7 +27,7 @@ interface PlanWithFeature {
   tier: string | null;
   is_included: boolean;
   quota_limit: number | null;
-  price_cents: number | null;
+  price: number | null;
 }
 
 interface ShowProps extends PageProps {
@@ -80,12 +80,12 @@ const Show: React.FC<ShowProps> = ({ auth, feature, plans }) => {
       valueGetter: (value, row) => row.quota_limit || '-'
     },
     {
-      field: 'price_cents',
+      field: 'price',
       headerName: 'Prezzo Addon',
       width: 130,
       valueFormatter: (value, row) => {
-        if (!row.price_cents) return '-';
-        return `€${(row.price_cents / 100).toFixed(2)}`;
+        if (!row.price) return '-';
+        return `€${row.price.toFixed(2).replace('.', ',')}`;
       }
     }
   ];
@@ -141,13 +141,13 @@ const Show: React.FC<ShowProps> = ({ auth, feature, plans }) => {
 
                 {feature.is_addon_purchasable && (
                   <>
-                    {feature.default_addon_price_cents && (
+                    {feature.default_addon_price && (
                       <Grid size={6}>
                         <Typography variant="body2" color="text.secondary">
                           Prezzo Addon Default:
                         </Typography>
                         <Typography variant="body1" fontWeight="bold">
-                          €{(feature.default_addon_price_cents / 100).toFixed(2)}
+                          €{feature.default_addon_price.toFixed(2).replace('.', ',')}
                         </Typography>
                       </Grid>
                     )}

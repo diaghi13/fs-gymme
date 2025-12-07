@@ -48,7 +48,7 @@ class SubscriptionPlanRequest extends FormRequest
             'features.*.feature_id' => 'required|exists:plan_features,id',
             'features.*.is_included' => 'required|boolean',
             'features.*.quota_limit' => 'nullable|integer|min:0',
-            'features.*.price_cents' => 'nullable|integer|min:0',
+            'features.*.price' => 'nullable|numeric|min:0',
         ];
     }
 

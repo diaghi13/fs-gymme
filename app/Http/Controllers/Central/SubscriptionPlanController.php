@@ -52,8 +52,28 @@ class SubscriptionPlanController extends Controller
      */
     public function show(SubscriptionPlan $subscriptionPlan)
     {
+        // Load features with pivot data
+        $planFeatures = $subscriptionPlan->features()
+            ->withPivot(['is_included', 'quota_limit', 'price'])
+            ->orderBy('sort_order')
+            ->orderBy('display_name')
+            ->get()
+            ->map(fn ($feature) => [
+                'id' => $feature->id,
+                'name' => $feature->name,
+                'display_name' => $feature->display_name,
+                'description' => $feature->description,
+                'feature_type' => $feature->feature_type->value,
+                'is_included' => $feature->pivot->is_included,
+                'quota_limit' => $feature->pivot->quota_limit,
+                'price' => $feature->pivot->price,
+            ]);
+
         return Inertia::render('central/subscription-plans/show', [
-            'subscriptionPlan' => $subscriptionPlan,
+            'subscriptionPlan' => array_merge($subscriptionPlan->toArray(), [
+                'tier' => $subscriptionPlan->tier?->value,
+            ]),
+            'planFeatures' => $planFeatures,
         ]);
     }
 
@@ -64,7 +84,7 @@ class SubscriptionPlanController extends Controller
     {
         // Load features with pivot data
         $planFeatures = $subscriptionPlan->features()
-            ->withPivot(['is_included', 'quota_limit', 'price_cents'])
+            ->withPivot(['is_included', 'quota_limit', 'price'])
             ->get()
             ->map(fn ($feature) => [
                 'id' => $feature->id,
@@ -73,7 +93,7 @@ class SubscriptionPlanController extends Controller
                 'feature_type' => $feature->feature_type->value,
                 'is_included' => $feature->pivot->is_included,
                 'quota_limit' => $feature->pivot->quota_limit,
-                'price_cents' => $feature->pivot->price_cents,
+                'price' => $feature->pivot->price,
             ]);
 
         // Get all available features
@@ -87,7 +107,7 @@ class SubscriptionPlanController extends Controller
                 'display_name' => $feature->display_name,
                 'feature_type' => $feature->feature_type->value,
                 'is_addon_purchasable' => $feature->is_addon_purchasable,
-                'default_addon_price_cents' => $feature->default_addon_price_cents,
+                'default_addon_price' => $feature->default_addon_price,
                 'default_addon_quota' => $feature->default_addon_quota,
             ]);
 
@@ -123,7 +143,7 @@ class SubscriptionPlanController extends Controller
                 $syncData[$feature['feature_id']] = [
                     'is_included' => $feature['is_included'],
                     'quota_limit' => $feature['quota_limit'] ?? null,
-                    'price_cents' => $feature['price_cents'] ?? null,
+                    'price' => $feature['price'] ?? null,
                 ];
             }
             $subscriptionPlan->features()->sync($syncData);

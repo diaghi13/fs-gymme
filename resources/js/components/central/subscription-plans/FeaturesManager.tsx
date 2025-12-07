@@ -35,7 +35,7 @@ interface PlanFeature {
   display_name: string;
   feature_type: 'boolean' | 'quota' | 'metered';
   is_addon_purchasable: boolean;
-  default_addon_price_cents: number | null;
+  default_addon_price: number | null;
   default_addon_quota: number | null;
 }
 
@@ -43,7 +43,7 @@ interface AttachedFeature {
   feature_id: number;
   is_included: boolean;
   quota_limit: number | null;
-  price_cents: number | null;
+  price: number | null;
 }
 
 interface FormValues {
@@ -60,7 +60,7 @@ interface FeaturesManagerProps {
     feature_type: string;
     is_included: boolean;
     quota_limit: number | null;
-    price_cents: number | null;
+    price: number | null;
   }>;
 }
 
@@ -72,7 +72,7 @@ const FeaturesManager: React.FC<FeaturesManagerProps> = ({ availableFeatures, cu
   const [formData, setFormData] = useState({
     is_included: true,
     quota_limit: 0,
-    price_cents: 0,
+    price: 0,
   });
 
   // Initialize features array if not present
@@ -82,7 +82,7 @@ const FeaturesManager: React.FC<FeaturesManagerProps> = ({ availableFeatures, cu
         feature_id: f.id,
         is_included: f.is_included,
         quota_limit: f.quota_limit,
-        price_cents: f.price_cents,
+        price: f.price,
       }));
       setFieldValue('features', initialFeatures);
     }
@@ -99,7 +99,7 @@ const FeaturesManager: React.FC<FeaturesManagerProps> = ({ availableFeatures, cu
       setFormData({
         is_included: existing.is_included,
         quota_limit: existing.quota_limit || 0,
-        price_cents: existing.price_cents || 0,
+        price: existing.price || 0,
       });
     } else if (feature) {
       // Adding new
@@ -108,7 +108,7 @@ const FeaturesManager: React.FC<FeaturesManagerProps> = ({ availableFeatures, cu
       setFormData({
         is_included: true,
         quota_limit: feature.default_addon_quota || 0,
-        price_cents: feature.default_addon_price_cents || 0,
+        price: feature.default_addon_price || 0,
       });
     }
     setDialogOpen(true);
@@ -127,7 +127,7 @@ const FeaturesManager: React.FC<FeaturesManagerProps> = ({ availableFeatures, cu
       feature_id: selectedFeature.id,
       is_included: formData.is_included,
       quota_limit: formData.quota_limit || null,
-      price_cents: formData.price_cents || null,
+      price: formData.price || null,
     };
 
     if (editingIndex !== null) {
@@ -215,8 +215,8 @@ const FeaturesManager: React.FC<FeaturesManagerProps> = ({ availableFeatures, cu
                       {attachedFeature.quota_limit || '-'}
                     </TableCell>
                     <TableCell align="right">
-                      {attachedFeature.price_cents
-                        ? `€${(attachedFeature.price_cents / 100).toFixed(2)}`
+                      {attachedFeature.price
+                        ? `€${attachedFeature.price.toFixed(2).replace('.', ',')}`
                         : '-'}
                     </TableCell>
                     <TableCell align="right">
@@ -264,7 +264,7 @@ const FeaturesManager: React.FC<FeaturesManagerProps> = ({ availableFeatures, cu
                         setFormData({
                           is_included: true,
                           quota_limit: feature.default_addon_quota || 0,
-                          price_cents: feature.default_addon_price_cents || 0,
+                          price: feature.default_addon_price || 0,
                         });
                       }}
                       fullWidth
@@ -319,10 +319,10 @@ const FeaturesManager: React.FC<FeaturesManagerProps> = ({ availableFeatures, cu
                       prefix="€"
                       decimalScale={2}
                       fixedDecimalScale
-                      value={formData.price_cents ? (formData.price_cents / 100) : 0}
+                      value={formData.price || 0}
                       onValueChange={(values) => {
                         const euros = values.floatValue || 0;
-                        setFormData({ ...formData, price_cents: Math.round(euros * 100) });
+                        setFormData({ ...formData, price: euros });
                       }}
                       helperText="Prezzo in euro"
                     />

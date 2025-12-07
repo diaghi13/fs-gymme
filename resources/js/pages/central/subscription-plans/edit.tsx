@@ -14,7 +14,7 @@ interface PlanFeature {
   display_name: string;
   feature_type: 'boolean' | 'quota' | 'metered';
   is_addon_purchasable: boolean;
-  default_addon_price_cents: number | null;
+  default_addon_price: number | null;
   default_addon_quota: number | null;
 }
 
@@ -25,7 +25,7 @@ interface AttachedFeature {
   feature_type: string;
   is_included: boolean;
   quota_limit: number | null;
-  price_cents: number | null;
+  price: number | null;
 }
 
 interface EditProps extends PageProps {
@@ -42,7 +42,7 @@ const Edit: React.FC<EditProps> = ({ auth, subscriptionPlan, availableFeatures, 
       slug: subscriptionPlan.slug,
       description: subscriptionPlan.description,
       // Converti centesimi in euro per MoneyTextField
-      price: subscriptionPlan.price ? (subscriptionPlan.price / 100).toString() : '0',
+      price: subscriptionPlan.price ? subscriptionPlan.price : '0',
       currency: subscriptionPlan.currency,
       interval: subscriptionPlan.interval,
       trial_days: subscriptionPlan.trial_days ?? 0,
@@ -55,7 +55,7 @@ const Edit: React.FC<EditProps> = ({ auth, subscriptionPlan, availableFeatures, 
         feature_id: f.id,
         is_included: f.is_included,
         quota_limit: f.quota_limit,
-        price_cents: f.price_cents,
+        price: f.price,
       })),
     },
     onSubmit: (values, { setSubmitting }) => {

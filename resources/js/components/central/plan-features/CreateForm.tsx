@@ -15,7 +15,7 @@ interface PlanFeatureFormValues {
   feature_type: 'boolean' | 'quota' | 'metered';
   is_active: boolean;
   is_addon_purchasable: boolean;
-  default_addon_price_cents: number;
+  default_addon_price: number;
   default_addon_quota: number;
   sort_order: number;
 }
@@ -77,7 +77,7 @@ const CreateForm = () => {
           <>
             <Grid size={4}>
               <MoneyTextField
-                name="default_addon_price_cents"
+                name="default_addon_price"
                 label="Prezzo Addon Default"
                 helperText="Prezzo in euro"
               />
