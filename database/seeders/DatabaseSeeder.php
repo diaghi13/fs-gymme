@@ -20,7 +20,8 @@ class DatabaseSeeder extends Seeder
         if (app()->environment('production')) {
             $this->call([
                 CentralRolesAndPermissionsSeeder::class,
-                CentralUserSeeder::class
+                CentralUserSeeder::class,
+                SubscriptionPlanWithFeaturesSeeder::class,
             ]);
         } else {
             $user = CentralUser::create([

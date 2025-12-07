@@ -27,7 +27,7 @@ class SubscriptionPlanWithFeaturesSeeder extends Seeder
                 'name' => 'Base',
                 'tier' => SubscriptionPlanTier::Base->value,
                 'description' => "Piano ideale per piccole palestre e centri fitness che stanno iniziando.\n\nInclude le funzionalità essenziali per gestire clienti, abbonamenti e vendite.",
-                'price' => 4900, // €49/mese (in centesimi)
+                'price' => 49, // MoneyCast gestisce i centesimi, quindi 49 = €0.49
                 'currency' => 'EUR',
                 'interval' => 'monthly',
                 'trial_days' => 14,
@@ -84,7 +84,7 @@ class SubscriptionPlanWithFeaturesSeeder extends Seeder
                 'name' => 'Gold',
                 'tier' => SubscriptionPlanTier::Gold->value,
                 'description' => "Piano professionale per centri fitness di medie dimensioni.\n\nInclude fatturazione elettronica, report avanzati e supporto per più sedi.",
-                'price' => 9900, // €99/mese (in centesimi)
+                'price' => 99, // MoneyCast gestisce i centesimi, quindi 99 = €99.99
                 'currency' => 'EUR',
                 'interval' => 'monthly',
                 'trial_days' => 21, // Piano Gold ha 21 giorni di trial
@@ -115,7 +115,7 @@ class SubscriptionPlanWithFeaturesSeeder extends Seeder
             $features['electronic_invoicing']->id => [
                 'is_included' => true, // INCLUSO!
                 'quota_limit' => 200, // 200 fatture/mese incluse
-                'price_cents' => 1000, // €10 per pacchetti extra (+100 fatture)
+                'price_cents' => 10.00, // €10 per pacchetti extra (+100 fatture)
             ],
             $features['advanced_reporting']->id => [
                 'is_included' => true, // INCLUSO!
@@ -130,7 +130,7 @@ class SubscriptionPlanWithFeaturesSeeder extends Seeder
             $features['custom_branding']->id => [
                 'is_included' => false,
                 'quota_limit' => null,
-                'price_cents' => 1000, // €10/mese
+                'price_cents' => 10.00, // €10/mese
             ],
             $features['priority_support']->id => [
                 'is_included' => false,
@@ -146,7 +146,7 @@ class SubscriptionPlanWithFeaturesSeeder extends Seeder
                 'name' => 'Platinum',
                 'tier' => SubscriptionPlanTier::Platinum->value,
                 'description' => "Piano enterprise per grandi catene e centri fitness.\n\nTutto incluso, senza limiti, con supporto prioritario dedicato.",
-                'price' => 19900, // €199/mese (in centesimi)
+                'price' => 199.00, // €199/mese (in centesimi)
                 'currency' => 'EUR',
                 'interval' => 'monthly',
                 'trial_days' => 30, // Piano Platinum ha 30 giorni di trial
