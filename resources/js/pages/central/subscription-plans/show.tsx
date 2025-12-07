@@ -46,6 +46,7 @@ interface SubscriptionPlan {
   trial_days: number;
   tier: string | null;
   is_active: boolean;
+  stripe_product_id: string | null;
   stripe_price_id: string | null;
   sort_order: number | null;
 }
@@ -210,19 +211,31 @@ const Show: React.FC<ShowProps> = ({ auth, subscriptionPlan, planFeatures }) => 
                   />
                 </Grid>
 
-                {subscriptionPlan.stripe_price_id && (
+                {(subscriptionPlan.stripe_product_id || subscriptionPlan.stripe_price_id) && (
                   <>
                     <Grid size={12}>
                       <Divider />
                     </Grid>
-                    <Grid size={12}>
-                      <Typography variant="body2" color="text.secondary">
-                        Stripe Price ID
-                      </Typography>
-                      <Typography variant="body2" fontFamily="monospace" sx={{ wordBreak: 'break-all' }}>
-                        {subscriptionPlan.stripe_price_id}
-                      </Typography>
-                    </Grid>
+                    {subscriptionPlan.stripe_product_id && (
+                      <Grid size={12}>
+                        <Typography variant="body2" color="text.secondary">
+                          Stripe Product ID
+                        </Typography>
+                        <Typography variant="body2" fontFamily="monospace" sx={{ wordBreak: 'break-all' }}>
+                          {subscriptionPlan.stripe_product_id}
+                        </Typography>
+                      </Grid>
+                    )}
+                    {subscriptionPlan.stripe_price_id && (
+                      <Grid size={12}>
+                        <Typography variant="body2" color="text.secondary">
+                          Stripe Price ID
+                        </Typography>
+                        <Typography variant="body2" fontFamily="monospace" sx={{ wordBreak: 'break-all' }}>
+                          {subscriptionPlan.stripe_price_id}
+                        </Typography>
+                      </Grid>
+                    )}
                   </>
                 )}
               </Grid>

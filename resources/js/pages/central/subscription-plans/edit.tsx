@@ -50,6 +50,7 @@ const Edit: React.FC<EditProps> = ({ auth, subscriptionPlan, availableFeatures, 
       is_trial_plan: subscriptionPlan.is_trial_plan ?? false,
       is_active: subscriptionPlan.is_active ?? true,
       sort_order: subscriptionPlan.sort_order ?? 0,
+      stripe_product_id: subscriptionPlan.stripe_product_id ?? '',
       stripe_price_id: subscriptionPlan.stripe_price_id ?? '',
       features: planFeatures.map(f => ({
         feature_id: f.id,

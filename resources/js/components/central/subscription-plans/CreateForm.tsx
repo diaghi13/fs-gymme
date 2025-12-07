@@ -85,12 +85,18 @@ const CreateForm = () => {
         {/* Integration */}
         <Grid size={6}>
           <TextField
+            name="stripe_product_id"
+            label="Stripe Product ID"
+            helperText="Es: prod_1234567890"
+          />
+        </Grid>
+        <Grid size={6}>
+          <TextField
             name="stripe_price_id"
             label="Stripe Price ID"
             helperText="Es: price_1234567890"
           />
         </Grid>
-        <Grid size={6} />
 
         {/* Switches */}
         <Grid size={12}>

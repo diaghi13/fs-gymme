@@ -33,7 +33,7 @@ class SubscriptionPlanRequest extends FormRequest
                 \Illuminate\Validation\Rule::unique('subscription_plans')->ignore($subscriptionPlanId),
             ],
             'description' => 'nullable|string|max:1000',
-            'price' => 'required|integer|min:0', // Store as cents
+            'price' => 'required|numeric|min:0', // MoneyCast converts to cents
             'currency' => 'required|string|max:10',
             'interval' => 'required|string|in:monthly,yearly,weekly,daily',
             'trial_days' => 'nullable|integer|min:0|max:365',
@@ -41,6 +41,7 @@ class SubscriptionPlanRequest extends FormRequest
             'is_trial_plan' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
+            'stripe_product_id' => 'nullable|string|max:255',
             'stripe_price_id' => 'nullable|string|max:255',
 
             // Features
@@ -81,7 +82,7 @@ class SubscriptionPlanRequest extends FormRequest
         return [
             'slug.regex' => 'Lo slug può contenere solo lettere minuscole, numeri e trattini.',
             'slug.unique' => 'Questo slug è già utilizzato.',
-            'price.integer' => 'Il prezzo deve essere un numero intero (in centesimi).',
+            'price.numeric' => 'Il prezzo deve essere un numero valido.',
             'trial_days.max' => 'I giorni di prova non possono superare 365.',
             'tier.in' => 'Il livello deve essere: base, gold o platinum.',
             'interval.in' => 'L\'intervallo deve essere: monthly, yearly, weekly o daily.',

@@ -21,6 +21,7 @@ const Create: React.FC<PageProps> = ({ auth }) => {
       is_trial_plan: false,
       is_active: true,
       sort_order: 0,
+      stripe_product_id: '',
       stripe_price_id: '',
     },
     onSubmit: (values) => {
