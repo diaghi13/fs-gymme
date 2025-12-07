@@ -4,6 +4,11 @@ namespace App\Jobs\Tenant;
 
 use App\Models\CentralUser;
 use App\Models\Tenant;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
@@ -19,22 +24,26 @@ use Stancl\Tenancy\Contracts\TenantWithDatabase;
  * - Demo data seeding (if demo tenant)
  * - System configuration seeding
  *
- * NOTE: Does NOT implement ShouldQueue because it runs inside JobPipeline
- * which handles queuing at the pipeline level, not individual job level.
+ * This job implements ShouldQueue like other Stancl jobs (CreateDatabase, MigrateDatabase)
+ * but is executed synchronously by JobPipeline which manages the execution order.
  */
-class InitializeTenantData
+class InitializeTenantData implements ShouldQueue
 {
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
     public function __construct(
         public TenantWithDatabase $tenant
     ) {}
 
     /**
      * Execute the tenant initialization.
+     *
+     * NOTE: Do NOT call tenancy()->initialize() here as it would create the database
+     * before CreateDatabase job runs. The database is created by CreateDatabase and
+     * migrated by MigrateDatabase jobs that run before this one in the JobPipeline.
      */
     public function handle(): void
     {
-        tenancy()->initialize($this->tenant);
-
         try {
             Log::info('[InitializeTenantData:46] Initializing tenant data', [
                 'tenant_id' => $this->tenant->id,
