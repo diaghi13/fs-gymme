@@ -33,13 +33,29 @@ const mediaQuery = () => {
     return window.matchMedia('(prefers-color-scheme: dark)');
 };
 
+const getStoredAppearance = (): Appearance | null => {
+    try {
+        const stored = localStorage.getItem('appearance');
+        if (!stored) {
+            return null;
+        }
+        // Handle both old format (raw string) and potential JSON format
+        const value = stored.startsWith('"') ? JSON.parse(stored) : stored;
+        return ['light', 'dark', 'system'].includes(value) ? (value as Appearance) : null;
+    } catch (error) {
+        console.warn('Error reading appearance from localStorage, resetting to system', error);
+        localStorage.removeItem('appearance');
+        return null;
+    }
+};
+
 const handleSystemThemeChange = () => {
-    const currentAppearance = localStorage.getItem('appearance') as Appearance;
+    const currentAppearance = getStoredAppearance();
     applyTheme(currentAppearance || 'system');
 };
 
 export function initializeTheme() {
-    const savedAppearance = (localStorage.getItem('appearance') as Appearance) || 'system';
+    const savedAppearance = getStoredAppearance() || 'system';
 
     applyTheme(savedAppearance);
 
@@ -63,7 +79,7 @@ export function useAppearance() {
     }, []);
 
     useEffect(() => {
-        const savedAppearance = localStorage.getItem('appearance') as Appearance | null;
+        const savedAppearance = getStoredAppearance();
         updateAppearance(savedAppearance || 'system');
 
         return () => mediaQuery()?.removeEventListener('change', handleSystemThemeChange);

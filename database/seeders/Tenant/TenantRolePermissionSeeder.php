@@ -69,6 +69,12 @@ class TenantRolePermissionSeeder extends Seeder
 
             // Check-in
             'checkin.perform',
+
+            // Accounting (full access)
+            'accounting.view_journal',
+            'accounting.view_receivables',
+            'accounting.manage_payments',
+            'accounting.export',
         ]);
 
         // Back Office: Financial & administrative focus
@@ -94,6 +100,11 @@ class TenantRolePermissionSeeder extends Seeder
             'settings.view',
             'settings.manage_billing',
             'settings.manage_fiscal',
+
+            // Accounting (view and export only, no manage)
+            'accounting.view_journal',
+            'accounting.view_receivables',
+            'accounting.export',
         ]);
 
         // Staff: No default permissions (manual assignment)
@@ -131,8 +142,8 @@ class TenantRolePermissionSeeder extends Seeder
 
         $this->command->info('✅ Assigned permissions to 7 tenant roles successfully.');
         $this->command->info('   - owner: '.Permission::count().' permissions (all)');
-        $this->command->info('   - manager: 29 permissions');
-        $this->command->info('   - back_office: 13 permissions');
+        $this->command->info('   - manager: 33 permissions (including accounting)');
+        $this->command->info('   - back_office: 16 permissions (including accounting view)');
         $this->command->info('   - staff: 0 permissions (manual assignment)');
         $this->command->info('   - trainer: 4 permissions');
         $this->command->info('   - receptionist: 3 permissions');

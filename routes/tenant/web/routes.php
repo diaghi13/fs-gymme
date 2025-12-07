@@ -133,6 +133,27 @@ Route::middleware([])->group(function () {
     // Structure Management
     Route::get('structures/switch/{structure}', [\App\Http\Controllers\Tenant\StructureController::class, 'switch'])
         ->name('app.structures.switch');
+
+    // Accounting routes
+    Route::prefix('accounting')->name('app.accounting.')->group(function () {
+        Route::get('journal-entries', [\App\Http\Controllers\Application\AccountingController::class, 'journalEntries'])
+            ->name('journal-entries');
+
+        Route::get('journal-entries/export', [\App\Http\Controllers\Application\AccountingController::class, 'exportJournalEntries'])
+            ->name('journal-entries.export');
+
+        Route::get('pending-payments', [\App\Http\Controllers\Application\AccountingController::class, 'pendingPayments'])
+            ->name('pending-payments');
+
+        Route::get('pending-payments/export', [\App\Http\Controllers\Application\AccountingController::class, 'exportPendingPayments'])
+            ->name('pending-payments.export');
+
+        Route::patch('payments/{payment}/mark-as-paid', [\App\Http\Controllers\Application\AccountingController::class, 'markAsPaid'])
+            ->name('payments.mark-as-paid');
+
+        Route::post('payments/{payment}/send-reminder', [\App\Http\Controllers\Application\AccountingController::class, 'sendReminder'])
+            ->name('payments.send-reminder');
+    });
 });
 
 require __DIR__.'/products.php';

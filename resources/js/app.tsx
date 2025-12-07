@@ -42,17 +42,14 @@ createInertiaApp({
     root.render(
       <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={it}>
         <OnlineUsersProvider>
-
           <ToggleColorMode>
             <Elements stripe={stripePromise}>
               <App {...props} />
             </Elements>
           </ToggleColorMode>
-
         </OnlineUsersProvider>
       </LocalizationProvider>
-    )
-    ;
+    );
   },
   progress: {
     color: '#4B5563'

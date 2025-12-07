@@ -37,6 +37,11 @@ class Payment extends Model
         return $this->belongsTo(\App\Models\Support\PaymentMethod::class);
     }
 
+    public function sale()
+    {
+        return $this->belongsTo(Sale::class);
+    }
+
     public function getStatusAttribute()
     {
         if ($this->payed_at) {

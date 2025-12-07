@@ -16,6 +16,12 @@ class TenantPermissionSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
+            // Accounting permissions
+            'accounting.view_journal',
+            'accounting.view_receivables',
+            'accounting.manage_payments',
+            'accounting.export',
+
             // Sales & Finance
             'sales.view',
             'sales.create',

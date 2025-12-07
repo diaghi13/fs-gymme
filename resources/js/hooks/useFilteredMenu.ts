@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { MenuItem } from '@/layouts';
-import { useAuthorization } from '@/contexts/AuthorizationContext';
+import { useAuthorization } from '@/hooks/useAuthorization';
 
 /**
  * useFilteredMenu - Filters menu items based on user permissions, roles, and tenant features
