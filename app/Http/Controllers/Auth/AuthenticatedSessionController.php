@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\CentralRoleType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\CentralUser;
@@ -43,7 +44,7 @@ class AuthenticatedSessionController extends Controller
                 ->withErrors(['email' => __('auth.inactive')]);
         }
 
-        if (Auth::user()->hasRole('super-admin')) {
+        if (Auth::user()->hasRole(CentralRoleType::SUPER_ADMIN->value)) {
             // If the user is a super admin, redirect to the central dashboard
             return redirect()->intended(route('central.dashboard', absolute: false));
         }
