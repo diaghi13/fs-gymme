@@ -23,6 +23,7 @@ class SubscriptionPlan extends Model
         'is_trial_plan',
         'sort_order',
         'is_active',
+        'stripe_product_id',
         'stripe_price_id',
     ];
 
