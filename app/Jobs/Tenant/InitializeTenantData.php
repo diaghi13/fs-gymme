@@ -23,10 +23,13 @@ use Stancl\Tenancy\Contracts\TenantWithDatabase;
  * - Role assignment
  * - Demo data seeding (if demo tenant)
  * - System configuration seeding
+ *
+ * NOTE: Does NOT implement ShouldQueue because it runs inside JobPipeline
+ * which handles queuing at the pipeline level, not individual job level.
  */
-class InitializeTenantData implements ShouldQueue
+class InitializeTenantData
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, SerializesModels;
 
     public function __construct(
         public TenantWithDatabase $tenant

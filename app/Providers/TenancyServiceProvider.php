@@ -39,7 +39,7 @@ class TenancyServiceProvider extends ServiceProvider
                     info('TenantCreated event fired for tenant ID: '.$event->tenant->id);
 
                     return $event->tenant;
-                })->shouldBeQueued(true), // Runs synchronously for now - change to true when ready for async provisioning
+                })->shouldBeQueued(true), // Queued for async provisioning - JobPipeline guarantees execution order
             ],
             Events\SavingTenant::class => [],
             Events\TenantSaved::class => [],
