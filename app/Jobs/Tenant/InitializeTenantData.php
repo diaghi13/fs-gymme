@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 
+
 /**
  * Initialize tenant data after database creation.
  *
