@@ -120,12 +120,8 @@ class HandleInertiaRequests extends Middleware
                     return $userData;
                 } : null,
             ],
-            // TEMPORARY: Testing if Ziggy is causing 502 errors
-            // 'ziggy' => fn (): array => [
-            //     ...(new Ziggy)->toArray(),
-            //     'location' => $request->url(),
-            // ],
             'ziggy' => fn (): array => [
+                ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
