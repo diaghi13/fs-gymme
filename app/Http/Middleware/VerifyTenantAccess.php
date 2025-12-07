@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\CentralRoleType;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +34,7 @@ class VerifyTenantAccess
         }
 
         // Super-admin has access to all tenants
-        if ($user->hasRole('super-admin')) {
+        if ($user->hasRole(CentralRoleType::SUPER_ADMIN->value)) {
             return $next($request);
         }
 
