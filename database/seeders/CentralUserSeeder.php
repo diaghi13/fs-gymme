@@ -20,7 +20,7 @@ class CentralUserSeeder extends Seeder
             'email' => 'davide.d.donghi@gmail.com',
             'password' => bcrypt('Imbues0868$'),
             'phone' => '+393929579862',
-            'birth_date' => '1991-28-03',
+            'birth_date' => '1991-03-28',
             'tax_code' => 'DNGDVD91C28F205S',
             'is_active' => true,
             'gdpr_consent' => true,
