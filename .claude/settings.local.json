@@ -30,7 +30,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(npx eslint:*)",
       "WebFetch(domain:gymme-v2.ddns.net)",
-      "mcp__laravel-boost__application-info"
+      "mcp__laravel-boost__application-info",
+      "WebFetch(domain:docs.stripe.com)"
     ]
   },
   "enableAllProjectMcpServers": true,

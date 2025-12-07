@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register Observers
         \App\Models\Customer\Customer::observe(\App\Observers\Customer\CustomerObserver::class);
+        \App\Models\SubscriptionPlan::observe(\App\Observers\SubscriptionPlanObserver::class);
 
         // Register Event Listeners
         \Illuminate\Support\Facades\Event::listen(
