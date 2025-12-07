@@ -194,6 +194,7 @@ export interface Tenant {
 }
 
 export interface SubscriptionPlan {
+  tier: string|number;
   id: number;
   name: string;
   slug: string;

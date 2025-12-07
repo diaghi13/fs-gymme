@@ -6,9 +6,9 @@ import { DataGrid, GridActionsCellItem, GridColDef } from '@mui/x-data-grid';
 
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from '@mui/icons-material/Edit';
-import AppsIcon from '@mui/icons-material/Apps';
 import { router } from '@inertiajs/react';
 import MyCard from '@/components/ui/MyCard';
+import { Str } from '@/support/Str';
 
 const columns: GridColDef<SubscriptionPlan>[] = [
   { field: 'id', headerName: 'ID', width: 70 },
@@ -39,7 +39,7 @@ const columns: GridColDef<SubscriptionPlan>[] = [
     valueFormatter: (value, row) => {
       if (row.price === 0) return 'Gratuito';
       // Convert cents to euros
-      return `€${(row.price / 100).toFixed(2)}`;
+      return Str.EURO(row.price);
     },
     width: 120
   },
