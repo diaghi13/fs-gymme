@@ -54,7 +54,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware([
     'auth',
     'verified',
-    'role:super-admin',
+    'role:super_admin',
     \App\Http\Middleware\ForgetTenantMiddleware::class,
 ])->group(function () {
     Route::get('dashboard', \App\Http\Controllers\Central\Dashboard::class)
