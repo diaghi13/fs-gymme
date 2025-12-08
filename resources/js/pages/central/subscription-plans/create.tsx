@@ -18,6 +18,7 @@ const Create: React.FC<PageProps> = ({ auth }) => {
       interval: 'monthly',
       trial_days: 0,
       tier: '',
+      display_group: '',
       is_trial_plan: false,
       is_active: true,
       sort_order: 0,

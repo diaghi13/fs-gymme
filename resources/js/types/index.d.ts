@@ -206,6 +206,7 @@ export interface SubscriptionPlan {
   interval: string; // e.g., 'month', 'year'
   trial_days: number;
   is_active: boolean;
+  display_group: string | null;
   stripe_product_id: string | null;
   stripe_price_id: string | null;
 }

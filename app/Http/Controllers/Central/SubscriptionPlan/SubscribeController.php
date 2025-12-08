@@ -18,6 +18,7 @@ class SubscribeController extends Controller
         $request->validate([
             'payment_method' => 'required|string',
             'plan_id' => 'required|string',
+            'auto_renew' => 'boolean',
         ]);
 
         $plan = tenancy()->central(function () use ($request) {
@@ -45,7 +46,8 @@ class SubscribeController extends Controller
         $result = $this->subscriptionService->subscribe(
             $tenant,
             $plan,
-            $request->payment_method
+            $request->payment_method,
+            $request->input('auto_renew', true)
         );
 
         $status = $result['success'] ? 200 : ($result['requires_action'] ?? false ? 200 : 500);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\CentralRoleType;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,6 +22,11 @@ class SwitchToTenantUser
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->user()->hasRole(CentralRoleType::SUPER_ADMIN->value)) {
+            // Super Admins retain their central user context across tenants
+            return $next($request);
+        }
+
         // If tenancy is initialized and user is authenticated
         if (tenancy()->initialized && $request->user()) {
             $centralUser = $request->user();

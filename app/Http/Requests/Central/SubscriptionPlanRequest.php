@@ -38,6 +38,7 @@ class SubscriptionPlanRequest extends FormRequest
             'interval' => 'required|string|in:monthly,yearly,weekly,daily',
             'trial_days' => 'nullable|integer|min:0|max:365',
             'tier' => 'nullable|string|in:base,gold,platinum',
+            'display_group' => 'nullable|string|max:50',
             'is_trial_plan' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
@@ -67,9 +68,11 @@ class SubscriptionPlanRequest extends FormRequest
             'interval' => 'intervallo',
             'trial_days' => 'giorni di prova',
             'tier' => 'livello',
+            'display_group' => 'gruppo di visualizzazione',
             'is_trial_plan' => 'piano di prova',
             'is_active' => 'attivo',
             'sort_order' => 'ordine',
+            'stripe_product_id' => 'ID prodotto Stripe',
             'stripe_price_id' => 'ID prezzo Stripe',
         ];
     }

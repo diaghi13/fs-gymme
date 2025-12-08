@@ -12,7 +12,7 @@ class SubscriptionManagementService
     /**
      * Subscribe tenant to a new plan.
      */
-    public function subscribe(Tenant $tenant, SubscriptionPlan $plan, string $paymentMethod, ?int $trialDays = null): array
+    public function subscribe(Tenant $tenant, SubscriptionPlan $plan, string $paymentMethod, bool $autoRenew = true, ?int $trialDays = null): array
     {
         try {
             // Deactive any existing active subscriptions
@@ -28,6 +28,11 @@ class SubscriptionManagementService
 
             $stripeSubscription = $subscription->create($paymentMethod);
 
+            // If auto-renew is disabled, cancel at period end immediately
+            if (! $autoRenew) {
+                $tenant->subscription('default')->cancel();
+            }
+
             // Sync with our pivot table
             $this->syncSubscriptionToPivot($tenant, $plan, $stripeSubscription);
 
@@ -35,6 +40,7 @@ class SubscriptionManagementService
                 'success' => true,
                 'message' => 'Subscription created successfully.',
                 'subscription' => $stripeSubscription,
+                'auto_renew' => $autoRenew,
             ];
 
         } catch (IncompletePayment $exception) {

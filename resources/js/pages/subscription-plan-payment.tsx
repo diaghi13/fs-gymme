@@ -53,13 +53,15 @@ const SubscriptionPlanPayment: React.FC<SubscriptionPlanPaymentProps> = ({ subsc
     cardHolder: string;
     expiryDate: string;
     cvv: string;
+    auto_renew: boolean;
   }> = {
     initialValues: {
       paymentMethod: 'creditCard',
       cardNumber: '',
       cardHolder: '',
       expiryDate: '',
-      cvv: ''
+      cvv: '',
+      auto_renew: true,
     },
     onSubmit: async (values) => {
       if (activeStep !== steps.length - 1) {
@@ -90,6 +92,7 @@ const SubscriptionPlanPayment: React.FC<SubscriptionPlanPaymentProps> = ({ subsc
         {
           payment_method: paymentMethod.id,
           plan_id: subscriptionPlan.stripe_price_id,
+          auto_renew: values.auto_renew,
         }
       );
 

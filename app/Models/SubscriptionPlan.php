@@ -20,6 +20,7 @@ class SubscriptionPlan extends Model
         'interval',
         'trial_days',
         'tier',
+        'display_group',
         'is_trial_plan',
         'sort_order',
         'is_active',

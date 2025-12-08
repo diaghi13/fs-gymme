@@ -13,8 +13,10 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
+  FormControlLabel,
   Grid,
   Stack,
+  Switch,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -62,9 +64,13 @@ export default function SubscriptionStatus({
   const tenant = subscriptionTenant;
   const [loading, setLoading] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [renewalLoading, setRenewalLoading] = useState(false);
 
   // Demo plans shouldn't show change plan dialog - they should redirect to payment page
   const isDemo = activeSubscription?.is_trial_plan;
+
+  // Auto-renewal is active when subscription is NOT canceled (ends_at is null)
+  const isAutoRenewEnabled = cashierSubscription?.recurring && !cashierSubscription?.canceled;
 
   const handleCancelSubscription = async () => {
     setLoading(true);
@@ -101,6 +107,29 @@ export default function SubscriptionStatus({
 
   const handleUpgradeToParied = () => {
     router.get(route('app.subscription-plans.index', { tenant: tenant.id }));
+  };
+
+  const handleToggleAutoRenewal = async (enabled: boolean) => {
+    setRenewalLoading(true);
+    try {
+      const endpoint = enabled
+        ? route('app.subscription.renewal.enable', { tenant: tenant.id })
+        : route('app.subscription.renewal.disable', { tenant: tenant.id });
+
+      const response = await axios.post(endpoint);
+
+      // Show success message from backend
+      if (response.data.success) {
+        alert(response.data.message);
+      }
+
+      router.reload();
+    } catch (error: any) {
+      console.error('Failed to toggle auto-renewal:', error);
+      alert(error.response?.data?.message || 'Errore durante la modifica del rinnovo automatico');
+    } finally {
+      setRenewalLoading(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -217,6 +246,37 @@ export default function SubscriptionStatus({
                           {formatDate(activeSubscription.pivot.ends_at)}
                         </Typography>
                       </Box>
+
+                      {!isDemo && cashierSubscription && (
+                        <>
+                          <Divider />
+
+                          <Box>
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={isAutoRenewEnabled}
+                                  onChange={(e) => handleToggleAutoRenewal(e.target.checked)}
+                                  disabled={renewalLoading}
+                                  color="primary"
+                                />
+                              }
+                              label={
+                                <Stack spacing={0.5}>
+                                  <Typography variant="body1" fontWeight="medium">
+                                    Rinnovo Automatico
+                                  </Typography>
+                                  <Typography variant="caption" color="textSecondary">
+                                    {isAutoRenewEnabled
+                                      ? 'Il tuo abbonamento si rinnoverà automaticamente'
+                                      : 'L\'abbonamento terminerà alla scadenza'}
+                                  </Typography>
+                                </Stack>
+                              }
+                            />
+                          </Box>
+                        </>
+                      )}
 
                       <Divider />
 

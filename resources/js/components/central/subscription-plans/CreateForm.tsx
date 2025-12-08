@@ -72,6 +72,13 @@ const CreateForm = () => {
             ]}
           />
         </Grid>
+        <Grid size={3}>
+          <TextField
+            name="display_group"
+            label="Gruppo Visualizzazione"
+            helperText="Raggruppa varianti dello stesso piano (es: gold)"
+          />
+        </Grid>
         <Grid size={2}>
           <TextField
             name="sort_order"
@@ -80,7 +87,7 @@ const CreateForm = () => {
             helperText="Per ordinamento nella UI"
           />
         </Grid>
-        <Grid size={7} />
+        <Grid size={4} />
 
         {/* Integration */}
         <Grid size={6}>

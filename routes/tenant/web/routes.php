@@ -118,6 +118,12 @@ Route::middleware([])->group(function () {
     Route::get('subscription/status', \App\Http\Controllers\Application\SubscriptionStatusController::class)
         ->name('app.subscription.status');
 
+    // Subscription Renewal Management
+    Route::post('subscription/renewal/disable', [\App\Http\Controllers\Application\SubscriptionRenewalController::class, 'disable'])
+        ->name('app.subscription.renewal.disable');
+    Route::post('subscription/renewal/enable', [\App\Http\Controllers\Application\SubscriptionRenewalController::class, 'enable'])
+        ->name('app.subscription.renewal.enable');
+
     // Subscription Addons Management
     Route::prefix('subscription/addons')->name('app.addons.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Application\TenantAddonController::class, 'index'])
